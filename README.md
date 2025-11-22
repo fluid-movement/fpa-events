@@ -49,15 +49,24 @@ The app will be available at `http://localhost:8788`
 
 ### First Time Setup
 
-The local D1 database is created automatically when you run `bun run dev`. To seed it with test data:
+The local D1 database is created automatically when you run `bun run dev`. 
+
+**To apply your schema to the local database:**
 
 ```bash
-# Apply migrations
+# Method 1: Using Wrangler (if working)
 bunx wrangler d1 migrations apply DB --local
 
-# Or seed with test data
-bunx wrangler d1 execute DB --local --file=scripts/seed-test-data.sql
+# Method 2: Direct SQLite (if wrangler has issues)
+sqlite3 .wrangler/state/v3/d1/miniflare-D1DatabaseObject/*.sqlite < drizzle/0000_classy_pride.sql
+
+# Optional: Seed with test data
+sqlite3 .wrangler/state/v3/d1/miniflare-D1DatabaseObject/*.sqlite < scripts/seed-test-data.sql
 ```
+
+**📖 For detailed setup instructions, see:**
+- [D1 & Drizzle Integration Guide](docs/D1-DRIZZLE-INTEGRATION.md) - Complete explanation of how everything works
+- [Quick Reference](docs/QUICK-REFERENCE.md) - Common commands and workflows
 
 ## Project Structure
 
@@ -159,10 +168,11 @@ bunx wrangler d1 migrations apply DB --remote
 ## Deployment
 
 ### Cloudflare Pages
+### Production
 
-1. **Build the project**
+1. **Create production D1 database** (one-time)
    ```bash
-   bun run build
+   bunx wrangler d1 create fpa-events-production
    ```
 
 2. **Deploy via Dashboard**
@@ -173,16 +183,19 @@ bunx wrangler d1 migrations apply DB --remote
      - Build command: `bun run build`
      - Build output directory: `.svelte-kit/cloudflare`
 
-3. **Configure D1 Binding**
-   - In your Pages project: **Settings** → **Functions**
-   - Add D1 database binding:
-     - Variable name: `DB`
-     - Select your production database
+3. **Configure D1 Binding in Dashboard**
+   - In your Pages project: **Settings** → **Functions** → **D1 Database Bindings**
+   - Click **Add binding**:
+     - Variable name: `DB` (must match wrangler.toml)
+     - D1 database: Select `fpa-events-production`
+   - **Save**
 
-4. **Apply migrations**
+4. **Apply migrations to production**
    ```bash
-   bunx wrangler d1 migrations apply DB --remote
+   bunx wrangler d1 migrations apply fpa-events-production --remote
    ```
+
+**Note:** The `database_id` is NOT in `wrangler.toml` - it's configured per environment through the dashboard binding.
 
 See [docs/SETUP.md](docs/SETUP.md) for detailed deployment instructions.
 
@@ -201,8 +214,10 @@ See [docs/ENV-SETUP.md](docs/ENV-SETUP.md) for details.
 
 ## Documentation
 
+- **[D1-DRIZZLE-INTEGRATION.md](docs/D1-DRIZZLE-INTEGRATION.md)** - How D1 and Drizzle work together ⭐
+- **[QUICK-REFERENCE.md](docs/QUICK-REFERENCE.md)** - Common commands and workflows ⭐
 - [SETUP.md](docs/SETUP.md) - Complete setup guide for local and production
-- [ARCHITECTURE.md](docs/ARCHITECTURE.md) - How Drizzle and D1 work together
+- [ARCHITECTURE.md](docs/ARCHITECTURE.md) - System architecture
 - [DATABASE.md](docs/DATABASE.md) - Database schema and management
 - [REMOTE-FUNCTIONS.md](docs/REMOTE-FUNCTIONS.md) - Using remote functions
 - [ENV-SETUP.md](docs/ENV-SETUP.md) - Environment configuration
@@ -210,27 +225,28 @@ See [docs/ENV-SETUP.md](docs/ENV-SETUP.md) for details.
 
 ## How It Works
 
-### Local Development
+### The Platform Binding System
+
+Cloudflare **injects** the D1 database into your app via `platform.env.DB`:
+
 ```
-bun run dev
-  ↓
-Wrangler Pages Dev (port 8788)
-  ↓
-Vite Dev Server (port 5173)
-  ↓
-D1 Binding → Local SQLite (.wrangler/state/)
+Local Development:
+  wrangler.toml → Wrangler → Auto-creates local SQLite → platform.env.DB → Drizzle
+
+Production:
+  Dashboard Binding → Remote D1 Database → platform.env.DB → Drizzle
 ```
 
-### Production
-```
-Cloudflare Pages/Workers
-  ↓
-Compiled SvelteKit App
-  ↓
-D1 Binding → Cloudflare D1 (configured in dashboard)
-```
+**Your application code is identical in both environments!** The platform provides different database instances:
+- **Local**: Auto-created SQLite file in `.wrangler/state/v3/d1/`
+- **Production**: Remote D1 configured in Cloudflare dashboard
 
-Your application code is **identical** in both environments. The platform provides the database connection.
+**How Drizzle connects:**
+1. Cloudflare provides `platform.env.DB` (D1Database)
+2. `hooks.server.ts` wraps it: `createDb(platform.env.DB)`
+3. You get type-safe queries: `locals.db.select().from(users)`
+
+📖 **[Read the full explanation in D1-DRIZZLE-INTEGRATION.md](docs/D1-DRIZZLE-INTEGRATION.md)**
 
 ## Common Tasks
 

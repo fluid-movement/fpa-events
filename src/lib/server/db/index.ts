@@ -1,11 +1,20 @@
-import { drizzle } from 'drizzle-orm/d1';
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import { drizzle as drizzleLibSql } from 'drizzle-orm/libsql';
+import { drizzle as drizzleD1 } from 'drizzle-orm/d1';
+import { createClient } from '@libsql/client';
 import type { D1Database } from '@cloudflare/workers-types';
 import * as schema from './schema';
 
-export function createDb(d1: D1Database): DrizzleD1Database<typeof schema> {
-	return drizzle(d1, { schema });
+export function getDb(db?: D1Database, databaseUrl?: string) {
+	if (db) {
+		return drizzleD1(db, { schema });
+	}
+
+	if (databaseUrl) {
+		const client = createClient({ url: databaseUrl });
+		return drizzleLibSql(client, { schema });
+	}
+
+	throw new Error('No database configuration found');
 }
 
-// For use in SvelteKit hooks/endpoints
-export type DB = DrizzleD1Database<typeof schema>;
+export type DrizzleClient = ReturnType<typeof getDb>;

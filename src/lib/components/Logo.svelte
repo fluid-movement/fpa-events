@@ -1,10 +1,11 @@
 <script lang="ts">
-    import LogoDark from "$lib/assets/fpa-logo-dark.png";
-    import LogoLight from "$lib/assets/fpa-logo-light.png";
-    
     import { mode } from "mode-watcher";
     
+    const logoDark = '/fpa-logo-dark.png';
+    const logoLight = '/fpa-logo-light.png';
     
+    // todo find out mode during ssr
+    let logo = $derived(mode.current === 'dark' ? logoDark : logoLight);
 </script>
 
-<img src={ mode.current === 'dark' ? LogoDark : LogoLight } alt="FPA Logo" class="w-auto" />
+<img src={ logo } alt="FPA Logo" class="w-auto" />
