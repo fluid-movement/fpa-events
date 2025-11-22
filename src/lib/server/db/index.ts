@@ -1,10 +1,11 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
+import { drizzle } from 'drizzle-orm/d1';
+import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type { D1Database } from '@cloudflare/workers-types';
 import * as schema from './schema';
-import { env } from '$env/dynamic/private';
 
-if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');
+export function createDb(d1: D1Database): DrizzleD1Database<typeof schema> {
+	return drizzle(d1, { schema });
+}
 
-const client = postgres(env.DATABASE_URL);
-
-export const db = drizzle(client, { schema });
+// For use in SvelteKit hooks/endpoints
+export type DB = DrizzleD1Database<typeof schema>;
