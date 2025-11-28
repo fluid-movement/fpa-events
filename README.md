@@ -1,6 +1,6 @@
 # FPA Events
 
-A modern event management application built with SvelteKit 5, Cloudflare D1, and Better Auth.
+A modern event management application built with SvelteKit 5, Turso (libSQL), and Better Auth.
 
 ## Stack
 
@@ -12,9 +12,9 @@ A modern event management application built with SvelteKit 5, Cloudflare D1, and
 - **Lucide Svelte** - Icon library
 
 ### Backend & Database
-- **Cloudflare D1** - Distributed SQLite database
+- **Turso** - Edge-hosted libSQL database (SQLite-compatible)
 - **Drizzle ORM** - Type-safe database toolkit
-- **Cloudflare Pages** - Deployment platform
+- **Cloudflare Workers/Pages** - Deployment platform
 - **Wrangler** - Cloudflare development tool
 
 ### Authentication
@@ -29,6 +29,7 @@ A modern event management application built with SvelteKit 5, Cloudflare D1, and
 
 ### Prerequisites
 - [Bun](https://bun.sh/) installed
+- A [Turso](https://turso.tech/) account and database
 - A Cloudflare account (for deployment)
 
 ### Local Development
@@ -41,32 +42,53 @@ cd fpa-events
 # Install dependencies
 bun install
 
+# Set up environment variables
+cp .env.example .env
+# Edit .env and add your Turso credentials
+
+# Generate and apply database migrations
+bun run db:generate
+bun run db:migrate
+
 # Start development server
 bun run dev
 ```
 
-The app will be available at `http://localhost:8788`
+The app will be available at `http://localhost:5173`
 
 ### First Time Setup
 
-The local D1 database is created automatically when you run `bun run dev`. 
+1. **Create a Turso database:**
+   ```bash
+   # Install Turso CLI
+   curl -sSfL https://get.tur.so/install.sh | bash
+   
+   # Login to Turso
+   turso auth login
+   
+   # Create a new database
+   turso db create fpa-events
+   
+   # Get your database URL
+   turso db show fpa-events --url
+   
+   # Create an auth token
+   turso db tokens create fpa-events
+   ```
 
-**To apply your schema to the local database:**
+2. **Configure environment variables:**
+   Edit `.env` and add your Turso credentials:
+   ```
+   TURSO_DATABASE_URL=libsql://your-database.turso.io
+   TURSO_AUTH_TOKEN=your-auth-token-here
+   BETTER_AUTH_SECRET=your-secret-key
+   BETTER_AUTH_URL=http://localhost:5173
+   ```
 
-```bash
-# Method 1: Using Wrangler (if working)
-bunx wrangler d1 migrations apply DB --local
-
-# Method 2: Direct SQLite (if wrangler has issues)
-sqlite3 .wrangler/state/v3/d1/miniflare-D1DatabaseObject/*.sqlite < drizzle/0000_classy_pride.sql
-
-# Optional: Seed with test data
-sqlite3 .wrangler/state/v3/d1/miniflare-D1DatabaseObject/*.sqlite < scripts/seed-test-data.sql
-```
-
-**📖 For detailed setup instructions, see:**
-- [D1 & Drizzle Integration Guide](docs/D1-DRIZZLE-INTEGRATION.md) - Complete explanation of how everything works
-- [Quick Reference](docs/QUICK-REFERENCE.md) - Common commands and workflows
+3. **Apply migrations:**
+   ```bash
+   bun run db:migrate
+   ```
 
 ## Project Structure
 
@@ -126,56 +148,78 @@ const allEvents = await db.select().from(events);
 
 ```bash
 # Development
-bun run dev              # Start dev server with Wrangler
+bun run dev              # Start dev server
 bun run build            # Build for production
-bun run preview          # Preview production build
+bun run preview          # Preview production build locally
 
 # Database
 bun run db:generate      # Generate migrations from schema
+bun run db:migrate       # Apply migrations to Turso
 bun run db:studio        # Open Drizzle Studio
-bunx wrangler d1 migrations apply DB --local   # Apply migrations locally
-bunx wrangler d1 migrations apply DB --remote  # Apply migrations to production
+bun run db:seed          # Seed database with test data
 
 # Code Quality
 bun run lint             # Lint code
 bun run format           # Format code
 bun run check            # Type check
+
+# Deployment
+bun run deploy           # Deploy to Cloudflare
 ```
 
 ## Database Management
 
-### Local Development
+### Using Drizzle Studio
 ```bash
-# View local database
+# Open visual database browser
 bun run db:studio
-
-# Execute SQL commands
-bunx wrangler d1 execute DB --local --command "SELECT * FROM events"
-
-# Run SQL file
-bunx wrangler d1 execute DB --local --file=script.sql
 ```
 
-### Production
+### Using Turso CLI
 ```bash
-# Execute SQL on production
-bunx wrangler d1 execute DB --remote --command "SELECT * FROM events"
+# Connect to your database shell
+turso db shell fpa-events
 
-# Apply migrations to production
-bunx wrangler d1 migrations apply DB --remote
+# Execute SQL commands
+turso db shell fpa-events "SELECT * FROM events"
+
+# View database info
+turso db show fpa-events
+
+# List all databases
+turso db list
+```
+
+### Migrations
+```bash
+# Generate new migration from schema changes
+bun run db:generate
+
+# Apply migrations
+bun run db:migrate
+
+# View migration status
+turso db shell fpa-events ".schema"
 ```
 
 ## Deployment
 
-### Cloudflare Pages
-### Production
+### Cloudflare Workers/Pages
 
-1. **Create production D1 database** (one-time)
+1. **Set up Cloudflare secrets:**
    ```bash
-   bunx wrangler d1 create fpa-events-production
+   # Add Turso credentials as secrets
+   wrangler secret put TURSO_DATABASE_URL
+   # Paste your database URL when prompted
+   
+   wrangler secret put TURSO_AUTH_TOKEN
+   # Paste your auth token when prompted
+   
+   wrangler secret put BETTER_AUTH_SECRET
+   # Paste your auth secret when prompted
    ```
 
-2. **Deploy via Dashboard**
+2. **Deploy via Dashboard:**
    - Go to [Cloudflare Dashboard](https://dash.cloudflare.com/)
    - Navigate to **Workers & Pages** → **Create application**
    - Connect your Git repository
@@ -183,78 +227,73 @@ bunx wrangler d1 migrations apply DB --remote
      - Build command: `bun run build`
      - Build output directory: `.svelte-kit/cloudflare`
 
-3. **Configure D1 Binding in Dashboard**
-   - In your Pages project: **Settings** → **Functions** → **D1 Database Bindings**
-   - Click **Add binding**:
-     - Variable name: `DB` (must match wrangler.toml)
-     - D1 database: Select `fpa-events-production`
-   - **Save**
+3. **Configure environment variables in Dashboard:**
+   - In your Pages project: **Settings** → **Environment variables**
+   - Add `BETTER_AUTH_URL` with your production URL (e.g., `https://your-app.pages.dev`)
+   - Turso credentials should already be set as secrets
 
-4. **Apply migrations to production**
+4. **Deploy:**
    ```bash
-   bunx wrangler d1 migrations apply fpa-events-production --remote
+   bun run deploy
    ```
 
-**Note:** The `database_id` is NOT in `wrangler.toml` - it's configured per environment through the dashboard binding.
-
-See [docs/SETUP.md](docs/SETUP.md) for detailed deployment instructions.
+**Note:** Turso is a managed cloud database - no need to create separate production databases or configure bindings. Just use the same Turso database or create a separate production database for production deployments.
 
 ## Environment Variables
 
-This project uses `.env` for local secrets (gitignored):
+Required environment variables (add to `.env` for local development):
 
 ```bash
-# Optional: only needed for Drizzle Studio with remote database
-cp .env.example .env
+# Turso Database
+TURSO_DATABASE_URL=libsql://your-database.turso.io
+TURSO_AUTH_TOKEN=your-auth-token-here
+
+# Better Auth
+BETTER_AUTH_SECRET=your-secret-key-here
+BETTER_AUTH_URL=http://localhost:5173  # or your production URL
 ```
 
-For local development with the local D1 database, **no environment variables are required**.
-
-See [docs/ENV-SETUP.md](docs/ENV-SETUP.md) for details.
+For production, these should be set as Cloudflare secrets (except `BETTER_AUTH_URL` which can be a regular environment variable).
 
 ## Documentation
 
-- **[D1-DRIZZLE-INTEGRATION.md](docs/D1-DRIZZLE-INTEGRATION.md)** - How D1 and Drizzle work together ⭐
-- **[QUICK-REFERENCE.md](docs/QUICK-REFERENCE.md)** - Common commands and workflows ⭐
-- [SETUP.md](docs/SETUP.md) - Complete setup guide for local and production
 - [ARCHITECTURE.md](docs/ARCHITECTURE.md) - System architecture
 - [DATABASE.md](docs/DATABASE.md) - Database schema and management
-- [REMOTE-FUNCTIONS.md](docs/REMOTE-FUNCTIONS.md) - Using remote functions
-- [ENV-SETUP.md](docs/ENV-SETUP.md) - Environment configuration
+- [REMOTE-FUNCTIONS.md](docs/REMOTE-FUNCTIONS.md) - Using remote functions (if applicable)
 - [SECURITY.md](docs/SECURITY.md) - Security best practices
 
 ## How It Works
 
-### The Platform Binding System
+### Turso + Drizzle Integration
 
-Cloudflare **injects** the D1 database into your app via `platform.env.DB`:
+This app uses **Turso** (a distributed libSQL database) with **Drizzle ORM** deployed on **Cloudflare Workers/Pages**:
 
 ```
 Local Development:
-  wrangler.toml → Wrangler → Auto-creates local SQLite → platform.env.DB → Drizzle
+  .env → Turso Database → Drizzle ORM → Type-safe queries
 
 Production:
-  Dashboard Binding → Remote D1 Database → platform.env.DB → Drizzle
+  Cloudflare Secrets → Turso Database → Drizzle ORM → Type-safe queries
 ```
 
-**Your application code is identical in both environments!** The platform provides different database instances:
-- **Local**: Auto-created SQLite file in `.wrangler/state/v3/d1/`
-- **Production**: Remote D1 configured in Cloudflare dashboard
+**Connection Flow:**
+1. Environment variables provide Turso credentials (`TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`)
+2. `hooks.server.ts` creates database connection: `getDb(url, token)`
+3. Connection is available as `event.locals.db` throughout your app
+4. You get type-safe queries: `locals.db.select().from(users)`
 
-**How Drizzle connects:**
-1. Cloudflare provides `platform.env.DB` (D1Database)
-2. `hooks.server.ts` wraps it: `createDb(platform.env.DB)`
-3. You get type-safe queries: `locals.db.select().from(users)`
-
-📖 **[Read the full explanation in D1-DRIZZLE-INTEGRATION.md](docs/D1-DRIZZLE-INTEGRATION.md)**
+**Benefits:**
+- Single database for all environments (or separate DBs for dev/prod)
+- No platform-specific bindings needed
+- Works with any hosting provider
+- Built-in replication and edge caching with Turso
 
 ## Common Tasks
 
 ### Add a New Table
 1. Edit `src/lib/server/db/schema.ts`
 2. Generate migration: `bun run db:generate`
-3. Apply locally: `bunx wrangler d1 migrations apply DB --local`
-4. Apply to production: `bunx wrangler d1 migrations apply DB --remote`
+3. Apply migration: `bun run db:migrate`
 
 ### Query Data in Code
 ```typescript
@@ -268,11 +307,12 @@ const db = locals.db;
 const allEvents = await db.select().from(events);
 ```
 
-### Reset Local Database
+### Reset Database
 ```bash
-rm -rf .wrangler/
-bun run dev  # Recreates database
-bunx wrangler d1 migrations apply DB --local
+# Drop and recreate your Turso database
+turso db destroy fpa-events
+turso db create fpa-events
+bun run db:migrate
 ```
 
 ## Troubleshooting
@@ -283,9 +323,9 @@ See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for detailed solutions to common pr
 
 **Quick fixes:**
 
-- **"Unexpected token mport" errors**: Update `vite.config.ts` to exclude problematic packages from optimization
-- **"D1 database binding not found"**: Ensure `wrangler.toml` is configured and run `bun run dev`
-- **"No such table"**: Run `bunx wrangler d1 migrations apply DB --local`
+- **"TURSO_DATABASE_URL is not set"**: Check your `.env` file has the correct Turso credentials
+- **"No such table"**: Run `bun run db:migrate` to apply migrations
+- **"Authentication failed"**: Verify your `TURSO_AUTH_TOKEN` is valid and not expired
 - **"Database is locked"**: Close Drizzle Studio and restart dev server
 - **Corrupted dependencies**: Run `rm -rf node_modules .svelte-kit && bun install`
 
@@ -304,7 +344,7 @@ See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for detailed solutions to common pr
 ## Resources
 
 - [SvelteKit Documentation](https://svelte.dev/docs/kit)
-- [Cloudflare D1 Documentation](https://developers.cloudflare.com/d1/)
+- [Turso Documentation](https://docs.turso.tech/)
 - [Drizzle ORM Documentation](https://orm.drizzle.team/)
 - [Better Auth Documentation](https://better-auth.com/)
 - [Wrangler CLI Documentation](https://developers.cloudflare.com/workers/wrangler/)

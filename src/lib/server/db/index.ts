@@ -1,20 +1,19 @@
-import { drizzle as drizzleLibSql } from 'drizzle-orm/libsql';
-import { drizzle as drizzleD1 } from 'drizzle-orm/d1';
+import { drizzle } from 'drizzle-orm/libsql';
 import { createClient } from '@libsql/client';
-import type { D1Database } from '@cloudflare/workers-types';
 import * as schema from './schema';
+import { env } from '$env/dynamic/private';
 
-export function getDb(db?: D1Database, databaseUrl?: string) {
-	if (db) {
-		return drizzleD1(db, { schema });
-	}
-
-	if (databaseUrl) {
-		const client = createClient({ url: databaseUrl });
-		return drizzleLibSql(client, { schema });
-	}
-
-	throw new Error('No database configuration found');
+if (!env.TURSO_DATABASE_URL) {
+	throw new Error('TURSO_DATABASE_URL environment variable is not set');
 }
 
-export type DrizzleClient = ReturnType<typeof getDb>;
+if (!env.TURSO_AUTH_TOKEN) {
+	throw new Error('TURSO_AUTH_TOKEN environment variable is not set');
+}
+
+const client = createClient({
+	url: env.TURSO_DATABASE_URL,
+	authToken: env.TURSO_AUTH_TOKEN
+});
+
+export const db = drizzle(client, { schema });

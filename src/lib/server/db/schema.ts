@@ -20,78 +20,78 @@ export const users = sqliteTable('users', {
 });
 
 // Events table
-export const events = sqliteTable(
-	'events',
-	{
-		id: text('id').primaryKey(),
-		userId: text('user_id')
-			.notNull()
-			.references(() => users.id),
-		name: text('name').notNull(),
-		startDate: integer('start_date', { mode: 'timestamp' }).notNull(),
-		endDate: integer('end_date', { mode: 'timestamp' }).notNull(),
-		location: text('location').notNull(),
-		description: text('description').notNull(),
-		picture: text('picture'),
-		pictureWidth: integer('picture_width'),
-		pictureHeight: integer('picture_height'),
-		createdAt: integer('created_at', { mode: 'timestamp' })
-			.notNull()
-			.default(sql`(unixepoch())`),
-		updatedAt: integer('updated_at', { mode: 'timestamp' })
-			.notNull()
-			.default(sql`(unixepoch())`)
-	},
-	(table) => ({
-		userIdIdx: index('events_user_id_index').on(table.userId)
-	})
-);
+export const events = sqliteTable('events', {
+	id: text('id').primaryKey(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => users.id),
+	name: text('name').notNull(),
+	startDate: integer('start_date', { mode: 'timestamp' }).notNull(),
+	endDate: integer('end_date', { mode: 'timestamp' }).notNull(),
+	location: text('location').notNull(),
+	description: text('description').notNull(),
+	picture: text('picture'),
+	pictureWidth: integer('picture_width'),
+	pictureHeight: integer('picture_height'),
+	createdAt: integer('created_at', { mode: 'timestamp' })
+		.notNull()
+		.default(sql`(unixepoch())`),
+	updatedAt: integer('updated_at', { mode: 'timestamp' })
+});
+
+export const eventsUserIdIdx = index('events_user_id_index').on(events.userId);
 
 // Event User pivot table
-export const eventUser = sqliteTable(
-	'event_user',
-	{
-		id: integer('id').primaryKey({ autoIncrement: true }),
-		eventId: text('event_id')
-			.notNull()
-			.references(() => events.id, { onDelete: 'cascade' }),
-		userId: text('user_id')
-			.notNull()
-			.references(() => users.id, { onDelete: 'cascade' }),
-		status: text('status').notNull(),
-		createdAt: integer('created_at', { mode: 'timestamp' })
-			.notNull()
-			.default(sql`(unixepoch())`),
-		updatedAt: integer('updated_at', { mode: 'timestamp' })
-			.notNull()
-			.default(sql`(unixepoch())`)
-	},
-	(table) => ({
-		userStatusIdx: index('user_status_index').on(table.userId, table.status, table.eventId),
-		eventUserIdx: index('event_user_index').on(table.eventId, table.userId, table.updatedAt),
-		eventStatusIdx: index('event_status_index').on(table.eventId, table.status, table.updatedAt)
-	})
+export const eventUser = sqliteTable('event_user', {
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	eventId: text('event_id')
+		.notNull()
+		.references(() => events.id, { onDelete: 'cascade' }),
+	userId: text('user_id')
+		.notNull()
+		.references(() => users.id, { onDelete: 'cascade' }),
+	status: text('status').notNull(),
+	createdAt: integer('created_at', { mode: 'timestamp' })
+		.notNull()
+		.default(sql`(unixepoch())`),
+	updatedAt: integer('updated_at', { mode: 'timestamp' })
+		.notNull()
+		.default(sql`(unixepoch())`)
+});
+
+export const eventUserUserStatusIdx = index('user_status_index').on(
+	eventUser.userId,
+	eventUser.status,
+	eventUser.eventId
+);
+export const eventUserEventUserIdx = index('event_user_index').on(
+	eventUser.eventId,
+	eventUser.userId,
+	eventUser.updatedAt
+);
+export const eventUserEventStatusIdx = index('event_status_index').on(
+	eventUser.eventId,
+	eventUser.status,
+	eventUser.updatedAt
 );
 
 // Event Magic Links table
-export const eventMagicLinks = sqliteTable(
-	'event_magic_links',
-	{
-		id: text('id').primaryKey(),
-		eventId: text('event_id')
-			.notNull()
-			.references(() => events.id, { onDelete: 'cascade' }),
-		expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
-		createdAt: integer('created_at', { mode: 'timestamp' })
-			.notNull()
-			.default(sql`(unixepoch())`),
-		updatedAt: integer('updated_at', { mode: 'timestamp' })
-			.notNull()
-			.default(sql`(unixepoch())`)
-	},
-	(table) => ({
-		eventIdIdx: index('event_magic_links_event_id_index').on(table.eventId)
-	})
+export const eventMagicLinks = sqliteTable('event_magic_links', {
+	id: text('id').primaryKey(),
+	eventId: text('event_id')
+		.notNull()
+		.references(() => events.id, { onDelete: 'cascade' }),
+	expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+	createdAt: integer('created_at', { mode: 'timestamp' })
+		.notNull()
+		.default(sql`(unixepoch())`),
+	updatedAt: integer('updated_at', { mode: 'timestamp' })
+		.notNull()
+		.default(sql`(unixepoch())`)
+});
+
+export const eventMagicLinksEventIdIdx = index('event_magic_links_event_id_index').on(
+	eventMagicLinks.eventId
 );
 
 // Schedules table

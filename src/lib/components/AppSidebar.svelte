@@ -3,7 +3,8 @@
 	import InboxIcon from '@lucide/svelte/icons/inbox';
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import { resolve } from '$app/paths';
-	import type { ValidRoute } from '$lib/utils';
+	import { page } from '$app/state';
+	import type { Pathname } from '$app/types';
 	import DarkLightToggle from './DarkLightToggle.svelte';
 	import Logo from './Logo.svelte';
 
@@ -14,7 +15,7 @@
 
 	type MenuItem = {
 		label: string;
-		url: ValidRoute;
+		url: Pathname;
 		icon: typeof HouseIcon;
 	};
 
@@ -49,6 +50,14 @@
 			]
 		}
 	];
+
+	const routeActive = (url: Pathname): boolean => {
+	    if (url === '/') {
+            return page.url.pathname === '/';
+        }
+        
+		return page.url.pathname.startsWith(url);
+	};
 </script>
 
 <Sidebar.Root>
@@ -63,7 +72,7 @@
 					<Sidebar.Menu>
 						{#each group.items as item (item.label)}
 							<Sidebar.MenuItem>
-								<Sidebar.MenuButton>
+								<Sidebar.MenuButton isActive={routeActive(item.url)}>
 									{#snippet child({ props })}
 										<a href={resolve(item.url)} {...props}>
 											<item.icon />
