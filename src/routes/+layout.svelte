@@ -1,6 +1,6 @@
 <script lang="ts">
 	import './layout.css';
-	import { ModeWatcher } from "mode-watcher";
+	import { ModeWatcher } from 'mode-watcher';
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import AppSidebar from '$lib/components/AppSidebar.svelte';
 
@@ -14,7 +14,7 @@
 <ModeWatcher />
 <Sidebar.Provider>
 	<AppSidebar />
-	<main>
+	<main class="w-full p-4 md:p-8">
 		<Sidebar.Trigger />
 		{@render children?.()}
 	</main>

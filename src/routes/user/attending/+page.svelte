@@ -1,1 +1,0 @@
-<h1>User attending page</h1>

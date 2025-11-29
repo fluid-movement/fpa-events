@@ -1,21 +1,21 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
-	import { loadEvent } from './data.remote';
-	let { params } = $props();
+	import type { PageProps } from './$types';
+	let { data }: PageProps = $props();
 	
-	const event = $derived(await loadEvent(params.id));
+	const event = data.event;
 </script>
 
 <svelte:boundary>
 	{#if event}
-		<p>ID: {event.id}</p>
-		<p>Name: {event.name}</p>
-		<p>Description: {event.description}</p>
+		<h1>{event.name}</h1>
+		<p>{event.description}</p>
 		<p>Location: {event.location}</p>
 		<p>Start Date: {new Date(event.startDate).toLocaleString()}</p>
 		<p>End Date: {new Date(event.endDate).toLocaleString()}</p>
-		<p>User ID: {event.userId}</p>
-		<Button href={`/events/${event.id}/edit`}>Edit Event</Button>
+		{#if data.userId === event.userId}
+		  <Button href={`/events/${event.id}/edit`}>Edit Event</Button>
+    {/if}
 	{:else}
 		<p>Event not found</p>
 	{/if}

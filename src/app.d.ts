@@ -8,6 +8,8 @@ declare global {
 		// interface Error {}
 		interface Locals {
 			db: typeof db;
+			session?: Session;
+			user?: User;
 		}
 		// interface PageData {}
 		// interface PageState {}

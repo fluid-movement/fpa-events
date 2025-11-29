@@ -28,6 +28,7 @@
 		onclick?.(e);
 		sidebar.toggle();
 	}}
+	hidden={!sidebar.isMobile}
 	{...restProps}
 >
 	<PanelLeftIcon />

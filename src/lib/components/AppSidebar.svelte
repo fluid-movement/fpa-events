@@ -1,63 +1,12 @@
 <script lang="ts">
-	import HouseIcon from '@lucide/svelte/icons/house';
-	import InboxIcon from '@lucide/svelte/icons/inbox';
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import { resolve } from '$app/paths';
-	import { page } from '$app/state';
-	import type { Pathname } from '$app/types';
+	import { menuGroups, routeActive } from '$lib/config/sidebarMenu';
 	import DarkLightToggle from './DarkLightToggle.svelte';
 	import Logo from './Logo.svelte';
-
-	type MenuGroup = {
-		label?: string;
-		items: MenuItem[];
-	};
-
-	type MenuItem = {
-		label: string;
-		url: Pathname;
-		icon: typeof HouseIcon;
-	};
-
-	const menuGroups: MenuGroup[] = [
-		{
-			items: [
-				{
-					label: 'Home',
-					url: '/',
-					icon: HouseIcon
-				},
-				{
-					label: 'Events',
-					url: '/events',
-					icon: InboxIcon
-				}
-			]
-		},
-		{
-			label: 'User',
-			items: [
-				{
-					label: 'My Dashboard',
-					url: '/user',
-					icon: HouseIcon
-				},
-				{
-					label: 'Attending',
-					url: '/user/attending',
-					icon: HouseIcon
-				}
-			]
-		}
-	];
-
-	const routeActive = (url: Pathname): boolean => {
-	    if (url === '/') {
-            return page.url.pathname === '/';
-        }
-        
-		return page.url.pathname.startsWith(url);
-	};
+	import SidebarLogin from './SidebarLogin.svelte';
+	import PlusIcon from '@lucide/svelte/icons/plus';
+	import { Button } from './ui/button';
 </script>
 
 <Sidebar.Root>
@@ -88,6 +37,8 @@
 		</Sidebar.Group>
 	</Sidebar.Content>
 	<Sidebar.Footer>
+	<Button href={resolve("/events/create")}><PlusIcon /> Create Event</Button>
+		<SidebarLogin />
 		<DarkLightToggle />
 	</Sidebar.Footer>
 </Sidebar.Root>

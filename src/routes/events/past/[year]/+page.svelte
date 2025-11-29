@@ -1,17 +1,18 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Card from '$lib/components/ui/card';
 	import type { PageProps } from './$types';
-	let { data }: PageProps = $props();
-	
+	let { data, params }: PageProps = $props();
+
 	const eventsByMonth = data.eventsByMonth;
 </script>
 
-<h1>Events</h1>
+<h1>Past Events in {params.year}</h1>
 
 {#each eventsByMonth as { month, label, events } (month)}
 	<section class="mb-8">
-		<h2 class="text-2xl font-bold mb-4">{label}</h2>
+		<h2 class="mb-4 text-2xl font-bold">{label}</h2>
 		<div class="grid gap-4 md:grid-cols-2">
 			{#each events as event (event.id)}
 				<Card.Root>
@@ -30,3 +31,5 @@
 {:else}
 	<p>No events found</p>
 {/each}
+
+<Button href={resolve('/events/create')}>Create New Event</Button>

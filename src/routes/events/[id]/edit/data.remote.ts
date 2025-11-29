@@ -34,8 +34,12 @@ export const getEvent = query(v.string(), async (id) => {
 
 // Form function to update the event
 export const updateEvent = form(updateEventSchema, async (data) => {
-	const userId = '123'; // TODO: Get from session/auth
 	const event = getRequestEvent();
+	
+  if (!event.locals.user?.id) {
+    throw new Error('Unauthorized: You must be logged in to create an event');
+  }
+  
 	const eventId = event.params.id;
 
 	if (!eventId) {
@@ -49,7 +53,7 @@ export const updateEvent = form(updateEventSchema, async (data) => {
 		throw new Error('Event not found');
 	}
 
-	if (existingEvent.userId !== userId) {
+	if (existingEvent.userId !== event.locals.user?.id) {
 		throw new Error('Unauthorized: You can only edit your own events');
 	}
 
