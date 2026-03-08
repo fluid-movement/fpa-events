@@ -35,11 +35,11 @@ export const getEvent = query(v.string(), async (id) => {
 // Form function to update the event
 export const updateEvent = form(updateEventSchema, async (data) => {
 	const event = getRequestEvent();
-	
-  if (!event.locals.user?.id) {
-    throw new Error('Unauthorized: You must be logged in to create an event');
-  }
-  
+
+	if (!event.locals.user?.id) {
+		throw new Error('Unauthorized: You must be logged in to create an event');
+	}
+
 	const eventId = event.params.id;
 
 	if (!eventId) {

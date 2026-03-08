@@ -1,4 +1,5 @@
 # General
+
 - theme styles
 - guards, who can see what
 - add links to other pages
@@ -6,6 +7,7 @@
 - create seeding data
 
 # Home Page
+
 Think of something interesting to show here
 
 # Events
@@ -13,15 +15,18 @@ Think of something interesting to show here
 ## General
 
 ## Index
+
 - break up events by month
 - card styling
 - past events view
 
 ## Create & Update
+
 - Description wysiwyg editor
 - Image upload
 
 ## Detail
+
 - attending button / function
 
 # Dashboard
@@ -29,6 +34,7 @@ Think of something interesting to show here
 # Attending
 
 # Login / Auth
+
 - User settings Page
 - add to sidebar
 - login and signup pages

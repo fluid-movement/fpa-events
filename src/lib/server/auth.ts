@@ -1,14 +1,15 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { db } from '$lib/server/db';
+import { env } from '$env/dynamic/private';
 
 export const auth = betterAuth({
 	database: drizzleAdapter(db, {
-		provider: 'sqlite'
+		provider: 'pg'
 	}),
 	emailAndPassword: {
-		enabled: true,
+		enabled: true
 	},
-	secret: process.env.BETTER_AUTH_SECRET,
-	baseURL: process.env.BETTER_AUTH_URL
+	secret: env.BETTER_AUTH_SECRET,
+	baseURL: env.BETTER_AUTH_URL
 });

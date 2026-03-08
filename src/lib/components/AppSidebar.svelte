@@ -37,7 +37,7 @@
 		</Sidebar.Group>
 	</Sidebar.Content>
 	<Sidebar.Footer>
-	<Button href={resolve("/events/create")}><PlusIcon /> Create Event</Button>
+		<Button href={resolve('/events/create')}><PlusIcon /> Create Event</Button>
 		<SidebarLogin />
 		<DarkLightToggle />
 	</Sidebar.Footer>

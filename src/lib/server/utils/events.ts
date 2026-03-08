@@ -1,9 +1,22 @@
-import type { events } from '$lib/server/db/schema';
+import type { Event } from '$lib/types/event';
+import { db } from '$lib/server/db';
+import { events } from '$lib/server/db/schema';
+import { sql, lt, desc } from 'drizzle-orm';
+
+export async function getArchiveYears(): Promise<number[]> {
+	const yearExpr = sql<number>`EXTRACT(YEAR FROM ${events.startDate})::int`;
+	const rows = await db
+		.selectDistinct({ year: yearExpr })
+		.from(events)
+		.where(lt(events.startDate, new Date()))
+		.orderBy(desc(yearExpr));
+	return rows.map((r) => r.year);
+}
 
 export type EventsByMonth = {
 	month: string; // "2024-01"
 	label: string; // "January 2024"
-	events: (typeof events.$inferSelect)[];
+	events: Event[];
 }[];
 
 /**
@@ -13,11 +26,11 @@ export type EventsByMonth = {
  * @returns Array of events grouped by month with formatted labels
  */
 export function groupEventsByMonth(
-	eventList: (typeof events.$inferSelect)[],
+	eventList: Event[],
 	locale: string = 'en-US'
 ): EventsByMonth {
 	// Group events by month key
-	const groupedByMonth = new Map<string, (typeof events.$inferSelect)[]>();
+	const groupedByMonth = new Map<string, Event[]>();
 
 	for (const event of eventList) {
 		const date = new Date(event.startDate);

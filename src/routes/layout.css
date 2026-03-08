@@ -111,29 +111,40 @@
 	--color-sidebar-ring: var(--sidebar-ring);
 }
 
+.rich-text h1 { @apply text-2xl font-bold mt-4 mb-2; }
+.rich-text h2 { @apply text-xl font-semibold mt-3 mb-2; }
+.rich-text h3 { @apply text-lg font-semibold mt-3 mb-1; }
+.rich-text p  { @apply mb-3 leading-relaxed; }
+.rich-text ul { @apply list-disc pl-5 mb-3 space-y-1; }
+.rich-text ol { @apply list-decimal pl-5 mb-3 space-y-1; }
+.rich-text strong { @apply font-semibold; }
+.rich-text em { @apply italic; }
+.rich-text a { @apply underline text-primary; }
+
 @layer base {
 	* {
 		@apply border-border outline-ring/50;
 	}
-	
+
 	body {
-			@apply bg-background text-foreground;
-			background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url('/background.jpg');
-			background-size: auto;
-			background-position: bottom right;
-			background-attachment: fixed;
-			background-repeat: no-repeat;
-		}
+		@apply bg-background text-foreground;
+		background-image:
+			linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url('/background.jpg');
+		background-size: auto;
+		background-position: bottom right;
+		background-attachment: fixed;
+		background-repeat: no-repeat;
+	}
 
 	h1 {
 		@apply text-4xl font-bold;
 	}
-	
+
 	h2 {
 		@apply text-3xl font-semibold;
 	}
-	
+
 	h3 {
-        @apply text-2xl font-semibold;
-    }
+		@apply text-2xl font-semibold;
+	}
 }

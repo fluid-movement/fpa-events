@@ -1,96 +1,77 @@
 <script lang="ts">
-import { goto } from "$app/navigation";
-import { signUp } from "$lib/auth-client";
-import { writable } from "svelte/store";
-import { Button } from "$lib/components/ui/button";
-import * as Card from "$lib/components/ui/card";
-import { Input } from "$lib/components/ui/input";
-import { Label } from "$lib/components/ui/label";
-	import { resolve } from "$app/paths";
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	import { signUp } from '$lib/auth-client';
+	import { Button } from '$lib/components/ui/button';
+	import * as Card from '$lib/components/ui/card';
+	import { Input } from '$lib/components/ui/input';
+	import { Label } from '$lib/components/ui/label';
 
-// Create writable stores for form fields
-const firstName = writable("");
-const lastName = writable("");
-const email = writable("");
-const password = writable("");
+	let firstName = $state('');
+	let lastName = $state('');
+	let email = $state('');
+	let password = $state('');
+	let loading = $state(false);
+	let error = $state('');
 
-// Function to handle form submission
-const handleSignUp = async () => {
-	const user = {
-		firstName: $firstName,
-		lastName: $lastName,
-		email: $email,
-		password: $password,
-	};
-	await signUp.email({
-		email: user.email,
-		password: user.password,
-		name: `${user.firstName} ${user.lastName}`,
-		callbackURL: "/",
-		fetchOptions: {
-			onSuccess() {
-				alert("Your account has been created.");
-				goto(resolve("/dashboard"));
-			},
-			onError(context) {
-				alert(context.error.message);
-			},
-		},
-	});
-};
+	async function handleSignUp() {
+		error = '';
+		loading = true;
+		await signUp.email({
+			email,
+			password,
+			name: `${firstName} ${lastName}`.trim(),
+			callbackURL: '/',
+			fetchOptions: {
+				onSuccess() {
+					goto(resolve('/dashboard'));
+				},
+				onError(context) {
+					error = context.error.message;
+				}
+			}
+		});
+		loading = false;
+	}
 </script>
 
-<Card.Root class="mx-auto max-w-sm">
-  <Card.Header>
-    <Card.Title class="text-xl">Sign Up</Card.Title>
-    <Card.Description>
-      Enter your information to create an account
-    </Card.Description>
-  </Card.Header>
-  <Card.Content>
-    <div class="grid gap-4">
-      <div class="grid grid-cols-2 gap-4">
-        <div class="grid gap-2">
-          <Label for="first-name">First name</Label>
-          <Input
-            id="first-name"
-            placeholder="Max"
-            required
-            bind:value={$firstName}
-          />
-        </div>
-        <div class="grid gap-2">
-          <Label for="last-name">Last name</Label>
-          <Input
-            id="last-name"
-            placeholder="Robinson"
-            required
-            bind:value={$lastName}
-          />
-        </div>
-      </div>
-      <div class="grid gap-2">
-        <Label for="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          placeholder="m@example.com"
-          required
-          bind:value={$email}
-        />
-      </div>
-      <div class="grid gap-2">
-        <Label for="password">Password</Label>
-        <Input id="password" type="password" bind:value={$password} />
-      </div>
-      <Button type="button" class="w-full" onclick={handleSignUp}
-        >Create an account</Button
-      >
-      <Button variant="outline" class="w-full">Sign up with GitHub</Button>
-    </div>
-    <div class="mt-4 text-center text-sm">
-      Already have an account?
-      <a href={resolve("/sign-in")} class="underline"> Sign in </a>
-    </div>
-  </Card.Content>
-</Card.Root>
+<div class="flex min-h-[60vh] items-center justify-center">
+	<Card.Root class="w-full max-w-sm bg-card/80 backdrop-blur-sm">
+		<Card.Header>
+			<Card.Title class="text-2xl">Create Account</Card.Title>
+			<Card.Description>Enter your details to get started</Card.Description>
+		</Card.Header>
+		<Card.Content>
+			<form class="grid gap-4" onsubmit={(e) => { e.preventDefault(); handleSignUp(); }}>
+				<div class="grid grid-cols-2 gap-3">
+					<div class="grid gap-2">
+						<Label for="first-name">First name</Label>
+						<Input id="first-name" placeholder="Max" required bind:value={firstName} />
+					</div>
+					<div class="grid gap-2">
+						<Label for="last-name">Last name</Label>
+						<Input id="last-name" placeholder="Robinson" required bind:value={lastName} />
+					</div>
+				</div>
+				<div class="grid gap-2">
+					<Label for="email">Email</Label>
+					<Input id="email" type="email" placeholder="you@example.com" required bind:value={email} />
+				</div>
+				<div class="grid gap-2">
+					<Label for="password">Password</Label>
+					<Input id="password" type="password" required bind:value={password} />
+				</div>
+				{#if error}
+					<p class="text-sm text-destructive">{error}</p>
+				{/if}
+				<Button type="submit" class="w-full" disabled={loading}>
+					{loading ? 'Creating account…' : 'Create Account'}
+				</Button>
+			</form>
+			<p class="mt-4 text-center text-sm text-muted-foreground">
+				Already have an account?
+				<a href={resolve('/sign-in')} class="underline hover:text-foreground">Sign in</a>
+			</p>
+		</Card.Content>
+	</Card.Root>
+</div>

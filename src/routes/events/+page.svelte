@@ -1,32 +1,28 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import * as Card from '$lib/components/ui/card';
+	import { Button } from '$lib/components/ui/button';
+	import EventCalendar from '$lib/components/EventCalendar.svelte';
 	import type { PageProps } from './$types';
+
 	let { data }: PageProps = $props();
-	
-	const eventsByMonth = data.eventsByMonth;
+
+	const mostRecentYear = $derived(data.archiveYears[0] ?? new Date().getFullYear() - 1);
 </script>
 
-<h1>Events</h1>
+<div class="space-y-2 pb-6">
+	<h1>Events</h1>
+	<p class="text-muted-foreground">Browse freestyle disc events.</p>
+</div>
 
-{#each eventsByMonth as { month, label, events } (month)}
-	<section class="mb-8">
-		<h2 class="text-2xl font-bold mb-4">{label}</h2>
-		<div class="grid gap-4 md:grid-cols-2">
-			{#each events as event (event.id)}
-				<Card.Root>
-					<Card.Header>
-						<a href={resolve(`/events/${event.id}`)}><h3>{event.name}</h3></a>
-					</Card.Header>
-					<Card.Content>
-						<p><strong>Location:</strong> {event.location}</p>
-						<p><strong>Start:</strong> {new Date(event.startDate).toLocaleString()}</p>
-						<p><strong>End:</strong> {new Date(event.endDate).toLocaleString()}</p>
-					</Card.Content>
-				</Card.Root>
-			{/each}
-		</div>
-	</section>
-{:else}
-	<p>No events found</p>
-{/each}
+<div class="mb-8 p-1.5 w-full flex gap-2 border bg-muted/40 rounded-lg">
+	<Button class="w-full" variant="default" href={resolve('/events')}>Upcoming Events</Button>
+	<Button
+		class="w-full"
+		variant="ghost"
+		href={resolve(`/events/past/${mostRecentYear}`)}
+	>
+		Past Events
+	</Button>
+</div>
+
+<EventCalendar eventsByMonth={data.eventsByMonth} />

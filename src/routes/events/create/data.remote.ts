@@ -15,12 +15,12 @@ const createEventSchema = v.object({
 });
 
 export const createEvent = form(createEventSchema, async (data) => {
-  const event = getRequestEvent()
-  if (!event.locals.user?.id) {
-    throw new Error('Unauthorized: You must be logged in to create an event');
-  }
-  
-  const userId = event.locals.user.id;
+	const event = getRequestEvent();
+	if (!event.locals.user?.id) {
+		throw new Error('Unauthorized: You must be logged in to create an event');
+	}
+
+	const userId = event.locals.user.id;
 	const eventId = ulid().toLowerCase();
 
 	const insertData: typeof events.$inferInsert = {
@@ -37,8 +37,8 @@ export const createEvent = form(createEventSchema, async (data) => {
 	const success = await db.insert(events).values(insertData);
 
 	if (!success) {
-	    throw new Error('Failed to create event');
-    }
-    
+		throw new Error('Failed to create event');
+	}
+
 	redirect(303, resolve(`/events/${eventId}`));
 });

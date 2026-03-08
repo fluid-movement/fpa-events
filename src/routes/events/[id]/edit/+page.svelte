@@ -1,8 +1,13 @@
 <script lang="ts">
-	import Button from '$lib/components/ui/button/button.svelte';
-	import Input from '$lib/components/ui/input/input.svelte';
-	import { getEvent, updateEvent } from './data.remote';
+	import { Button } from '$lib/components/ui/button';
+	import { Input } from '$lib/components/ui/input';
+	import * as Field from '$lib/components/ui/field';
+	import { RangeCalendar } from '$lib/components/ui/range-calendar/index.js';
+	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
+	import { parseDate } from '@internationalized/date';
+	import type { DateValue } from '@internationalized/date';
 	import { page } from '$app/state';
+	import { getEvent, updateEvent } from './data.remote';
 
 	const eventId = page.params.id;
 
@@ -11,35 +16,74 @@
 	}
 
 	const event = $derived(await getEvent(eventId));
+
+	let dateRange = $state<{ start: DateValue | undefined; end: DateValue | undefined }>({
+		start: undefined,
+		end: undefined
+	});
+
+	$effect(() => {
+		if (event?.startDate) {
+			dateRange = {
+				start: parseDate(event.startDate),
+				end: parseDate(event.endDate)
+			};
+		}
+	});
 </script>
 
-<h1>Edit Event</h1>
+<div class="w-full max-w-2xl">
+	<h1 class="mb-6">Edit Event</h1>
 
-<form {...updateEvent}>
-	<label>
-		Name:
-		<Input {...updateEvent.fields.name.as('text')} value={event.name} />
-	</label>
-
-	<label>
-		Description:
-		<Input {...updateEvent.fields.description.as('text')} value={event.description} />
-	</label>
-
-	<label>
-		Start Date:
-		<Input {...updateEvent.fields.startDate.as('date')} value={event.startDate} />
-	</label>
-
-	<label>
-		End Date:
-		<Input {...updateEvent.fields.endDate.as('date')} value={event.endDate} />
-	</label>
-
-	<label>
-		Location:
-		<Input {...updateEvent.fields.location.as('text')} value={event.location} />
-	</label>
-
-	<Button type="submit">Update Event</Button>
-</form>
+	<form {...updateEvent}>
+		<Field.Group>
+			<Field.Set>
+				<Field.Legend>Edit event</Field.Legend>
+			</Field.Set>
+			<Field.Separator />
+			<Field.Group>
+				<Field.Field>
+					<Field.Label for="event-name">Event name</Field.Label>
+					<Input
+						id="event-name"
+						placeholder="Your event name"
+						{...updateEvent.fields.name.as('text')}
+						value={event.name}
+					/>
+				</Field.Field>
+			</Field.Group>
+			<Field.Group>
+				<Field.Field>
+					<Field.Label for="event-location">Event location</Field.Label>
+					<Input
+						id="event-location"
+						placeholder="Your event location"
+						{...updateEvent.fields.location.as('text')}
+						value={event.location}
+					/>
+				</Field.Field>
+				<Field.Field>
+					<Field.Label>Description</Field.Label>
+					<RichTextEditor name="description" value={event.description} placeholder="Info about the event" />
+				</Field.Field>
+				<Field.Field>
+					<Field.Label>Event dates</Field.Label>
+					{#if dateRange.start && dateRange.end}
+						<p class="text-sm text-muted-foreground">
+							{dateRange.start} → {dateRange.end}
+						</p>
+					{:else}
+						<p class="text-sm text-muted-foreground">Select a date range</p>
+					{/if}
+					<RangeCalendar bind:value={dateRange} class="rounded-md border" />
+					<input type="hidden" name="startDate" value={dateRange.start?.toString() ?? ''} />
+					<input type="hidden" name="endDate" value={dateRange.end?.toString() ?? ''} />
+				</Field.Field>
+			</Field.Group>
+			<Field.Separator />
+			<Field.Field orientation="horizontal">
+				<Button type="submit">Update Event</Button>
+			</Field.Field>
+		</Field.Group>
+	</form>
+</div>

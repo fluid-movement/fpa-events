@@ -1,35 +1,67 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import Button from '$lib/components/ui/button/button.svelte';
-	import * as Card from '$lib/components/ui/card';
+	import { goto } from '$app/navigation';
+	import { Button } from '$lib/components/ui/button';
+	import EventCalendar from '$lib/components/EventCalendar.svelte';
 	import type { PageProps } from './$types';
-	let { data, params }: PageProps = $props();
 
-	const eventsByMonth = data.eventsByMonth;
+	let { data }: PageProps = $props();
+
+	const RADIO_COUNT = 3;
+	const radioYears = $derived(data.archiveYears.slice(0, RADIO_COUNT));
+	const dropdownYears = $derived(data.archiveYears.slice(RADIO_COUNT));
+	const mostRecentYear = $derived(data.archiveYears[0] ?? data.year);
 </script>
 
-<h1>Past Events in {params.year}</h1>
+<svelte:head>
+	<title>Past Events in {data.year}</title>
+</svelte:head>
 
-{#each eventsByMonth as { month, label, events } (month)}
-	<section class="mb-8">
-		<h2 class="mb-4 text-2xl font-bold">{label}</h2>
-		<div class="grid gap-4 md:grid-cols-2">
-			{#each events as event (event.id)}
-				<Card.Root>
-					<Card.Header>
-						<a href={resolve(`/events/${event.id}`)}><h3>{event.name}</h3></a>
-					</Card.Header>
-					<Card.Content>
-						<p><strong>Location:</strong> {event.location}</p>
-						<p><strong>Start:</strong> {new Date(event.startDate).toLocaleString()}</p>
-						<p><strong>End:</strong> {new Date(event.endDate).toLocaleString()}</p>
-					</Card.Content>
-				</Card.Root>
-			{/each}
-		</div>
-	</section>
-{:else}
-	<p>No events found</p>
-{/each}
+<div class="space-y-2 pb-6">
+	<h1>Events</h1>
+	<p class="text-muted-foreground">Browse freestyle disc events.</p>
+</div>
 
-<Button href={resolve('/events/create')}>Create New Event</Button>
+<!-- Upcoming / Past toggle -->
+<div class="mb-6 p-1.5 w-full flex gap-2 border bg-muted/40 rounded-lg">
+	<Button class="w-full" variant="ghost" href={resolve('/events')}>Upcoming Events</Button>
+	<Button
+		class="w-full"
+		variant="default"
+		href={resolve(`/events/past/${mostRecentYear}`)}
+	>
+		Past Events
+	</Button>
+</div>
+
+<!-- Year picker -->
+{#if data.archiveYears.length > 0}
+	<div class="flex justify-end gap-2 mb-8">
+		{#each radioYears as y (y)}
+			<Button
+				variant={y === data.year ? 'default' : 'ghost'}
+				size="sm"
+				href={resolve(`/events/past/${y}`)}
+			>
+				{y}
+			</Button>
+		{/each}
+		{#if dropdownYears.length > 0}
+			<select
+				class="h-9 rounded-md border border-input bg-background px-3 text-sm cursor-pointer hover:bg-muted/50 transition-colors"
+				onchange={(e) => {
+					const val = e.currentTarget.value;
+					if (val) goto(resolve(`/events/past/${val}`));
+					e.currentTarget.value = '';
+				}}
+			>
+				<option value="" disabled selected>More</option>
+				{#each dropdownYears as y (y)}
+					<option value={y} selected={y === data.year}>{y}</option>
+				{/each}
+			</select>
+		{/if}
+	</div>
+{/if}
+
+<EventCalendar eventsByMonth={data.eventsByMonth} />

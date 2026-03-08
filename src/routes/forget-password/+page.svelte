@@ -1,64 +1,63 @@
 <script lang="ts">
-import { writable } from "svelte/store";
-import { client } from "$lib/auth-client.js";
-import { Button } from "$lib/components/ui/button";
-import * as Card from "$lib/components/ui/card";
-import { Input } from "$lib/components/ui/input";
-import { Label } from "$lib/components/ui/label";
-	import { resolve } from "$app/paths";
+	import { client } from '$lib/auth-client';
+	import { Button } from '$lib/components/ui/button';
+	import * as Card from '$lib/components/ui/card';
+	import { Input } from '$lib/components/ui/input';
+	import { Label } from '$lib/components/ui/label';
+	import { resolve } from '$app/paths';
 
-const email = writable("");
+	let email = $state('');
+	let loading = $state(false);
+	let sent = $state(false);
+	let error = $state('');
+
+	async function handleSubmit() {
+		if (!email) return;
+		error = '';
+		loading = true;
+		await client.requestPasswordReset(
+			{ email, redirectTo: '/reset-password' },
+			{
+				onSuccess() {
+					sent = true;
+				},
+				onError(context: { error: { message: string } }) {
+					error = context.error.message;
+				}
+			}
+		);
+		loading = false;
+	}
 </script>
 
-<Card.Root class="mx-auto max-w-sm">
-  <Card.Header>
-    <Card.Title class="text-2xl">Reset Password</Card.Title>
-    <Card.Description>
-      Enter your email below to reset your password
-    </Card.Description>
-  </Card.Header>
-  <Card.Content>
-    <div class="grid gap-4">
-      <div class="grid gap-2">
-        <Label for="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          placeholder="m@example.com"
-          required
-          bind:value={$email}
-        />
-      </div>
-      <Button
-        type="button"
-        class="w-full"
-        onclick={async () => {
-          if (!$email) {
-            alert("Please enter your email address");
-            return;
-          }
-          await client.forgetPassword(
-            {
-              email: $email,
-              redirectTo: "/reset-password",
-            },
-            {
-              onSuccess() {
-                alert("Password reset link sent to your email");
-                window.location.href = "/sign-in";
-              },
-              onError(context) {
-                alert(context.error.message);
-              },
-            }
-          );
-        }}
-      >
-        Reset Password
-      </Button>
-    </div>
-    <div class="mt-4 text-center text-sm">
-      <a href={resolve("/sign-in")} class="underline"> Back to Sign In </a>
-    </div>
-  </Card.Content>
-</Card.Root>
+<div class="flex min-h-[60vh] items-center justify-center">
+	<Card.Root class="w-full max-w-sm bg-card/80 backdrop-blur-sm">
+		<Card.Header>
+			<Card.Title class="text-2xl">Forgot Password</Card.Title>
+			<Card.Description>Enter your email to receive a reset link</Card.Description>
+		</Card.Header>
+		<Card.Content>
+			{#if sent}
+				<p class="text-sm text-center text-muted-foreground">
+					Check your inbox — we sent a reset link to <strong>{email}</strong>.
+				</p>
+			{:else}
+				<form class="grid gap-4" onsubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+					<div class="grid gap-2">
+						<Label for="email">Email</Label>
+						<Input id="email" type="email" placeholder="you@example.com" required bind:value={email} />
+					</div>
+					{#if error}
+						<p class="text-sm text-destructive">{error}</p>
+					{/if}
+					<Button type="submit" class="w-full" disabled={loading}>
+						{loading ? 'Sending…' : 'Send Reset Link'}
+					</Button>
+				</form>
+			{/if}
+			<p class="mt-4 text-center text-sm text-muted-foreground">
+				<a href={resolve('/sign-in')} class="underline hover:text-foreground">Back to Sign In</a>
+			</p>
+		</Card.Content>
+	</Card.Root>
+</div>

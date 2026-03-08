@@ -1,56 +1,63 @@
 <script lang="ts">
 	import { signIn } from '$lib/auth-client';
-	import { writable } from 'svelte/store';
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { resolve } from '$app/paths';
 
-	const email = writable('');
-	const password = writable('');
+	let email = $state('');
+	let password = $state('');
+	let loading = $state(false);
+	let error = $state('');
 
-	const handleSignIn = async () => {
+	async function handleSignIn() {
+		error = '';
+		loading = true;
 		await signIn.email(
-			{
-				email: $email,
-				password: $password,
-				callbackURL: '/dashboard'
-			},
+			{ email, password, callbackURL: '/dashboard' },
 			{
 				onError(context) {
-					alert(context.error.message);
+					error = context.error.message;
 				}
 			}
 		);
-	};
+		loading = false;
+	}
 </script>
 
-<Card.Root class="mx-auto max-w-sm">
-	<Card.Header>
-		<Card.Title class="text-2xl">Login</Card.Title>
-		<Card.Description>Enter your email below to login to your account</Card.Description>
-	</Card.Header>
-	<Card.Content>
-		<div class="grid gap-4">
-			<div class="grid gap-2">
-				<Label for="email">Email</Label>
-				<Input id="email" type="email" placeholder="m@example.com" required bind:value={$email} />
-			</div>
-			<div class="grid gap-2">
-				<div class="flex items-center">
-					<Label for="password">Password</Label>
-					<a href={resolve('/forget-password')} class="ml-auto inline-block text-sm underline">
-						Forgot your password?
-					</a>
+<div class="flex min-h-[60vh] items-center justify-center">
+	<Card.Root class="w-full max-w-sm bg-card/80 backdrop-blur-sm">
+		<Card.Header>
+			<Card.Title class="text-2xl">Sign In</Card.Title>
+			<Card.Description>Enter your email and password to continue</Card.Description>
+		</Card.Header>
+		<Card.Content>
+			<form class="grid gap-4" onsubmit={(e) => { e.preventDefault(); handleSignIn(); }}>
+				<div class="grid gap-2">
+					<Label for="email">Email</Label>
+					<Input id="email" type="email" placeholder="you@example.com" required bind:value={email} />
 				</div>
-				<Input id="password" type="password" required bind:value={$password} />
-			</div>
-			<Button type="button" class="w-full" onclick={handleSignIn}>Login</Button>
-		</div>
-		<div class="mt-4 text-center text-sm">
-			Don&apos;t have an account?
-			<a href={resolve('/sign-up')} class="underline">Sign up</a>
-		</div>
-	</Card.Content>
-</Card.Root>
+				<div class="grid gap-2">
+					<div class="flex items-center justify-between">
+						<Label for="password">Password</Label>
+						<a href={resolve('/forget-password')} class="text-xs text-muted-foreground hover:underline">
+							Forgot password?
+						</a>
+					</div>
+					<Input id="password" type="password" required bind:value={password} />
+				</div>
+				{#if error}
+					<p class="text-sm text-destructive">{error}</p>
+				{/if}
+				<Button type="submit" class="w-full" disabled={loading}>
+					{loading ? 'Signing in…' : 'Sign In'}
+				</Button>
+			</form>
+			<p class="mt-4 text-center text-sm text-muted-foreground">
+				Don't have an account?
+				<a href={resolve('/sign-up')} class="underline hover:text-foreground">Sign up</a>
+			</p>
+		</Card.Content>
+	</Card.Root>
+</div>

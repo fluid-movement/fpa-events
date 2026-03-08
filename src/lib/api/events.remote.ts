@@ -7,8 +7,8 @@ import { error } from '@sveltejs/kit';
 
 export const loadEvent = query(v.string(), async (id) => {
 	const event = await db.select().from(events).where(eq(events.id, id));
-	
+
 	if (!event) error(404, 'Not found');
-	
+
 	return event[0];
 });

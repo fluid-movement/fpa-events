@@ -7,7 +7,7 @@
 
 	const session = client.useSession();
 
-	console.log($session.data?.user.email)
+	console.log($session.data?.user.email);
 	if (!session) {
 		goto(resolve('/sign-in'));
 	}

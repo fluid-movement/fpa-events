@@ -13,51 +13,53 @@ New to the project? Start here:
 ## What's What
 
 ### SETUP.md
+
 Step-by-step guide to:
+
 - Install and run locally
+- Set up PostgreSQL
 - Make schema changes
-- Deploy to production
+- Deploy to Coolify
 - Troubleshoot common issues
 
 ### STACK.md
+
 Deep dive into the architecture:
-- How SvelteKit, D1, and Drizzle work together
-- Remote functions for type-safe data fetching
+
+- How SvelteKit, PostgreSQL, and Drizzle work together
 - Database migrations workflow
 - Local vs production differences
-- Performance and security considerations
 
 ### REFERENCE.md
+
 Quick lookup for:
+
 - Common commands
 - Database query patterns
-- Remote function examples
 - Troubleshooting guide
-- Direct database access
 
 ## Tech Stack
 
 - **Frontend**: SvelteKit 5, Svelte 5, TailwindCSS 4, bits-ui
-- **Backend**: Cloudflare D1 (SQLite), Drizzle ORM
-- **Deployment**: Cloudflare Pages/Workers
+- **Backend**: PostgreSQL, Drizzle ORM
+- **Deployment**: Coolify VPS (adapter-node)
 - **Auth**: Better Auth
-- **Dev Tools**: Bun, Wrangler, Drizzle Studio
+- **Dev Tools**: npm, Drizzle Studio
 
 ## Common Commands
 
 ```bash
 # Start development
-bun run dev
+npm run dev
 
 # Database
-bun run db:generate                          # Generate migration
-bunx wrangler d1 migrations apply DB --local    # Apply locally
-bunx wrangler d1 migrations apply DB --remote   # Apply to production
-bun run db:studio                            # Visual database browser
+npm run db:generate      # Generate migration
+npm run db:push          # Apply schema to database
+npm run db:studio        # Visual database browser
 
-# Build & Deploy
-bun run build                                # Build for production
-bunx wrangler pages deploy .svelte-kit/cloudflare
+# Build & Preview
+npm run build            # Build for production
+npm run preview          # Preview (runs node build)
 ```
 
 ## Project Structure
@@ -66,47 +68,18 @@ bunx wrangler pages deploy .svelte-kit/cloudflare
 fpa-events/
 ├── src/
 │   ├── lib/
-│   │   ├── server/db/       # Database schema
+│   │   ├── server/db/       # Database schema & connection
 │   │   ├── components/      # UI components
-│   │   └── *.remote.ts      # Server functions
+│   │   └── server/          # Server-only code
 │   ├── routes/              # Pages
-│   └── hooks.server.ts      # DB initialization
-├── drizzle/                 # Migrations
+│   └── hooks.server.ts      # Server initialization
 ├── docs/                    # Documentation
-└── wrangler.toml            # Cloudflare config
-```
-
-## Key Concepts
-
-### Same Code Everywhere
-Your application code is identical in local and production. The platform (Wrangler or Cloudflare) provides the database connection via `platform.env.DB`.
-
-### Type-Safe End-to-End
-Define your schema once, get TypeScript types everywhere:
-```typescript
-// Schema
-export const events = sqliteTable('events', { ... });
-
-// Infer types
-export type Event = typeof events.$inferSelect;
-
-// Use with full type safety
-const events: Event[] = await locals.db.select().from(eventsTable);
-```
-
-### Remote Functions
-Call server-side code from anywhere with full type safety:
-```typescript
-// Define once (server-side)
-export const getAllEvents = query(async () => { ... });
-
-// Use anywhere (client or server)
-const eventsQuery = getAllEvents();
+└── drizzle.config.ts        # Drizzle config
 ```
 
 ## Resources
 
 - [SvelteKit Documentation](https://svelte.dev/docs/kit)
-- [Cloudflare D1 Documentation](https://developers.cloudflare.com/d1/)
 - [Drizzle ORM Documentation](https://orm.drizzle.team/)
-- [Wrangler CLI Documentation](https://developers.cloudflare.com/workers/wrangler/)
+- [Better Auth Documentation](https://better-auth.com/)
+- [Coolify Documentation](https://coolify.io/docs/)

@@ -4,9 +4,10 @@ Get started with the FPA Events application in minutes.
 
 ## Prerequisites
 
-- [Bun](https://bun.sh/) installed
+- [Node.js](https://nodejs.org/) 18+ installed
+- [npm](https://www.npmjs.com/) installed
 - [Git](https://git-scm.com/) installed
-- [Cloudflare account](https://dash.cloudflare.com/sign-up) (for production only)
+- A running **PostgreSQL** instance (local or remote)
 
 ## Quick Start (Local Development)
 
@@ -14,24 +15,59 @@ Get started with the FPA Events application in minutes.
 # 1. Clone and install
 git clone <your-repo-url>
 cd fpa-events
-bun install
+npm install
 
-# 2. Start dev server
-bun run dev
+# 2. Set up environment variables
+cp .env.example .env
+# Edit .env with your PostgreSQL connection string
 
-# 3. Apply database migrations
-bunx wrangler d1 migrations apply DB --local
+# 3. Apply database schema
+npm run db:push
+
+# 4. Start dev server
+npm run dev
 ```
 
-Visit `http://localhost:8788` - you're done!
+Visit `http://localhost:5173` — you're done!
 
-## What Just Happened?
+## Environment Variables
 
-1. **Wrangler** started and created a local D1 database at `.wrangler/state/v3/d1/`
-2. **Migrations** created the database tables
-3. **SvelteKit** connected to the database automatically
+Edit `.env` with your values:
 
-No environment variables needed for basic development!
+```env
+DATABASE_URL=postgresql://user:password@localhost:5432/fpa_events
+
+BETTER_AUTH_SECRET=your-secret-key
+BETTER_AUTH_URL=http://localhost:5173
+```
+
+## Setting Up PostgreSQL Locally
+
+### Option A: Docker (recommended)
+
+```bash
+docker run -d \
+  --name fpa-postgres \
+  -e POSTGRES_USER=fpa \
+  -e POSTGRES_PASSWORD=fpa \
+  -e POSTGRES_DB=fpa_events \
+  -p 5432:5432 \
+  postgres:16
+
+# Your DATABASE_URL:
+# postgresql://fpa:fpa@localhost:5432/fpa_events
+```
+
+### Option B: Native install
+
+```bash
+# macOS
+brew install postgresql@16
+brew services start postgresql@16
+
+# Create DB
+createdb fpa_events
+```
 
 ## Project Structure
 
@@ -39,28 +75,13 @@ No environment variables needed for basic development!
 fpa-events/
 ├── src/
 │   ├── lib/
-│   │   ├── server/db/         # Database schema
+│   │   ├── server/db/         # Database schema & connection
 │   │   ├── components/        # UI components
-│   │   └── *.remote.ts        # Server functions
+│   │   └── server/            # Server-only code
 │   ├── routes/                # Pages
-│   └── hooks.server.ts        # DB initialization
-├── drizzle/                   # Migrations
+│   └── hooks.server.ts        # Server initialization
 ├── docs/                      # Documentation
-└── wrangler.toml              # Cloudflare config
-```
-
-## Adding Test Data
-
-```bash
-# Option 1: Using Wrangler
-bunx wrangler d1 execute DB --local --file=scripts/seed-test-data.sql
-
-# Option 2: Direct SQLite
-D1_DB=$(find .wrangler -name "*.sqlite" | head -n 1)
-sqlite3 "$D1_DB" "INSERT INTO events (id, name, start_date) VALUES ('1', 'Test Event', $(date +%s));"
-
-# Option 3: Use Drizzle Studio (visual editor)
-bun run db:studio
+└── drizzle.config.ts          # Drizzle config
 ```
 
 ## Making Schema Changes
@@ -70,137 +91,92 @@ bun run db:studio
 code src/lib/server/db/schema.ts
 
 # 2. Generate migration
-bun run db:generate
+npm run db:generate
 
-# 3. Apply locally
-bunx wrangler d1 migrations apply DB --local
+# 3. Apply to database
+npm run db:push
 
 # 4. Restart dev server
-bun run dev
+npm run dev
 ```
 
-## Optional: Environment Variables
-
-Only needed for:
-- Using Drizzle Studio with remote database
-- Adding third-party API keys
+## Adding Test Data
 
 ```bash
-# Copy example
-cp .env.example .env
+# Use Drizzle Studio (visual editor)
+npm run db:studio
 
-# Edit with your values
-code .env
+# Or run the seed script
+npm run db:seed
 ```
-
-Example `.env`:
-```env
-# Optional: For Drizzle Studio with remote DB
-CLOUDFLARE_ACCOUNT_ID=your-account-id
-CLOUDFLARE_DATABASE_ID=your-database-id
-CLOUDFLARE_D1_TOKEN=your-api-token
-```
-
-## Production Deployment
-
-### 1. Create Production Database
-
-```bash
-# Create database
-bunx wrangler d1 create fpa-events-prod
-
-# Copy the database_id from output
-```
-
-### 2. Deploy to Cloudflare Pages
-
-#### Option A: Via GitHub (Recommended)
-
-1. Push code to GitHub
-2. Go to [Cloudflare Dashboard](https://dash.cloudflare.com/)
-3. **Workers & Pages** → **Create application** → **Pages** → **Connect to Git**
-4. Select your repository
-5. Configure:
-   - Build command: `bun run build`
-   - Build output: `.svelte-kit/cloudflare`
-6. Click **Save and Deploy**
-
-#### Option B: Via CLI
-
-```bash
-bun run build
-bunx wrangler pages deploy .svelte-kit/cloudflare
-```
-
-### 3. Configure D1 Binding
-
-1. In Cloudflare Dashboard, go to your Pages project
-2. **Settings** → **Functions** → **D1 database bindings**
-3. Click **Add binding**:
-   - Variable name: `DB`
-   - D1 database: Select `fpa-events-prod`
-4. Click **Save**
-
-### 4. Apply Migrations
-
-```bash
-bunx wrangler d1 migrations apply fpa-events-prod --remote
-```
-
-### 5. Redeploy
-
-Trigger a new deployment (push a commit or click "Retry deployment").
-
-Your app is live! 🎉
 
 ## Common Commands
 
 ```bash
 # Development
-bun run dev              # Start dev server
-bun run build            # Build for production
-bun run check            # Type check
+npm run dev              # Start dev server
+npm run build            # Build for production
+npm run check            # Type check
 
 # Database
-bun run db:generate      # Generate migration
-bun run db:studio        # Visual database browser
-bunx wrangler d1 migrations apply DB --local    # Apply locally
-bunx wrangler d1 migrations apply DB --remote   # Apply to production
-
-# Query database
-bunx wrangler d1 execute DB --local --command "SELECT * FROM events"
-bunx wrangler d1 execute DB --remote --command "SELECT * FROM events"
+npm run db:generate      # Generate migration
+npm run db:push          # Apply schema to database
+npm run db:studio        # Visual database browser
+npm run db:seed          # Seed with test data
 ```
+
+## Production Deployment (Coolify)
+
+Coolify deploys automatically on git push. Before deploying:
+
+1. **Create a PostgreSQL database** in Coolify (or use an external managed DB)
+2. **Set environment variables** in Coolify's environment panel:
+   - `DATABASE_URL` — your PostgreSQL connection string
+   - `BETTER_AUTH_SECRET` — a secure random string
+   - `BETTER_AUTH_URL` — your production URL
+3. **Apply migrations** once:
+   ```bash
+   DATABASE_URL=<prod-db-url> npm run db:push
+   ```
+4. **Push to git** — Coolify builds and deploys automatically
+
+Build settings in Coolify:
+- Build command: `npm run build`
+- Start command: `node build`
+
+## Production Checklist
+
+Before going live:
+
+- [ ] `DATABASE_URL` set in Coolify environment
+- [ ] `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL` set
+- [ ] Schema applied to production database: `npm run db:push`
+- [ ] Build succeeds: `npm run build`
+- [ ] Type check passes: `npm run check`
+- [ ] No secrets in git
 
 ## Troubleshooting
 
-### "D1 database binding not found"
-- Use `bun run dev` (not `vite dev`)
+### "DATABASE_URL is not set"
 
-### "No such table"
-- Apply migrations: `bunx wrangler d1 migrations apply DB --local`
+- Check your `.env` file has the correct value
+- Restart the dev server after editing `.env`
+
+### "No such table" / connection errors
+
+- Verify PostgreSQL is running
+- Run `npm run db:push` to apply schema
+- Check `DATABASE_URL` is correctly formatted
 
 ### "Database is locked"
+
 - Close Drizzle Studio and restart dev server
 
-### No data showing
-- Insert test data (see "Adding Test Data" above)
-
-### Port already in use
-```bash
-lsof -ti:8788 | xargs kill -9
-bun run dev
-```
-
-## Reset Everything
-
-Start fresh:
+### Corrupted dependencies
 
 ```bash
-rm -rf .wrangler/ .svelte-kit/ node_modules/
-bun install
-bun run dev
-bunx wrangler d1 migrations apply DB --local
+rm -rf node_modules .svelte-kit
+npm install
 ```
 
 ## Next Steps
@@ -209,21 +185,9 @@ bunx wrangler d1 migrations apply DB --local
 - Read [REFERENCE.md](./REFERENCE.md) for common patterns
 - Start building features!
 
-## Production Checklist
-
-Before going live:
-
-- [ ] Migrations applied to production database
-- [ ] D1 binding configured in Cloudflare Dashboard
-- [ ] Environment variables set (if any)
-- [ ] Build succeeds: `bun run build`
-- [ ] Type check passes: `bun run check`
-- [ ] No secrets in git
-
 ## Getting Help
 
 - [STACK.md](./STACK.md) - How everything works
 - [REFERENCE.md](./REFERENCE.md) - Quick reference
 - [SvelteKit Docs](https://svelte.dev/docs/kit)
-- [Cloudflare D1 Docs](https://developers.cloudflare.com/d1/)
 - [Drizzle Docs](https://orm.drizzle.team/)
