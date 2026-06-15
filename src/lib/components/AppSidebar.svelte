@@ -1,12 +1,15 @@
 <script lang="ts">
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
+	import type { Pathname } from '$app/types';
 	import { menuGroups, routeActive } from '$lib/config/sidebarMenu';
-	import DarkLightToggle from './DarkLightToggle.svelte';
 	import Logo from './Logo.svelte';
 	import SidebarLogin from './SidebarLogin.svelte';
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import { Button } from './ui/button';
+
+	const isActive = (url: Pathname) => routeActive(url, page.url.pathname);
 </script>
 
 <Sidebar.Root>
@@ -15,13 +18,13 @@
 			<Logo />
 		</Sidebar.Header>
 		<Sidebar.Group>
-			{#each menuGroups as group (group.label)}
+			{#each menuGroups as group, i (i)}
 				<Sidebar.GroupLabel>{group.label}</Sidebar.GroupLabel>
 				<Sidebar.GroupContent>
 					<Sidebar.Menu>
 						{#each group.items as item (item.label)}
 							<Sidebar.MenuItem>
-								<Sidebar.MenuButton isActive={routeActive(item.url)}>
+								<Sidebar.MenuButton isActive={isActive(item.url)}>
 									{#snippet child({ props })}
 										<a href={resolve(item.url)} {...props}>
 											<item.icon />
@@ -39,6 +42,5 @@
 	<Sidebar.Footer>
 		<Button href={resolve('/events/create')}><PlusIcon /> Create Event</Button>
 		<SidebarLogin />
-		<DarkLightToggle />
 	</Sidebar.Footer>
 </Sidebar.Root>

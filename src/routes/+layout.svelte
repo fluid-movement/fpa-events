@@ -1,6 +1,6 @@
 <script lang="ts">
 	import './layout.css';
-	import { ModeWatcher } from 'mode-watcher';
+	import '@fontsource-variable/nunito';
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import AppSidebar from '$lib/components/AppSidebar.svelte';
 	import TopNavigation from '$lib/components/TopNavigation.svelte';
@@ -13,7 +13,6 @@
 	<title>FPA Events</title>
 </svelte:head>
 
-<ModeWatcher />
 <Sidebar.Provider>
 	<AppSidebar />
 	<Sidebar.Inset>

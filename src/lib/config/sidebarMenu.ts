@@ -61,10 +61,10 @@ export const menuGroups: MenuGroup[] = [
 	}
 ];
 
-export const routeActive = (url: Pathname): boolean => {
+export const routeActive = (url: Pathname, pathname = page.url.pathname): boolean => {
 	if (url === '/') {
-		return page.url.pathname === '/';
+		return pathname === '/';
 	}
 
-	return page.url.pathname.startsWith(url);
+	return pathname.startsWith(url);
 };
