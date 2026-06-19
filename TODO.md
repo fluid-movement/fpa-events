@@ -14,8 +14,8 @@
 - Magic link invite acceptance
 
 ## 🔜 Next
-- [ ] RSVP toggle (attending / not going) on event detail page
-- [ ] /attending page — upcoming events with countdown + past attended
+- [x] RSVP toggle (attending / not going) on event detail page
+- [x] /attending page — upcoming events with countdown + past attended
 - [ ] Event delete (creator or admin only)
 - [ ] Event image upload (Cloudflare R2)
 
