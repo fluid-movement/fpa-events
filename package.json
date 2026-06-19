@@ -18,13 +18,16 @@
     "db:seed": "vite-node src/lib/server/db/seed.ts",
     "db:reset": "npm run db:push && npm run db:seed",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:integration": "playwright test",
+    "test:integration:ui": "playwright test --ui"
   },
   "devDependencies": {
     "@eslint/compat": "^1.4.0",
     "@eslint/js": "^9.38.0",
     "@internationalized/date": "^3.8.1",
     "@lucide/svelte": "^0.555.0",
+    "@playwright/test": "^1.61.0",
     "@sveltejs/adapter-auto": "^7.0.0",
     "@sveltejs/adapter-node": "^5.0.0",
     "@sveltejs/kit": "^2.47.1",

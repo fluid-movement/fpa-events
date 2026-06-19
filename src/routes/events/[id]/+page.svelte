@@ -94,6 +94,7 @@
 						<form {...toggleRsvp}>
 							<button
 								type="submit"
+								data-testid="rsvp-button"
 								onclick={() => {
 									attending = !attending;
 									optimisticCount += attending ? 1 : -1;
@@ -113,6 +114,7 @@
 					{:else}
 						<a
 							href={resolve('/sign-in')}
+							data-testid="rsvp-sign-in-link"
 							class="flex items-center gap-2 text-sm rounded-md px-3 py-1.5 border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors w-fit"
 						>
 							<HeartIcon class="size-4 shrink-0" />
