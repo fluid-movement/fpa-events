@@ -5,6 +5,42 @@
 
 ---
 
+## 🔜 Current Focus — Polish & Seed Data
+
+### Seed Data
+
+- [ ] **Rewrite seed script** (`src/lib/server/db/seed.ts`) with realistic FPA-style data
+  - ~15 users with real-looking freestyle player names
+  - ~40 events spread across 2023, 2024, 2025, and 2026 — a believable mix of past and upcoming
+  - Event names that sound like real FPA tournaments (e.g. "FPA World Championship", "Geneva Open", "Berlin Jam")
+  - Real city/country locations (Geneva, Berlin, Portland, London, Tokyo…)
+  - Meaningful descriptions (not lorem ipsum)
+  - Some events with images (use placeholder URLs for now), most without
+  - RSVP rows for some users on some events (`attending` status)
+  - A few events with schedules (registration, competition day, finals)
+  - One seeded admin user (use the real dev email address: zaharias.andre@googlemail.com)
+
+### Home Page (`src/routes/+page.svelte`)
+
+- [ ] **Upcoming events grid** — below the next-event hero, show the next 3–5 upcoming events as a grid of `EventCalendarCard`s
+- [ ] **Event count stats** — small stat line: "X events this year · Y countries" (computed from DB)
+- [ ] **Hero polish** — if the next event has a picture, show it in the hero card
+
+### Event Calendar (`src/routes/events/+page.svelte`)
+
+- [ ] **EventCalendarCard image thumbnail** — if event has a `picture`, show it as a header image on the card
+- [ ] **Attendee count on card** — show "X attending" badge on each card
+- [ ] **Empty state** — if no upcoming events, show a friendly empty state instead of a blank page
+
+### Event Detail (`src/routes/events/[id]/+page.svelte`)
+
+- [ ] **Cover image hero** — if event has a picture, show it full-width at the top of the detail page (currently only shown in a 2-col grid; make it more prominent)
+- [ ] **Attendee list peek** — below the RSVP button, show avatars/names of the first few attendees ("Alice, Bob, and 4 others are attending")
+- [ ] **Rich description rendering** — ensure Tiptap HTML renders correctly with proper typography styles
+- [ ] **Schedule tab polish** — nicer timeline layout for schedule items
+
+---
+
 ## Design System
 
 - [ ] **Finalize color palette** — review swatches on `/design`, adjust oklch values in `src/routes/layout.css` until the palette feels right (primary blue, background levels, muted tones)
@@ -16,82 +52,19 @@
 - [ ] **Style Tooltip** — tune background, text, arrow, animation in `src/lib/components/ui/tooltip/tooltip-content.svelte`
 - [ ] **Style Skeleton** — tune shimmer animation and color in `src/lib/components/ui/skeleton/skeleton.svelte`
 - [ ] **Style Sidebar** — review sidebar on all pages, tune active state gradient, hover, and spacing in `src/lib/components/ui/sidebar/` and `src/lib/components/AppSidebar.svelte`
-- [ ] **Style EventCalendarCard** — tune card appearance, date display, hover state in `src/lib/components/EventCalendarCard.svelte`
 - [ ] **Add missing shadcn components** — install Badge, Table, Dialog via shadcn-svelte CLI (needed for member list, attendee table, delete confirmation)
 - [ ] **Micro-interactions pass** — add transitions, hover lifts, and animations across components once base styles are set. Focus on: card hover, page transitions, form feedback.
 - [ ] **Remove design page before launch** — delete `src/routes/design/` or add a production guard
 
 ---
 
-## Phase 1 — Events
-
-### RSVP / Attendance
-
-- [ ] **RSVP toggle on event detail page** (`src/routes/events/[id]/+page.svelte`)
-  - Add form action `rsvp` in `src/routes/events/[id]/+page.server.ts`
-  - If user has `attending` row in `event_user` → delete it (un-RSVP)
-  - If not → insert row with `status: 'attending'`
-  - Load current RSVP status in the `load` function and pass to page
-  - Show "Attending" / "Not Going" button state accordingly
-  - Only show RSVP button if user is logged in and is not an organizer
-
-- [ ] **Build `/attending` page** (`src/routes/attending/+page.svelte`)
-  - Load all `event_user` rows for current user with `status: 'attending'`, join events
-  - Split into upcoming (startDate >= now) and past
-  - Upcoming: show countdown to next event (days/hours), then list remaining upcoming events
-  - Past: list of past attended events
-  - Requires auth — redirect to `/sign-in` if not logged in
-
-### Event Image Upload
-
-- [ ] **Set up Cloudflare R2 client** — create `src/lib/server/r2.ts`
-  - Use `@aws-sdk/client-s3` (S3-compatible) with R2 endpoint, access key, secret from env
-  - Export `uploadToR2(file: File, key: string): Promise<string>` returning the public URL
-  - Add env vars: `R2_ENDPOINT`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_URL`
-
-- [ ] **Add image upload to create event form** (`src/routes/events/create/`)
-  - Add file input to `+page.svelte` (accept image/*)
-  - In form action: extract file, validate type + size, upload to R2, store URL + dimensions in `events` table
-  - Use `sharp` or read image dimensions from the uploaded file before storing
-  - Store key as `events/{id}/{filename}`
-
-- [ ] **Add image upload to edit event form** (`src/routes/events/[id]/edit/`)
-  - Same as create but pre-fill existing image
-  - On update: if new image uploaded, delete old R2 object, upload new one
-  - If no new image provided, keep existing
-
-- [ ] **Display event image** on event detail page and event cards
-  - Show image in event detail header if `picture` is set
-  - Show image thumbnail on `EventCalendarCard` if available
-  - Use `pictureWidth` / `pictureHeight` for correct aspect ratio / layout shift prevention
-
-### Event Delete
-
-- [ ] **Add delete action** to event admin page (`src/routes/events/[id]/admin/+page.server.ts`)
-  - Form action `delete`
-  - Check: user must be event creator OR admin role
-  - Delete R2 image if `picture` is set
-  - Delete event row (cascades to schedules, event_user, magic_links)
-  - Redirect to `/events` after deletion
-
-- [ ] **Add delete button** to event admin UI
-  - Show only to event creator / admin
-  - Use a confirmation Dialog (shadcn) before submitting
-
----
-
 ## Phase 2 — Admin Role
 
-- [ ] **Add `role` column to `user` table**
-  - Add `role: text('role').notNull().default('user')` to `user` table in `src/lib/server/db/schema.ts`
-  - Write and run Drizzle migration
-
-- [ ] **Update `app.d.ts`** — add `role` to the `User` type in `locals`
-
+- [x] **Add `role` column to `user` table**
+- [x] **Extend event permissions** — admins can edit/delete any event
 - [ ] **Create admin layout guard** — `src/routes/admin/+layout.server.ts`
   - Redirect to `/` with 403 if `locals.user?.role !== 'admin'`
-
-- [ ] **Extend event permissions** — in event edit/delete actions, also allow if `locals.user?.role === 'admin'`
+- [ ] **`/admin/dashboard`** — membership analytics (deprioritised — do after Phase 3)
 
 ---
 
