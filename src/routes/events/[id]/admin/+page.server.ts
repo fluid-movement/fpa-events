@@ -161,5 +161,17 @@ export const actions: Actions = {
 		});
 
 		return { success: true };
+	},
+
+	deleteEvent: async ({ params, locals }) => {
+		if (!locals.user) return fail(401, { error: 'Unauthorized' });
+		if (!params.id) return fail(404, { error: 'Not found' });
+
+		const [event] = await db.select().from(events).where(eq(events.id, params.id));
+		if (!event || event.userId !== locals.user.id) return fail(403, { error: 'Forbidden' });
+
+		await db.delete(events).where(eq(events.id, params.id));
+
+		redirect(302, resolve('/events'));
 	}
 };

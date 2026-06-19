@@ -450,4 +450,24 @@
 			{/if}
 		</div>
 	{/if}
+
+	<!-- Danger Zone -->
+	<div class="mt-16 border border-destructive/30 rounded-lg p-6">
+		<h2 class="text-base font-semibold text-destructive mb-1">Danger Zone</h2>
+		<p class="text-sm text-muted-foreground mb-4">
+			Permanently delete this event and all its data. This cannot be undone.
+		</p>
+		<form
+			method="POST"
+			action="?/deleteEvent"
+			use:enhance={({ cancel }) => {
+				if (!confirm(`Delete "${event.name}"? This cannot be undone.`)) cancel();
+			}}
+		>
+			<Button type="submit" variant="destructive" size="sm">
+				<TrashIcon class="size-4" />
+				Delete Event
+			</Button>
+		</form>
+	</div>
 </div>
