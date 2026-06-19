@@ -1,1 +1,1 @@
-<img src="/fpa-logo-light.png" alt="FPA Logo" class="w-auto" />
+<img src="/fpa-logo-dark.png" alt="FPA Logo"/>

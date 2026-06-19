@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { enhance } from '$app/forms';
 	import { Button } from '$lib/components/ui/button';
+	import { toggleRsvp } from './data.remote';
 	import type { PageProps } from './$types';
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
 	import MapPinIcon from '@lucide/svelte/icons/map-pin';
@@ -92,19 +92,10 @@
 					</p>
 					{#if userId}
 						<form
-							method="POST"
-							action="?/rsvp"
-							use:enhance={() => {
-								const wasAttending = attending;
-								attending = !wasAttending;
-								optimisticCount = wasAttending ? optimisticCount - 1 : optimisticCount + 1;
-								return async ({ result, update }) => {
-									if (result.type === 'error' || result.type === 'failure') {
-										attending = wasAttending;
-										optimisticCount = wasAttending ? optimisticCount + 1 : optimisticCount - 1;
-									}
-									await update({ reset: false });
-								};
+							{...toggleRsvp}
+							onsubmit={() => {
+								attending = !attending;
+								optimisticCount += attending ? 1 : -1;
 							}}
 						>
 							<button
