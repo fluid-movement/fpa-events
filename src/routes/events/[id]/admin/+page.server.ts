@@ -5,6 +5,7 @@ import { error, redirect, fail, type ServerLoadEvent } from '@sveltejs/kit';
 import { resolve } from '$app/paths';
 import type { PageServerLoad, Actions } from './$types';
 import { ulid } from 'ulid';
+import { deleteImage } from '$lib/server/r2';
 
 export const load: PageServerLoad = async ({ params, locals, url }: ServerLoadEvent) => {
 	if (!locals.user) {
@@ -171,6 +172,10 @@ export const actions: Actions = {
 
 		const [event] = await db.select().from(events).where(eq(events.id, params.id));
 		if (!event || (event.userId !== locals.user.id && locals.role !== 'admin')) return fail(403, { error: 'Forbidden' });
+
+		if (event.picture) {
+			await deleteImage(event.picture).catch(() => {});
+		}
 
 		await db.delete(events).where(eq(events.id, params.id));
 

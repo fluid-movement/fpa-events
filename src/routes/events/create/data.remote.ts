@@ -11,7 +11,10 @@ const createEventSchema = v.object({
 	description: v.string(),
 	startDate: v.string(),
 	endDate: v.string(),
-	location: v.string()
+	location: v.string(),
+	picture: v.optional(v.string()),
+	pictureWidth: v.optional(v.string()),
+	pictureHeight: v.optional(v.string())
 });
 
 export const createEvent = form(createEventSchema, async (data) => {
@@ -31,6 +34,9 @@ export const createEvent = form(createEventSchema, async (data) => {
 		startDate: new Date(data.startDate),
 		endDate: new Date(data.endDate),
 		location: data.location,
+		picture: data.picture || null,
+		pictureWidth: data.pictureWidth ? parseInt(data.pictureWidth) : null,
+		pictureHeight: data.pictureHeight ? parseInt(data.pictureHeight) : null,
 		createdAt: new Date()
 	};
 

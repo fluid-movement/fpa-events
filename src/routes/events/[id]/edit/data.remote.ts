@@ -5,13 +5,17 @@ import { db } from '$lib/server/db';
 import { events } from '$lib/server/db/schema';
 import { resolve } from '$app/paths';
 import { eq } from 'drizzle-orm';
+import { deleteImage } from '$lib/server/r2';
 
 const updateEventSchema = v.object({
 	name: v.pipe(v.string(), v.minLength(1), v.maxLength(100)),
 	description: v.string(),
 	startDate: v.string(),
 	endDate: v.string(),
-	location: v.string()
+	location: v.string(),
+	picture: v.optional(v.string()),
+	pictureWidth: v.optional(v.string()),
+	pictureHeight: v.optional(v.string())
 });
 
 // Query to fetch the current event data
@@ -26,9 +30,12 @@ export const getEvent = query(v.string(), async (id) => {
 		id: event.id,
 		name: event.name,
 		description: event.description || '',
-		startDate: event.startDate.toISOString().slice(0, 10), // Format for date input (YYYY-MM-DD)
+		startDate: event.startDate.toISOString().slice(0, 10),
 		endDate: event.endDate.toISOString().slice(0, 10),
-		location: event.location || ''
+		location: event.location || '',
+		picture: event.picture ?? null,
+		pictureWidth: event.pictureWidth ?? null,
+		pictureHeight: event.pictureHeight ?? null
 	};
 });
 
@@ -59,6 +66,13 @@ export const updateEvent = form(updateEventSchema, async (data) => {
 		throw new Error('Unauthorized: You can only edit your own events');
 	}
 
+	const newPicture = data.picture || null;
+
+	// Delete old R2 image if it's being replaced
+	if (existingEvent.picture && newPicture && newPicture !== existingEvent.picture) {
+		await deleteImage(existingEvent.picture).catch(() => {});
+	}
+
 	const now = new Date();
 
 	const updateData = {
@@ -67,6 +81,9 @@ export const updateEvent = form(updateEventSchema, async (data) => {
 		startDate: new Date(data.startDate),
 		endDate: new Date(data.endDate),
 		location: data.location,
+		picture: newPicture ?? existingEvent.picture,
+		pictureWidth: data.pictureWidth ? parseInt(data.pictureWidth) : existingEvent.pictureWidth,
+		pictureHeight: data.pictureHeight ? parseInt(data.pictureHeight) : existingEvent.pictureHeight,
 		updatedAt: now
 	};
 

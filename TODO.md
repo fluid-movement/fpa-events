@@ -12,16 +12,17 @@
 - Event detail page — info, schedules tab, edit/manage for owner
 - Auth pages (sign-in, sign-up, forgot/reset password)
 - Magic link invite acceptance
+- RSVP toggle (attending / not going) on event detail page
+- /attending page — upcoming events with countdown + past attended
+- Event delete (creator or admin only)
+- Unit tests (Vitest) + integration tests (Playwright) for all features
+- `role` column on user table
+- Admins can edit/delete any event (event detail + admin + edit pages)
 
 ## 🔜 Next
-- [x] RSVP toggle (attending / not going) on event detail page
-- [x] /attending page — upcoming events with countdown + past attended
-- [x] Event delete (creator or admin only)
-- [ ] Event image upload (Cloudflare R2)
+- [x] Event image upload (Cloudflare R2)
 
 # Phase 2 — Admin Role
-- [x] `role` column on user table
-- [x] Admins can edit/delete any event (event detail + admin + edit pages)
 - [ ] Admin route guards (/admin/*) — site-level admin dashboard
 
 # Phase 3 — Players & Membership

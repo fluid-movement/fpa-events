@@ -4,6 +4,7 @@
 	import * as Field from '$lib/components/ui/field';
 	import { RangeCalendar } from '$lib/components/ui/range-calendar/index.js';
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
+	import ImageUpload from '$lib/components/ImageUpload.svelte';
 	import type { DateValue } from '@internationalized/date';
 
 	import { createEvent } from './data.remote';
@@ -44,6 +45,10 @@
 				<Field.Field>
 					<Field.Label>Description</Field.Label>
 					<RichTextEditor name="description" placeholder="Info about the event" />
+				</Field.Field>
+				<Field.Field>
+					<Field.Label>Cover image</Field.Label>
+					<ImageUpload />
 				</Field.Field>
 				<Field.Field>
 					<Field.Label>Event dates</Field.Label>
