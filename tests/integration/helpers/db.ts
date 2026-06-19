@@ -84,6 +84,16 @@ export async function isAttending(eventId: string, userId: string): Promise<bool
 	return rows.length > 0;
 }
 
+export async function getScheduleCount(eventId: string): Promise<number> {
+	const rows = await sql()`SELECT id FROM schedules WHERE event_id = ${eventId}`;
+	return rows.length;
+}
+
+export async function eventExists(eventId: string): Promise<boolean> {
+	const rows = await sql()`SELECT id FROM events WHERE id = ${eventId}`;
+	return rows.length > 0;
+}
+
 export async function setUserRole(userId: string, role: 'user' | 'admin'): Promise<void> {
 	await sql()`UPDATE "user" SET role = ${role} WHERE id = ${userId}`;
 }
