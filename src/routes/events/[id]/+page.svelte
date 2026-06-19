@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { enhance } from '$app/forms';
 	import { Button } from '$lib/components/ui/button';
 	import type { PageProps } from './$types';
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
@@ -14,6 +15,14 @@
 	const userId = $derived(data.userId);
 	const schedules = $derived(data.schedules);
 	const attendeeCount = $derived(data.attendeeCount);
+
+	let attending = $state(data.userAttending);
+	let optimisticCount = $state(data.attendeeCount);
+
+	$effect(() => {
+		attending = data.userAttending;
+		optimisticCount = data.attendeeCount;
+	});
 
 	let activeTab = $state<'description' | 'schedule'>('description');
 
@@ -81,10 +90,46 @@
 						<MapPinIcon class="size-4 shrink-0" />
 						{event.location}
 					</p>
-					<p class="flex items-center gap-2 text-muted-foreground">
-						<HeartIcon class="size-4 shrink-0" />
-						{attendeeCount} attending
-					</p>
+					{#if userId}
+						<form
+							method="POST"
+							action="?/rsvp"
+							use:enhance={() => {
+								const wasAttending = attending;
+								attending = !wasAttending;
+								optimisticCount = wasAttending ? optimisticCount - 1 : optimisticCount + 1;
+								return async ({ result, update }) => {
+									if (result.type === 'error' || result.type === 'failure') {
+										attending = wasAttending;
+										optimisticCount = wasAttending ? optimisticCount + 1 : optimisticCount - 1;
+									}
+									await update({ reset: false });
+								};
+							}}
+						>
+							<button
+								type="submit"
+								class="flex items-center gap-2 text-sm rounded-md px-3 py-1.5 border transition-colors {attending
+									? 'bg-primary/15 border-primary/40 text-primary hover:bg-primary/20'
+									: 'border-border text-muted-foreground hover:text-foreground hover:border-foreground/30'}"
+							>
+								<HeartIcon class="size-4 shrink-0 {attending ? 'fill-primary' : ''}" />
+								{#if attending}
+									Attending · {optimisticCount}
+								{:else}
+									Attend · {optimisticCount}
+								{/if}
+							</button>
+						</form>
+					{:else}
+						<a
+							href={resolve('/sign-in')}
+							class="flex items-center gap-2 text-sm rounded-md px-3 py-1.5 border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors w-fit"
+						>
+							<HeartIcon class="size-4 shrink-0" />
+							Attend · {optimisticCount}
+						</a>
+					{/if}
 				</div>
 
 				<!-- Right: image -->

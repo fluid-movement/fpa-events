@@ -1,41 +1,38 @@
-# General
+# Phase 1 — Events (current focus)
 
-- theme styles
-- guards, who can see what
-- add links to other pages
-- sending emails
-- create seeding data
+## ✅ Done
+- Theme, color palette, typography (layout.css)
+- Button micro-interactions (shadow lift, glow, press-down)
+- Card glass-border gradient effect
+- EventCalendarCard redesigned (glow, chip date, glass card)
+- Design system page (/design) — all components showcased
+- Events index — month grouping, card styling
+- Past events archive (/events/past/[year])
+- Event create/edit with Tiptap rich text editor
+- Event detail page — info, schedules tab, edit/manage for owner
+- Auth pages (sign-in, sign-up, forgot/reset password)
+- Magic link invite acceptance
 
-# Home Page
+## 🔜 Next
+- [ ] RSVP toggle (attending / not going) on event detail page
+- [ ] /attending page — upcoming events with countdown + past attended
+- [ ] Event delete (creator or admin only)
+- [ ] Event image upload (Cloudflare R2)
 
-Think of something interesting to show here
+# Phase 2 — Admin Role
+- [ ] `role` column on user table
+- [ ] Admin route guards (/admin/*)
+- [ ] Admins can edit/delete any event
 
-# Events
+# Phase 3 — Players & Membership
+- [ ] players + active_years tables
+- [ ] /admin/members CRUD
+- [ ] /admin/dashboard analytics
+- [ ] Player self-service (user manages own membership)
 
-## General
-
-## Index
-
-- break up events by month
-- card styling
-- past events view
-
-## Create & Update
-
-- Description wysiwyg editor
-- Image upload
-
-## Detail
-
-- attending button / function
-
-# Dashboard
-
-# Attending
-
-# Login / Auth
-
-- User settings Page
-- add to sidebar
-- login and signup pages
-- forgot passwork / reset password
+# Backlog
+- [ ] Home page — something interesting (event stats, upcoming highlight?)
+- [ ] User settings page polish
+- [ ] Seed data for dev
+- [ ] Email notifications (deferred)
+- [ ] Rankings algorithm (placeholder only)
