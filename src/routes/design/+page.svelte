@@ -394,7 +394,7 @@
 	</section>
 
 	<!-- 11. Event Calendar Card -->
-	<section class="space-y-4">
+	<section class="space-y-6">
 		<h2 class="text-2xl font-semibold border-b pb-2">11. Event Calendar Card</h2>
 		<div class="max-w-md">
 			<EventCalendarCard event={sampleEvent} />
@@ -474,3 +474,7 @@
 		</div>
 	</section>
 </div>
+
+<style>
+
+</style>
