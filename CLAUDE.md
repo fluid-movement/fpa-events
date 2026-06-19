@@ -15,3 +15,18 @@ After completing each feature or meaningful unit of work, create a commit using 
 **Always use modern Svelte 5 runes** — `$state`, `$derived`, `$derived.by`, `$effect`, `$props`. Never legacy reactive syntax (`$:`, `let` stores, etc.).
 
 **No `use:enhance`** — remote functions handle progressive enhancement automatically via `{...formAction}` spread on `<form>` elements.
+
+## Testing
+
+**Write tests as part of implementation** — every feature ships with tests, not after.
+
+- **Unit tests** (Vitest): pure functions, utility logic, component rendering. Lives in `src/**/*.test.ts` alongside the code it tests.
+- **Integration tests** (Playwright): user-visible behavior — form submissions, page navigation, DB state. Lives in `tests/integration/`.
+
+**Test selectors**: use `data-testid` attributes on interactive elements that tests need to target, especially where role-based selectors would be ambiguous (e.g., sidebar nav vs. page content).
+
+**After remote function calls**: always `await page.waitForLoadState('networkidle')` before asserting UI state, to let the fetch and page data revalidation complete.
+
+**Unauthenticated tests**: use `context.clearCookies()` on the existing Playwright context rather than `browser.newContext()`.
+
+**Identity sequences**: if seeding the DB with explicit IDs, reset the sequence afterward — otherwise inserts will fail with duplicate key errors.

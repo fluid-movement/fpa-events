@@ -20,9 +20,9 @@
 - [ ] Event image upload (Cloudflare R2)
 
 # Phase 2 — Admin Role
-- [ ] `role` column on user table
-- [ ] Admin route guards (/admin/*)
-- [ ] Admins can edit/delete any event
+- [x] `role` column on user table
+- [x] Admins can edit/delete any event (event detail + admin + edit pages)
+- [ ] Admin route guards (/admin/*) — site-level admin dashboard
 
 # Phase 3 — Players & Membership
 - [ ] players + active_years tables

@@ -13,8 +13,10 @@
 	let { data }: PageProps = $props();
 	const event = $derived(data.event);
 	const userId = $derived(data.userId);
+	const userRole = $derived(data.userRole);
 	const schedules = $derived(data.schedules);
 	const attendeeCount = $derived(data.attendeeCount);
+	const canManage = $derived(userId === event.userId || userRole === 'admin');
 
 	let attending = $state(data.userAttending);
 	let optimisticCount = $state(data.attendeeCount);
@@ -69,7 +71,7 @@
 				<div class="flex flex-col gap-3">
 					<div class="flex items-start justify-between gap-4">
 						<h1 class="text-3xl font-bold leading-tight">{event.name}</h1>
-						{#if userId === event.userId}
+						{#if canManage}
 							<div class="flex gap-2 shrink-0">
 								<Button href={resolve(`/events/${event.id}/edit`)} variant="outline" size="sm">
 									<PencilIcon class="size-4" />

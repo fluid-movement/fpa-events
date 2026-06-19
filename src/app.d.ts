@@ -9,6 +9,7 @@ declare global {
 		interface Locals {
 			session: typeof auth.$Infer.Session.session | undefined;
 			user: typeof auth.$Infer.Session.user | undefined;
+			role: 'user' | 'admin' | undefined;
 		}
 		// interface PageData {}
 		// interface PageState {}

@@ -35,6 +35,7 @@ export const load: PageServerLoad = async ({ params, locals }: ServerLoadEvent) 
 		schedules: eventSchedules,
 		attendeeCount: attendeeCountResult[0]?.count ?? 0,
 		userId: locals.user?.id ?? null,
+		userRole: locals.role ?? null,
 		userAttending: userRsvp.length > 0
 	};
 };

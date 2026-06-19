@@ -53,7 +53,9 @@ export const updateEvent = form(updateEventSchema, async (data) => {
 		throw new Error('Event not found');
 	}
 
-	if (existingEvent.userId !== event.locals.user?.id) {
+	const isOwner = existingEvent.userId === event.locals.user?.id;
+	const isAdmin = event.locals.role === 'admin';
+	if (!isOwner && !isAdmin) {
 		throw new Error('Unauthorized: You can only edit your own events');
 	}
 

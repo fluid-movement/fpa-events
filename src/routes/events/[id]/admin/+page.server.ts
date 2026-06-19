@@ -16,7 +16,9 @@ export const load: PageServerLoad = async ({ params, locals, url }: ServerLoadEv
 	const [event] = await db.select().from(events).where(eq(events.id, params.id));
 	if (!event) error(404, 'Not found');
 
-	if (locals.user.id !== event.userId) {
+	const isOwner = locals.user.id === event.userId;
+	const isAdmin = locals.role === 'admin';
+	if (!isOwner && !isAdmin) {
 		redirect(307, resolve(`/events/${params.id}`));
 	}
 
@@ -51,7 +53,7 @@ export const actions: Actions = {
 		if (!params.id) return fail(404, { error: 'Not found' });
 
 		const [event] = await db.select().from(events).where(eq(events.id, params.id));
-		if (!event || event.userId !== locals.user.id) return fail(403, { error: 'Forbidden' });
+		if (!event || (event.userId !== locals.user.id && locals.role !== 'admin')) return fail(403, { error: 'Forbidden' });
 
 		const data = await request.formData();
 		const name = data.get('name')?.toString().trim();
@@ -85,7 +87,7 @@ export const actions: Actions = {
 		if (!params.id) return fail(404, { error: 'Not found' });
 
 		const [event] = await db.select().from(events).where(eq(events.id, params.id));
-		if (!event || event.userId !== locals.user.id) return fail(403, { error: 'Forbidden' });
+		if (!event || (event.userId !== locals.user.id && locals.role !== 'admin')) return fail(403, { error: 'Forbidden' });
 
 		const data = await request.formData();
 		const id = data.get('id')?.toString();
@@ -116,7 +118,7 @@ export const actions: Actions = {
 		if (!params.id) return fail(404, { error: 'Not found' });
 
 		const [event] = await db.select().from(events).where(eq(events.id, params.id));
-		if (!event || event.userId !== locals.user.id) return fail(403, { error: 'Forbidden' });
+		if (!event || (event.userId !== locals.user.id && locals.role !== 'admin')) return fail(403, { error: 'Forbidden' });
 
 		const data = await request.formData();
 		const id = data.get('id')?.toString();
@@ -132,7 +134,7 @@ export const actions: Actions = {
 		if (!params.id) return fail(404, { error: 'Not found' });
 
 		const [event] = await db.select().from(events).where(eq(events.id, params.id));
-		if (!event || event.userId !== locals.user.id) return fail(403, { error: 'Forbidden' });
+		if (!event || (event.userId !== locals.user.id && locals.role !== 'admin')) return fail(403, { error: 'Forbidden' });
 
 		const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
 		await db.insert(eventMagicLinks).values({
@@ -149,7 +151,7 @@ export const actions: Actions = {
 		if (!params.id) return fail(404, { error: 'Not found' });
 
 		const [event] = await db.select().from(events).where(eq(events.id, params.id));
-		if (!event || event.userId !== locals.user.id) return fail(403, { error: 'Forbidden' });
+		if (!event || (event.userId !== locals.user.id && locals.role !== 'admin')) return fail(403, { error: 'Forbidden' });
 
 		await db.delete(eventMagicLinks).where(eq(eventMagicLinks.eventId, params.id));
 
@@ -168,7 +170,7 @@ export const actions: Actions = {
 		if (!params.id) return fail(404, { error: 'Not found' });
 
 		const [event] = await db.select().from(events).where(eq(events.id, params.id));
-		if (!event || event.userId !== locals.user.id) return fail(403, { error: 'Forbidden' });
+		if (!event || (event.userId !== locals.user.id && locals.role !== 'admin')) return fail(403, { error: 'Forbidden' });
 
 		await db.delete(events).where(eq(events.id, params.id));
 

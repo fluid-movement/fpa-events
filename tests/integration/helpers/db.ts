@@ -23,6 +23,24 @@ export async function getTestUserId(email: string): Promise<string> {
 	return row.id;
 }
 
+export async function createTestUser(
+	email: string,
+	name: string = 'Test User'
+): Promise<string> {
+	const id = ulid().toLowerCase();
+	await sql()`
+		INSERT INTO "user" (id, name, email, email_verified, role, created_at, updated_at)
+		VALUES (${id}, ${name}, ${email}, false, 'user', now(), now())
+		ON CONFLICT (email) DO NOTHING
+	`;
+	const [row] = await sql()<[{ id: string }]>`SELECT id FROM "user" WHERE email = ${email} LIMIT 1`;
+	return row.id;
+}
+
+export async function deleteTestUser(id: string): Promise<void> {
+	await sql()`DELETE FROM "user" WHERE id = ${id}`;
+}
+
 export async function createTestEvent(
 	userId: string,
 	overrides: { name?: string; startDate?: Date; endDate?: Date } = {}
@@ -64,6 +82,10 @@ export async function isAttending(eventId: string, userId: string): Promise<bool
 		WHERE event_id = ${eventId} AND user_id = ${userId} AND status = 'attending'
 	`;
 	return rows.length > 0;
+}
+
+export async function setUserRole(userId: string, role: 'user' | 'admin'): Promise<void> {
+	await sql()`UPDATE "user" SET role = ${role} WHERE id = ${userId}`;
 }
 
 export async function closeDb(): Promise<void> {
