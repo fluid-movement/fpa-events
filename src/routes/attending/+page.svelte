@@ -1,21 +1,10 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import EventCalendarCard from '$lib/components/EventCalendarCard.svelte';
+	import { daysUntil, countdownLabel } from '$lib/utils/dates';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
-
-	function daysUntil(date: Date): number {
-		const now = new Date();
-		const ms = new Date(date).getTime() - now.getTime();
-		return Math.ceil(ms / (1000 * 60 * 60 * 24));
-	}
-
-	function countdownLabel(days: number): string {
-		if (days === 0) return 'Today';
-		if (days === 1) return 'Tomorrow';
-		return `${days} days away`;
-	}
 </script>
 
 <div class="space-y-2 pb-6">
