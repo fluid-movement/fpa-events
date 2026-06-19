@@ -91,15 +91,13 @@
 						{event.location}
 					</p>
 					{#if userId}
-						<form
-							{...toggleRsvp}
-							onsubmit={() => {
-								attending = !attending;
-								optimisticCount += attending ? 1 : -1;
-							}}
-						>
+						<form {...toggleRsvp}>
 							<button
 								type="submit"
+								onclick={() => {
+									attending = !attending;
+									optimisticCount += attending ? 1 : -1;
+								}}
 								class="flex items-center gap-2 text-sm rounded-md px-3 py-1.5 border transition-colors {attending
 									? 'bg-primary/15 border-primary/40 text-primary hover:bg-primary/20'
 									: 'border-border text-muted-foreground hover:text-foreground hover:border-foreground/30'}"
