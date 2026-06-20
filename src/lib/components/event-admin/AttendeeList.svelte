@@ -1,10 +1,5 @@
 <script lang="ts">
-	interface Attendee {
-		id: number;
-		name: string;
-		email: string;
-		status: string;
-	}
+	import type { Attendee } from '$lib/types/event';
 
 	interface Props {
 		attendees: Attendee[];

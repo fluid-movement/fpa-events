@@ -4,22 +4,8 @@
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import ScheduleItemCard from './ScheduleItemCard.svelte';
 	import ScheduleItemForm from './ScheduleItemForm.svelte';
-
-	interface ScheduleItem {
-		id: string;
-		name: string;
-		description?: string | null;
-		startDate: Date;
-		endDate: Date;
-		locationId?: number | null;
-		locationName?: string | null;
-	}
-
-	interface EventLocation {
-		id: number;
-		name: string;
-		address?: string | null;
-	}
+	import type { ScheduleItem, EventLocation } from '$lib/types/event';
+	import { toISODate } from '$lib/utils/dates';
 
 	interface Props {
 		schedules: ScheduleItem[];
@@ -52,11 +38,6 @@
 			month: 'long',
 			day: 'numeric'
 		});
-	}
-
-	function toISODate(d: Date) {
-		const pad = (n: number) => n.toString().padStart(2, '0');
-		return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 	}
 
 	function locationNameForItem(item: ScheduleItem): string | null {

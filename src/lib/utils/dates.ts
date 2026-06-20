@@ -1,3 +1,16 @@
+export function toISODate(d: Date): string {
+	const pad = (n: number) => n.toString().padStart(2, '0');
+	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+export function formatTime(d: Date): string {
+	return new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+}
+
+export function hoursUntil(d: Date): number {
+	return Math.round((new Date(d).getTime() - Date.now()) / (1000 * 60 * 60));
+}
+
 export function daysUntil(date: Date | string): number {
 	const now = new Date();
 	const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());

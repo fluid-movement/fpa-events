@@ -1,24 +1,11 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
+	import { invalidateAll } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Textarea } from '$lib/components/ui/textarea';
 	import * as Select from '$lib/components/ui/select';
-
-	interface EventLocation {
-		id: number;
-		name: string;
-		address?: string | null;
-	}
-
-	interface ScheduleItem {
-		id: string;
-		name: string;
-		description?: string | null;
-		startDate: Date;
-		endDate: Date;
-		locationId?: number | null;
-	}
+	import type { ScheduleItem, EventLocation } from '$lib/types/event';
+	import { toISODate } from '$lib/utils/dates';
 
 	interface Props {
 		mode: 'add' | 'edit';
@@ -31,26 +18,13 @@
 		onSuccess: () => void;
 	}
 
-	let {
-		mode,
-		item,
-		eventDays,
-		locations,
-		initialDay,
-		formAction,
-		onCancel,
-		onSuccess
-	}: Props = $props();
+	let { mode, item, eventDays, locations, initialDay, formAction, onCancel, onSuccess }: Props =
+		$props();
 
 	let selectedDay = $state<string | null>(null);
 	let startTime = $state('');
 	let endTime = $state('');
 	let locationId = $state('');
-
-	function toISODate(d: Date) {
-		const pad = (n: number) => n.toString().padStart(2, '0');
-		return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-	}
 
 	function formatDayButton(isoDate: string) {
 		return new Date(isoDate + 'T12:00:00').toLocaleDateString('en-US', {
@@ -77,6 +51,16 @@
 			locationId = '';
 		}
 	});
+
+	async function handleSubmit(event: SubmitEvent) {
+		event.preventDefault();
+		const form = event.currentTarget as HTMLFormElement;
+		const response = await fetch(formAction, { method: 'POST', body: new FormData(form) });
+		if (response.ok) {
+			await invalidateAll();
+			onSuccess();
+		}
+	}
 </script>
 
 <form
@@ -85,11 +69,7 @@
 	class={mode === 'edit'
 		? 'space-y-3 rounded-lg border bg-card p-4'
 		: 'space-y-3 rounded-lg border border-dashed bg-muted/30 p-4'}
-	use:enhance={() =>
-		({ update }) => {
-			update();
-			onSuccess();
-		}}
+	onsubmit={handleSubmit}
 >
 	{#if mode === 'edit'}
 		<input type="hidden" name="id" value={item?.id} />
@@ -129,13 +109,17 @@
 
 		<!-- Start time -->
 		<div>
-			<label for="schedule-start-time" class="text-xs font-medium text-muted-foreground">Start time *</label>
+			<label for="schedule-start-time" class="text-xs font-medium text-muted-foreground"
+				>Start time *</label
+			>
 			<Input id="schedule-start-time" type="time" bind:value={startTime} required class="mt-1" />
 		</div>
 
 		<!-- End time -->
 		<div>
-			<label for="schedule-end-time" class="text-xs font-medium text-muted-foreground">End time *</label>
+			<label for="schedule-end-time" class="text-xs font-medium text-muted-foreground"
+				>End time *</label
+			>
 			<Input id="schedule-end-time" type="time" bind:value={endTime} required class="mt-1" />
 		</div>
 
@@ -174,7 +158,9 @@
 
 		<!-- Description -->
 		<div class="col-span-2">
-			<label for="schedule-description" class="text-xs font-medium text-muted-foreground">Description</label>
+			<label for="schedule-description" class="text-xs font-medium text-muted-foreground"
+				>Description</label
+			>
 			<Textarea
 				id="schedule-description"
 				name="description"

@@ -2,12 +2,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import TrashIcon from '@lucide/svelte/icons/trash-2';
-
-	interface EventLocation {
-		id: number;
-		name: string;
-		address?: string | null;
-	}
+	import type { EventLocation } from '$lib/types/event';
 
 	interface Props {
 		locations: EventLocation[];

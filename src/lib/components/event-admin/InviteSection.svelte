@@ -1,19 +1,14 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import CopyIcon from '@lucide/svelte/icons/copy';
 	import LinkIcon from '@lucide/svelte/icons/link';
+	import type { Attendee } from '$lib/types/event';
+	import { hoursUntil } from '$lib/utils/dates';
 
 	interface MagicLink {
 		id: string;
 		expiresAt: Date;
-	}
-
-	interface Attendee {
-		id: number;
-		name: string;
-		email: string;
 	}
 
 	interface Props {
@@ -33,10 +28,6 @@
 			await navigator.clipboard.writeText(magicLinkUrl);
 		}
 	}
-
-	function hoursUntilExpiry(d: Date): number {
-		return Math.round((new Date(d).getTime() - Date.now()) / (1000 * 60 * 60));
-	}
 </script>
 
 <div class="max-w-lg space-y-6">
@@ -48,7 +39,7 @@
 	</div>
 
 	{#if !magicLink}
-		<form method="POST" action="?/generateLink" use:enhance>
+		<form method="POST" action="?/generateLink">
 			<Button type="submit">
 				<LinkIcon class="size-4" />
 				Generate Invite Link
@@ -67,10 +58,10 @@
 					<p class="text-sm text-destructive">Link expired</p>
 				{:else}
 					<p class="text-sm text-muted-foreground">
-						Expires in {hoursUntilExpiry(magicLink.expiresAt)} hours
+						Expires in {hoursUntil(magicLink.expiresAt)} hours
 					</p>
 				{/if}
-				<form method="POST" action="?/regenerateLink" use:enhance>
+				<form method="POST" action="?/regenerateLink">
 					<Button type="submit" variant="outline" size="sm">Regenerate</Button>
 				</form>
 			</div>
