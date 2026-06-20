@@ -13,24 +13,18 @@ export async function getArchiveYears(): Promise<number[]> {
 	return rows.map((r) => r.year);
 }
 
-export type EventsByMonth = {
+export type EventsByMonth<T extends Event = Event> = {
 	month: string; // "2024-01"
 	label: string; // "January 2024"
-	events: Event[];
+	events: T[];
 }[];
 
-/**
- * Groups events by month and returns them sorted chronologically with labels
- * @param eventList - Array of events to group
- * @param locale - Locale for month label formatting (default: 'en-US')
- * @returns Array of events grouped by month with formatted labels
- */
-export function groupEventsByMonth(
-	eventList: Event[],
+export function groupEventsByMonth<T extends Event>(
+	eventList: T[],
 	locale: string = 'en-US'
-): EventsByMonth {
+): EventsByMonth<T> {
 	// Group events by month key
-	const groupedByMonth = new Map<string, Event[]>();
+	const groupedByMonth = new Map<string, T[]>();
 
 	for (const event of eventList) {
 		const date = new Date(event.startDate);

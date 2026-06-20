@@ -15,7 +15,7 @@
 	const userId = $derived(data.userId);
 	const userRole = $derived(data.userRole);
 	const schedules = $derived(data.schedules);
-	const attendeeCount = $derived(data.attendeeCount);
+	const attendeePeek = $derived(data.attendeePeek);
 	const canManage = $derived(userId === event.userId || userRole === 'admin');
 
 	let attending = $state(data.userAttending);
@@ -33,7 +33,6 @@
 		if (sameDay) {
 			return start.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
 		}
-		// Check same month/year
 		if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
 			return `${start.getDate()} - ${end.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}`;
 		}
@@ -53,11 +52,36 @@
 	}
 
 	const dateRange = $derived(formatDateRange(new Date(event.startDate), new Date(event.endDate)));
+
+	const attendeePeekLabel = $derived.by(() => {
+		if (optimisticCount === 0) return null;
+		const names = attendeePeek.map((a) => a.name.split(' ')[0]);
+		const shown = names.slice(0, 3);
+		const rest = optimisticCount - shown.length;
+		if (rest > 0) return `${shown.join(', ')} and ${rest} other${rest === 1 ? '' : 's'} attending`;
+		if (shown.length === 1) return `${shown[0]} is attending`;
+		return `${shown.slice(0, -1).join(', ')} and ${shown[shown.length - 1]} are attending`;
+	});
 </script>
 
 <svelte:boundary>
 	{#if event}
 		<div class="max-w-4xl mx-auto">
+			<!-- Cover image hero -->
+			{#if event.picture}
+				<div class="relative w-full mb-6 rounded-xl overflow-hidden">
+					<img
+						src={event.picture}
+						alt={event.name}
+						width={event.pictureWidth ?? undefined}
+						height={event.pictureHeight ?? undefined}
+						class="w-full object-cover max-h-80"
+					/>
+					<!-- Gradient overlay for readability -->
+					<div class="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent"></div>
+				</div>
+			{/if}
+
 			<div class="mb-4">
 				<Button href={resolve('/events')} variant="ghost" size="sm">
 					<ArrowLeftIcon class="size-4" />
@@ -65,33 +89,34 @@
 				</Button>
 			</div>
 
-			<!-- 2-col header: info left, image right -->
-			<div class="grid grid-cols-1 gap-6 md:grid-cols-2 mb-8">
-				<!-- Left: title + meta + description -->
-				<div class="flex flex-col gap-3">
-					<div class="flex items-start justify-between gap-4">
-						<h1 class="text-3xl font-bold leading-tight">{event.name}</h1>
-						{#if canManage}
-							<div class="flex gap-2 shrink-0">
-								<Button href={resolve(`/events/${event.id}/edit`)} variant="outline" size="sm">
-									<PencilIcon class="size-4" />
-									Edit
-								</Button>
-								<Button href={resolve(`/events/${event.id}/admin`)} variant="outline" size="sm">
-									Manage
-								</Button>
-							</div>
-						{/if}
-					</div>
+			<!-- Header: title + meta -->
+			<div class="flex flex-col gap-3 mb-8">
+				<div class="flex items-start justify-between gap-4">
+					<h1 class="text-3xl font-bold leading-tight">{event.name}</h1>
+					{#if canManage}
+						<div class="flex gap-2 shrink-0">
+							<Button href={resolve(`/events/${event.id}/edit`)} variant="outline" size="sm">
+								<PencilIcon class="size-4" />
+								Edit
+							</Button>
+							<Button href={resolve(`/events/${event.id}/admin`)} variant="outline" size="sm">
+								Manage
+							</Button>
+						</div>
+					{/if}
+				</div>
 
-					<p class="flex items-center gap-2 text-muted-foreground">
-						<CalendarIcon class="size-4 shrink-0" />
-						{dateRange}
-					</p>
-					<p class="flex items-center gap-2 text-muted-foreground">
-						<MapPinIcon class="size-4 shrink-0" />
-						{event.location}
-					</p>
+				<p class="flex items-center gap-2 text-muted-foreground">
+					<CalendarIcon class="size-4 shrink-0" />
+					{dateRange}
+				</p>
+				<p class="flex items-center gap-2 text-muted-foreground">
+					<MapPinIcon class="size-4 shrink-0" />
+					{event.location}
+				</p>
+
+				<!-- RSVP + attendee peek -->
+				<div class="flex flex-col gap-2">
 					{#if userId}
 						<form {...toggleRsvp}>
 							<button
@@ -123,20 +148,10 @@
 							Attend · {optimisticCount}
 						</a>
 					{/if}
+					{#if attendeePeekLabel}
+						<p class="text-xs text-muted-foreground pl-0.5">{attendeePeekLabel}</p>
+					{/if}
 				</div>
-
-				<!-- Right: image -->
-				{#if event.picture}
-					<div class="w-full">
-						<img
-							src={event.picture}
-							alt={event.name}
-							width={event.pictureWidth ?? undefined}
-							height={event.pictureHeight ?? undefined}
-							class="w-full rounded-lg object-cover max-h-56"
-						/>
-					</div>
-				{/if}
 			</div>
 
 			<!-- Tabs (only if schedules exist) -->
@@ -167,27 +182,27 @@
 			{:else if activeTab === 'schedule'}
 				<div class="space-y-3">
 					{#each schedules as item (item.id)}
-						<div class="rounded-lg border bg-card p-4">
+						<div class="rounded-xl border bg-card p-5">
 							<div class="flex items-start justify-between gap-4">
 								<div class="min-w-0">
-									<p class="font-semibold">{item.name}</p>
+									<p class="font-semibold text-base">{item.name}</p>
 									{#if item.description}
 										<p class="mt-1 text-sm text-muted-foreground">{item.description}</p>
 									{/if}
 									{#if item.location}
-										<p class="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+										<p class="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
 											<MapPinIcon class="size-3.5 shrink-0" />
 											{item.location}
 										</p>
 									{/if}
 								</div>
-								<div class="shrink-0 text-right text-sm text-muted-foreground">
-									<p class="flex items-center gap-1.5 justify-end">
-										<ClockIcon class="size-3.5" />
+								<div class="shrink-0 text-right">
+									<p class="flex items-center gap-1.5 justify-end text-sm font-medium text-foreground/80">
+										<ClockIcon class="size-3.5 text-primary" />
 										{formatScheduleTime(item.startDate)}
 									</p>
 									{#if item.startDate.toString() !== item.endDate.toString()}
-										<p class="mt-0.5 text-xs">→ {formatScheduleTime(item.endDate)}</p>
+										<p class="mt-1 text-xs text-muted-foreground">→ {formatScheduleTime(item.endDate)}</p>
 									{/if}
 								</div>
 							</div>

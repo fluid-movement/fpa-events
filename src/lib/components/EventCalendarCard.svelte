@@ -2,8 +2,9 @@
 	import { resolve } from '$app/paths';
 	import type { Event } from '$lib/types/event';
 	import MapPinIcon from '@lucide/svelte/icons/map-pin';
+	import UsersIcon from '@lucide/svelte/icons/users';
 
-	let { event }: { event: Event } = $props();
+	let { event, attendeeCount }: { event: Event; attendeeCount?: number } = $props();
 
 	const start = $derived(new Date(event.startDate));
 	const end = $derived(new Date(event.endDate));
@@ -27,17 +28,32 @@
 <a href={resolve(`/events/${event.id}`)} class="card-link">
 	<div class="glow"></div>
 	<article class="card">
-		<div class="chip">
-			<span class="day">{startDay}</span>
-			<span class="month">{startMonth}</span>
-		</div>
-		<div class="info">
-			<h2>{event.name}</h2>
-			<div class="location">
-				<MapPinIcon class="size-3.5 shrink-0" />
-				<span>{event.location}</span>
+		{#if event.picture}
+			<div class="thumbnail">
+				<img src={event.picture} alt={event.name} class="thumbnail-img" />
 			</div>
-			<div class="date-range">{dateRange}</div>
+		{/if}
+		<div class="body">
+			<div class="chip">
+				<span class="day">{startDay}</span>
+				<span class="month">{startMonth}</span>
+			</div>
+			<div class="info">
+				<h2>{event.name}</h2>
+				<div class="location">
+					<MapPinIcon class="size-3.5 shrink-0" />
+					<span>{event.location}</span>
+				</div>
+				<div class="meta-row">
+					<span class="date-range">{dateRange}</span>
+					{#if attendeeCount != null && attendeeCount > 0}
+						<span class="attendee-badge">
+							<UsersIcon class="size-3" />
+							{attendeeCount}
+						</span>
+					{/if}
+				</div>
+			</div>
 		</div>
 	</article>
 </a>
@@ -73,9 +89,9 @@
 		position: relative;
 		z-index: 1;
 		border-radius: 0.75rem;
-		padding: 1.25rem;
+		overflow: hidden;
 		display: flex;
-		gap: 1.25rem;
+		flex-direction: column;
 		height: 100%;
 	}
 
@@ -99,9 +115,32 @@
 		z-index: 0;
 	}
 
-	.card > * {
+	.thumbnail {
 		position: relative;
 		z-index: 1;
+		width: 100%;
+		height: 9rem;
+		overflow: hidden;
+	}
+
+	.thumbnail-img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: transform 0.4s ease;
+	}
+
+	.card-link:hover .thumbnail-img {
+		transform: scale(1.04);
+	}
+
+	.body {
+		position: relative;
+		z-index: 1;
+		padding: 1.25rem;
+		display: flex;
+		gap: 1.25rem;
+		flex: 1;
 	}
 
 	.chip {
@@ -114,6 +153,7 @@
 		padding: 0.75rem 1rem;
 		flex-shrink: 0;
 		transition: filter 0.35s ease;
+		align-self: flex-start;
 	}
 
 	.card-link:hover .chip {
@@ -165,9 +205,27 @@
 		white-space: nowrap;
 	}
 
+	.meta-row {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		margin-top: 0.375rem;
+	}
+
 	.date-range {
 		font-size: 0.75rem;
 		color: var(--muted-foreground);
-		margin-top: 0.375rem;
+	}
+
+	.attendee-badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		font-size: 0.7rem;
+		font-weight: 600;
+		color: var(--primary);
+		background: oklch(from var(--primary) l c h / 0.12);
+		border-radius: 999px;
+		padding: 0.125rem 0.5rem;
 	}
 </style>

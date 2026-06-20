@@ -1,17 +1,37 @@
 import { db } from '$lib/server/db';
-import { events } from '$lib/server/db/schema';
-import { error } from '@sveltejs/kit';
+import { events, eventUser } from '$lib/server/db/schema';
 import type { PageServerLoad } from './$types';
-import { asc, gt } from 'drizzle-orm';
+import { asc, gt, count, eq, and } from 'drizzle-orm';
 import { groupEventsByMonth, getArchiveYears } from '$lib/server/utils/events';
 
 export const load: PageServerLoad = async () => {
 	const [data, archiveYears] = await Promise.all([
-		db.select().from(events).where(gt(events.startDate, new Date())).orderBy(asc(events.startDate)),
+		db
+			.select({
+				id: events.id,
+				name: events.name,
+				startDate: events.startDate,
+				endDate: events.endDate,
+				location: events.location,
+				description: events.description,
+				picture: events.picture,
+				pictureWidth: events.pictureWidth,
+				pictureHeight: events.pictureHeight,
+				userId: events.userId,
+				createdAt: events.createdAt,
+				updatedAt: events.updatedAt,
+				attendeeCount: count(eventUser.id)
+			})
+			.from(events)
+			.leftJoin(
+				eventUser,
+				and(eq(eventUser.eventId, events.id), eq(eventUser.status, 'attending'))
+			)
+			.where(gt(events.startDate, new Date()))
+			.groupBy(events.id)
+			.orderBy(asc(events.startDate)),
 		getArchiveYears()
 	]);
-
-	if (!data) error(404, 'Not found');
 
 	return {
 		eventsByMonth: groupEventsByMonth(data),

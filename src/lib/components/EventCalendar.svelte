@@ -28,7 +28,7 @@
 			<!-- 2-column grid -->
 			<div class="grid gap-6 grid-cols-1 items-stretch sm:grid-cols-2">
 				{#each events as event (event.id)}
-					<EventCalendarCard {event} />
+					<EventCalendarCard {event} attendeeCount={'attendeeCount' in event ? (event as { attendeeCount: number }).attendeeCount : undefined} />
 				{/each}
 			</div>
 		</section>
