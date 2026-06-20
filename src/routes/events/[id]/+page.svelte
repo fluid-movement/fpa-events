@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { Button } from '$lib/components/ui/button';
-	import { Tabs } from '$lib/components/ui/tabs';
+	import * as Tabs from '$lib/components/ui/tabs';
 	import ScheduleList from '$lib/components/schedule/ScheduleList.svelte';
 	import { toggleRsvp } from './data.remote';
 	import type { PageProps } from './$types';
@@ -20,15 +20,13 @@
 	const attendeePeek = $derived(data.attendeePeek);
 	const canManage = $derived(userId === event.userId || userRole === 'admin');
 
-	let attending = $state(data.userAttending);
-	let optimisticCount = $state(data.attendeeCount);
+	let attending = $state(false);
+	let optimisticCount = $state(0);
 
 	$effect(() => {
 		attending = data.userAttending;
 		optimisticCount = data.attendeeCount;
 	});
-
-	let activeTab = $state<string>('description');
 
 	const dateRange = $derived(formatDateRange(new Date(event.startDate), new Date(event.endDate)));
 
@@ -135,26 +133,28 @@
 
 			<!-- Tabs (only if schedules exist) -->
 			{#if schedules.length > 0}
-				<div class="mb-6">
-					<Tabs
-						tabs={[
-							{ id: 'description', label: 'Description' },
-							{ id: 'schedule', label: 'Schedule' }
-						]}
-						bind:active={activeTab}
-					/>
-				</div>
-			{/if}
-
-			<!-- Tab content -->
-			{#if activeTab === 'description'}
+				<Tabs.Root value="description">
+					<Tabs.List>
+						<Tabs.Trigger value="description">Description</Tabs.Trigger>
+						<Tabs.Trigger value="schedule">Schedule</Tabs.Trigger>
+					</Tabs.List>
+					<Tabs.Content value="description">
+						{#if event.description}
+							<div class="rich-text text-base text-foreground/90">{@html event.description}</div>
+						{:else}
+							<p class="text-muted-foreground">No description provided.</p>
+						{/if}
+					</Tabs.Content>
+					<Tabs.Content value="schedule">
+						<ScheduleList {schedules} />
+					</Tabs.Content>
+				</Tabs.Root>
+			{:else}
 				{#if event.description}
 					<div class="rich-text text-base text-foreground/90">{@html event.description}</div>
 				{:else}
 					<p class="text-muted-foreground">No description provided.</p>
 				{/if}
-			{:else if activeTab === 'schedule'}
-				<ScheduleList {schedules} />
 			{/if}
 		</div>
 	{:else}

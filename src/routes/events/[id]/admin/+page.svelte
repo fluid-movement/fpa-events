@@ -2,12 +2,12 @@
 	import { resolve } from '$app/paths';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { Button } from '$lib/components/ui/button';
+	import * as Tabs from '$lib/components/ui/tabs';
 	import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
 	import type { PageProps } from './$types';
 	import { listEventLocations, createEventLocation, deleteEventLocation } from './locations.remote';
 	import VenueLocationPicker from '$lib/components/VenueLocationPicker.svelte';
 	import { SvelteDate } from 'svelte/reactivity';
-	import Tabs from '$lib/components/ui/tabs/Tabs.svelte';
 	import AttendeeList from '$lib/components/event-admin/AttendeeList.svelte';
 	import LocationsList from '$lib/components/event-admin/LocationsList.svelte';
 	import InviteSection from '$lib/components/event-admin/InviteSection.svelte';
@@ -23,7 +23,6 @@
 	const eventLat = $derived(data.eventLat ?? undefined);
 	const eventLng = $derived(data.eventLng ?? undefined);
 
-	let activeTab = $state<'attending' | 'schedule' | 'invite'>('attending');
 	let showVenuePicker = $state(false);
 
 	const eventId = $derived(event.id);
@@ -49,12 +48,6 @@
 	const organizers = $derived(
 		attendees.filter((a) => a.status === 'organizing' && a.userId !== event.userId)
 	);
-
-	const tabs = $derived([
-		{ id: 'attending', label: `Attending (${attendees.length})` },
-		{ id: 'schedule', label: `Schedule (${schedules.length})` },
-		{ id: 'invite', label: 'Invite' }
-	]);
 </script>
 
 <div class="mx-auto max-w-4xl">
@@ -76,34 +69,39 @@
 		<p class="text-muted-foreground">Event Admin</p>
 	</div>
 
-	<div class="mb-6">
-		<Tabs {tabs} bind:active={activeTab} />
-	</div>
-
-	{#if activeTab === 'attending'}
-		<AttendeeList {attendees} />
-	{:else if activeTab === 'schedule'}
-		<div class="mb-8">
-			<LocationsList
+	<Tabs.Root value="attending" class="mb-6">
+		<Tabs.List>
+			<Tabs.Trigger value="attending">Attending ({attendees.length})</Tabs.Trigger>
+			<Tabs.Trigger value="schedule">Schedule ({schedules.length})</Tabs.Trigger>
+			<Tabs.Trigger value="invite">Invite</Tabs.Trigger>
+		</Tabs.List>
+		<Tabs.Content value="attending">
+			<AttendeeList {attendees} />
+		</Tabs.Content>
+		<Tabs.Content value="schedule">
+			<div class="mb-8">
+				<LocationsList
+					locations={eventLocationsList ?? []}
+					onAddClick={() => (showVenuePicker = true)}
+					eventId={event.id}
+					deleteAction={deleteEventLocation}
+				/>
+			</div>
+			<ScheduleList
+				{schedules}
+				editable={true}
+				{eventDays}
 				locations={eventLocationsList ?? []}
-				onAddClick={() => (showVenuePicker = true)}
-				eventId={event.id}
-				deleteAction={deleteEventLocation}
 			/>
-		</div>
-		<ScheduleList
-			{schedules}
-			editable={true}
-			{eventDays}
-			locations={eventLocationsList ?? []}
-		/>
-	{:else if activeTab === 'invite'}
-		<InviteSection
-			{magicLink}
-			{magicLinkUrl}
-			{organizers}
-		/>
-	{/if}
+		</Tabs.Content>
+		<Tabs.Content value="invite">
+			<InviteSection
+				{magicLink}
+				{magicLinkUrl}
+				{organizers}
+			/>
+		</Tabs.Content>
+	</Tabs.Root>
 
 	<DangerZone eventName={event.name} />
 

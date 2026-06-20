@@ -4,16 +4,14 @@
 
 	let {
 		ref = $bindable(null),
-		value = $bindable(""),
 		class: className,
 		...restProps
-	}: TabsPrimitive.RootProps = $props();
+	}: TabsPrimitive.ContentProps = $props();
 </script>
 
-<TabsPrimitive.Root
+<TabsPrimitive.Content
 	bind:ref
-	bind:value
-	data-slot="tabs"
-	class={cn("gap-2 group/tabs flex data-[orientation=horizontal]:flex-col", className)}
+	data-slot="tabs-content"
+	class={cn("text-sm flex-1 outline-none", className)}
 	{...restProps}
 />
