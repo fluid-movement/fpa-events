@@ -5,6 +5,24 @@
 
 ---
 
+## ✅ Geolocation Foundation (completed 2026-06-20)
+
+- [x] **Photon geocoding** (`src/lib/geocoding.ts`) — OSM-based, free, city autocomplete
+- [x] **`event_locations` table** — global, deduplicated by `(city, country)`; lat/lng = city center. Events have `event_location_id` FK + denormalized `location` text for listings
+- [x] **`schedule_locations` table** — per-event venue locations (name, address, precise lat/lng). Schedule items reference via `location_id`
+- [x] **`EventLocationInput` component** — Photon typeahead for event city; find-or-create on save
+- [x] **`VenueLocationPicker` component** — Photon typeahead + Leaflet draggable pin for schedule venues
+- [x] **Admin schedule UI** — location selector (reuse existing venues) + add-new-location panel
+- [x] **Leaflet installed** (`leaflet` + `@types/leaflet`)
+
+### Geolocation Next Steps
+
+- [ ] **Event detail map** — Leaflet map with city-level pin (`event_locations.latitude/longitude` via `event_location_id` join)
+- [ ] **Admin schedule map** — venue pins on a small map in the schedule tab (`schedule_locations.latitude/longitude`)
+- [ ] **Event cards / listing** — optionally surface city + country (data available via `event_location_id` join; `location` text already shown)
+
+---
+
 ## 🔜 Current Focus — Polish & Seed Data
 
 ### Seed Data
