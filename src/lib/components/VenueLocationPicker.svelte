@@ -166,7 +166,7 @@
 				<ul
 					id="venue-search-listbox"
 					role="listbox"
-					class="absolute z-50 mt-1 w-full rounded-md border border-border bg-white shadow-md"
+					class="absolute z-50 mt-1 w-full rounded-md border border-border bg-popover text-popover-foreground shadow-md"
 				>
 					{#each suggestions as suggestion (suggestion.displayName + suggestion.lat + suggestion.lng)}
 						<li role="option" aria-selected="false">
@@ -201,7 +201,7 @@
 	<div class="flex flex-col gap-1">
 		<span class="text-sm font-medium text-foreground">Pin location</span>
 		<p class="text-xs text-muted-foreground">Drag the pin to adjust the exact location.</p>
-		<div bind:this={mapContainer} class="h-64 w-full rounded-md overflow-hidden"></div>
+		<div bind:this={mapContainer} class="h-96 w-full rounded-md overflow-hidden"></div>
 	</div>
 
 	<!-- Hidden fields for form submission -->
