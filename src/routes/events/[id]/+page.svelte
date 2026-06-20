@@ -189,10 +189,10 @@
 									{#if item.description}
 										<p class="mt-1 text-sm text-muted-foreground">{item.description}</p>
 									{/if}
-									{#if item.location}
+									{#if item.locationName}
 										<p class="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
 											<MapPinIcon class="size-3.5 shrink-0" />
-											{item.location}
+											{item.locationName}
 										</p>
 									{/if}
 								</div>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
+	import EventLocationInput from '$lib/components/EventLocationInput.svelte';
 	import * as Field from '$lib/components/ui/field';
 	import { RangeCalendar } from '$lib/components/ui/range-calendar/index.js';
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
@@ -36,11 +37,8 @@
 			<Field.Group>
 				<Field.Field>
 					<Field.Label for="event-location">Event location</Field.Label>
-					<Input
-						id="event-location"
-						placeholder="Your event location"
-						{...createEvent.fields.location.as('text')}
-					/>
+					<EventLocationInput />
+					<Field.Description>City and country — e.g. "Munich, Germany"</Field.Description>
 				</Field.Field>
 				<Field.Field>
 					<Field.Label>Description</Field.Label>
@@ -59,7 +57,7 @@
 					{:else}
 						<p class="text-sm text-muted-foreground">Select a date range</p>
 					{/if}
-					<RangeCalendar bind:value={dateRange} class="rounded-md border" />
+					<RangeCalendar bind:value={dateRange} class="rounded-md border w-fit" />
 					<input type="hidden" name="startDate" value={dateRange.start?.toString() ?? ''} />
 					<input type="hidden" name="endDate" value={dateRange.end?.toString() ?? ''} />
 				</Field.Field>

@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { events, schedules, eventUser, user } from '$lib/server/db/schema';
+import { events, schedules, eventLocations, eventUser, user } from '$lib/server/db/schema';
 import { eq, count, and, asc } from 'drizzle-orm';
 import { error, type ServerLoadEvent } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
@@ -13,7 +13,23 @@ export const load: PageServerLoad = async ({ params, locals }: ServerLoadEvent) 
 	if (!event) error(404, 'Not found');
 
 	const [eventSchedules, attendeeCountResult, userRsvp, attendeePeek] = await Promise.all([
-		db.select().from(schedules).where(eq(schedules.eventId, params.id)),
+		db
+			.select({
+				id: schedules.id,
+				eventId: schedules.eventId,
+				name: schedules.name,
+				startDate: schedules.startDate,
+				endDate: schedules.endDate,
+				description: schedules.description,
+				locationId: schedules.locationId,
+				locationName: eventLocations.name,
+				createdAt: schedules.createdAt,
+				updatedAt: schedules.updatedAt
+			})
+			.from(schedules)
+			.leftJoin(eventLocations, eq(schedules.locationId, eventLocations.id))
+			.where(eq(schedules.eventId, params.id))
+			.orderBy(asc(schedules.startDate)),
 		db
 			.select({ count: count() })
 			.from(eventUser)

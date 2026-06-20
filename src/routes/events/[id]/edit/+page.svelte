@@ -5,6 +5,7 @@
 	import { RangeCalendar } from '$lib/components/ui/range-calendar/index.js';
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
 	import ImageUpload from '$lib/components/ImageUpload.svelte';
+	import EventLocationInput from '$lib/components/EventLocationInput.svelte';
 	import { parseDate } from '@internationalized/date';
 	import type { DateValue } from '@internationalized/date';
 	import { page } from '$app/state';
@@ -56,11 +57,12 @@
 			<Field.Group>
 				<Field.Field>
 					<Field.Label for="event-location">Event location</Field.Label>
-					<Input
-						id="event-location"
-						placeholder="Your event location"
-						{...updateEvent.fields.location.as('text')}
+					<EventLocationInput
 						value={event.location}
+						city={event.city ?? undefined}
+						country={event.country ?? undefined}
+						latitude={event.latitude ?? undefined}
+						longitude={event.longitude ?? undefined}
 					/>
 				</Field.Field>
 				<Field.Field>
@@ -84,7 +86,7 @@
 					{:else}
 						<p class="text-sm text-muted-foreground">Select a date range</p>
 					{/if}
-					<RangeCalendar bind:value={dateRange} class="rounded-md border" />
+					<RangeCalendar bind:value={dateRange} class="rounded-md border w-fit" />
 					<input type="hidden" name="startDate" value={dateRange.start?.toString() ?? ''} />
 					<input type="hidden" name="endDate" value={dateRange.end?.toString() ?? ''} />
 				</Field.Field>

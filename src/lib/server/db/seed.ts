@@ -397,28 +397,24 @@ async function main() {
 						name: 'Registration & Practice',
 						startDate: date('2026-08-06T09:00:00'),
 						endDate: date('2026-08-06T18:00:00'),
-						location: 'Main Field, Parc de la Grange',
 						description: `<p>Check in, collect your badge, and get some practice throws in before competition begins.</p>`
 					},
 					{
 						name: 'Open Pairs — Prelims',
 						startDate: date('2026-08-07T09:00:00'),
 						endDate: date('2026-08-07T18:00:00'),
-						location: 'Competition Field A',
 						description: `<p>Preliminary rounds for Open Pairs. All registered teams compete.</p>`
 					},
 					{
 						name: 'Mixed Pairs & Co-op — Prelims',
 						startDate: date('2026-08-08T09:00:00'),
 						endDate: date('2026-08-08T18:00:00'),
-						location: 'Competition Field A & B',
 						description: `<p>Preliminary rounds for Mixed Pairs and Co-op divisions.</p>`
 					},
 					{
 						name: 'Finals Night',
 						startDate: date('2026-08-09T17:00:00'),
 						endDate: date('2026-08-09T22:00:00'),
-						location: 'Main Stage, Parc de la Grange',
 						description: `<p>The top teams from each division compete for the World Championship titles. Open to the public.</p>`
 					}
 				])
@@ -430,28 +426,24 @@ async function main() {
 						name: 'Registration Day',
 						startDate: date('2025-08-07T09:00:00'),
 						endDate: date('2025-08-07T17:00:00'),
-						location: 'Parc Jean-Drapeau, Montreal',
 						description: `<p>Registration, practice fields open, welcome reception in the evening.</p>`
 					},
 					{
 						name: 'Prelims — Day 1',
 						startDate: date('2025-08-08T09:00:00'),
 						endDate: date('2025-08-08T18:00:00'),
-						location: 'Competition Fields',
 						description: `<p>Open Pairs and Mixed Pairs preliminary rounds.</p>`
 					},
 					{
 						name: 'Prelims — Day 2',
 						startDate: date('2025-08-09T09:00:00'),
 						endDate: date('2025-08-09T18:00:00'),
-						location: 'Competition Fields',
 						description: `<p>Co-op and Individual preliminary rounds. Semi-finals for Pairs.</p>`
 					},
 					{
 						name: 'Finals',
 						startDate: date('2025-08-10T16:00:00'),
 						endDate: date('2025-08-10T21:00:00'),
-						location: 'Main Stage',
 						description: `<p>Finals for all divisions. Award ceremony follows.</p>`
 					}
 				])
@@ -463,21 +455,18 @@ async function main() {
 						name: 'Day 1 — Pairs Prelims',
 						startDate: date('2026-05-08T10:00:00'),
 						endDate: date('2026-05-08T18:00:00'),
-						location: 'Parc des Bastions, Geneva',
 						description: `<p>Open Pairs and Mixed Pairs preliminary rounds.</p>`
 					},
 					{
 						name: 'Day 2 — Co-op & Semis',
 						startDate: date('2026-05-09T10:00:00'),
 						endDate: date('2026-05-09T18:00:00'),
-						location: 'Parc des Bastions, Geneva',
 						description: `<p>Co-op prelims and semi-finals for all divisions.</p>`
 					},
 					{
 						name: 'Day 3 — Finals',
 						startDate: date('2026-05-10T14:00:00'),
 						endDate: date('2026-05-10T19:00:00'),
-						location: 'Parc des Bastions, Geneva',
 						description: `<p>Finals for all divisions, followed by an open jam session.</p>`
 					}
 				])

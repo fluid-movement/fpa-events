@@ -29,6 +29,10 @@ export const events = pgTable(
 		startDate: timestamp('start_date', { mode: 'date' }).notNull(),
 		endDate: timestamp('end_date', { mode: 'date' }).notNull(),
 		location: text('location').notNull(),
+		city: text('city'),
+		country: text('country'),
+		latitude: real('latitude'),
+		longitude: real('longitude'),
 		description: text('description').notNull(),
 		picture: text('picture'),
 		pictureWidth: integer('picture_width'),
@@ -89,6 +93,21 @@ export const eventMagicLinks = pgTable(
 	(table) => [index('event_magic_links_event_id_index').on(table.eventId)]
 );
 
+// Event Locations table — venue-level locations scoped to an event, reusable across schedule items
+export const eventLocations = pgTable('event_locations', {
+	id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+	eventId: text('event_id')
+		.notNull()
+		.references(() => events.id, { onDelete: 'cascade' }),
+	name: text('name').notNull(),
+	address: text('address'),
+	latitude: real('latitude').notNull(),
+	longitude: real('longitude').notNull(),
+	createdAt: timestamp('created_at', { mode: 'date' })
+		.notNull()
+		.default(sql`now()`)
+});
+
 // Schedules table
 export const schedules = pgTable('schedules', {
 	id: text('id').primaryKey(),
@@ -99,9 +118,7 @@ export const schedules = pgTable('schedules', {
 	startDate: timestamp('start_date', { mode: 'date' }).notNull(),
 	endDate: timestamp('end_date', { mode: 'date' }).notNull(),
 	description: text('description'),
-	location: text('location'),
-	longitude: real('longitude'),
-	latitude: real('latitude'),
+	locationId: integer('location_id').references(() => eventLocations.id, { onDelete: 'set null' }),
 	createdAt: timestamp('created_at', { mode: 'date' })
 		.notNull()
 		.default(sql`now()`),
@@ -123,6 +140,15 @@ export const eventsRelations = relations(events, ({ one, many }) => ({
 	}),
 	eventUsers: many(eventUser),
 	eventMagicLinks: many(eventMagicLinks),
+	schedules: many(schedules),
+	eventLocations: many(eventLocations)
+}));
+
+export const eventLocationsRelations = relations(eventLocations, ({ one, many }) => ({
+	event: one(events, {
+		fields: [eventLocations.eventId],
+		references: [events.id]
+	}),
 	schedules: many(schedules)
 }));
 
@@ -148,6 +174,10 @@ export const schedulesRelations = relations(schedules, ({ one }) => ({
 	event: one(events, {
 		fields: [schedules.eventId],
 		references: [events.id]
+	}),
+	location: one(eventLocations, {
+		fields: [schedules.locationId],
+		references: [eventLocations.id]
 	})
 }));
 

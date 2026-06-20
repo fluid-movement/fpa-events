@@ -13,6 +13,9 @@
 	import CopyIcon from '@lucide/svelte/icons/copy';
 	import LinkIcon from '@lucide/svelte/icons/link';
 	import type { PageProps } from './$types';
+	import { listEventLocations, createEventLocation } from './locations.remote';
+	import VenueLocationPicker from '$lib/components/VenueLocationPicker.svelte';
+	import { SvelteMap } from 'svelte/reactivity';
 
 	let { data }: PageProps = $props();
 	const event = $derived(data.event);
@@ -24,6 +27,21 @@
 	let activeTab = $state<'attending' | 'schedule' | 'invite'>('attending');
 	let editingId = $state<string | null>(null);
 	let addingForDay = $state<string | null>(null);
+
+	// Location picker state
+	let showVenuePicker = $state(false);
+	let selectedLocationId = $state<number | null>(null);
+
+	const eventId = $derived(event.id);
+	const eventLocationsList = $derived(await listEventLocations(eventId));
+
+	const editingLocationId = $derived(
+		editingId ? (schedules.find((s) => s.id === editingId)?.locationId ?? null) : null
+	);
+
+	$effect(() => {
+		if (addingForDay === null) selectedLocationId = null;
+	});
 
 	function formatTime(d: Date) {
 		return new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
@@ -47,7 +65,7 @@
 		const sorted = [...schedules].sort(
 			(a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
 		);
-		const groups = new Map<string, typeof schedules>();
+		const groups = new SvelteMap<string, typeof schedules>();
 		for (const item of sorted) {
 			const dayKey = new Date(item.startDate).toDateString();
 			if (!groups.has(dayKey)) groups.set(dayKey, []);
@@ -192,13 +210,26 @@
 											/>
 										</div>
 										<div class="col-span-2">
-											<label class="text-xs font-medium text-muted-foreground">Location</label>
-											<Input
-												name="location"
-												value={item.location ?? ''}
-												placeholder="Optional"
-												class="mt-1"
-											/>
+											<label for="edit-location-select" class="text-xs font-medium text-muted-foreground">Location</label>
+											<div class="mt-1 flex gap-2">
+												<select
+													id="edit-location-select"
+													name="locationId"
+													class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
+													value={editingLocationId}
+												>
+													<option value="">No location</option>
+													{#each eventLocationsList ?? [] as loc (loc.id)}
+														<option value={loc.id}>{loc.name}</option>
+													{/each}
+												</select>
+												<button
+													type="button"
+													class="shrink-0 rounded-md border border-input bg-background px-3 py-1 text-sm hover:bg-accent"
+													onclick={() => (showVenuePicker = !showVenuePicker)}
+													title="Add new location"
+												>+</button>
+											</div>
 										</div>
 										<div class="col-span-2">
 											<label class="text-xs font-medium text-muted-foreground">Description</label>
@@ -231,11 +262,14 @@
 											{#if item.description}
 												<p class="mt-1 text-sm text-muted-foreground">{item.description}</p>
 											{/if}
-											{#if item.location}
-												<p class="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
-													<MapPinIcon class="size-3.5 shrink-0" />
-													{item.location}
-												</p>
+											{#if item.locationId}
+												{@const loc = (eventLocationsList ?? []).find((l) => l.id === item.locationId)}
+												{#if loc}
+													<p class="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+														<MapPinIcon class="size-3.5 shrink-0" />
+														{loc.name}
+													</p>
+												{/if}
 											{/if}
 										</div>
 										<div class="flex items-center gap-3 shrink-0">
@@ -301,8 +335,30 @@
 										<Input type="datetime-local" name="endDate" required class="mt-1" />
 									</div>
 									<div class="col-span-2">
-										<label class="text-xs font-medium text-muted-foreground">Location</label>
-										<Input name="location" placeholder="Optional" class="mt-1" />
+										<label for="add-day-location-select" class="text-xs font-medium text-muted-foreground">Location</label>
+										<div class="mt-1 flex gap-2">
+											<select
+												id="add-day-location-select"
+												name="locationId"
+												class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
+												value={selectedLocationId}
+												onchange={(e) =>
+													(selectedLocationId = e.currentTarget.value
+														? parseInt(e.currentTarget.value)
+														: null)}
+											>
+												<option value="">No location</option>
+												{#each eventLocationsList ?? [] as loc (loc.id)}
+													<option value={loc.id}>{loc.name}</option>
+												{/each}
+											</select>
+											<button
+												type="button"
+												class="shrink-0 rounded-md border border-input bg-background px-3 py-1 text-sm hover:bg-accent"
+												onclick={() => (showVenuePicker = !showVenuePicker)}
+												title="Add new location"
+											>+</button>
+										</div>
 									</div>
 									<div class="col-span-2">
 										<label class="text-xs font-medium text-muted-foreground">Description</label>
@@ -362,8 +418,30 @@
 							<Input type="datetime-local" name="endDate" required class="mt-1" />
 						</div>
 						<div class="col-span-2">
-							<label class="text-xs font-medium text-muted-foreground">Location</label>
-							<Input name="location" placeholder="Optional" class="mt-1" />
+							<label for="add-new-location-select" class="text-xs font-medium text-muted-foreground">Location</label>
+							<div class="mt-1 flex gap-2">
+								<select
+									id="add-new-location-select"
+									name="locationId"
+									class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
+									value={selectedLocationId}
+									onchange={(e) =>
+										(selectedLocationId = e.currentTarget.value
+											? parseInt(e.currentTarget.value)
+											: null)}
+								>
+									<option value="">No location</option>
+									{#each eventLocationsList ?? [] as loc (loc.id)}
+										<option value={loc.id}>{loc.name}</option>
+									{/each}
+								</select>
+								<button
+									type="button"
+									class="shrink-0 rounded-md border border-input bg-background px-3 py-1 text-sm hover:bg-accent"
+									onclick={() => (showVenuePicker = !showVenuePicker)}
+									title="Add new location"
+								>+</button>
+							</div>
 						</div>
 						<div class="col-span-2">
 							<label class="text-xs font-medium text-muted-foreground">Description</label>
@@ -378,10 +456,35 @@
 					</div>
 				</form>
 			{:else}
-				<Button variant="outline" size="sm" onclick={() => (addingForDay = 'new')}>
-					<PlusIcon class="size-4" />
-					Add Schedule Item
-				</Button>
+				<div class="space-y-3">
+					{#if showVenuePicker}
+						<div class="rounded-lg border bg-card p-4 space-y-3">
+							<div class="flex items-center justify-between">
+								<p class="text-sm font-medium">Add New Location</p>
+								<button
+									type="button"
+									onclick={() => (showVenuePicker = false)}
+									class="text-muted-foreground hover:text-foreground text-sm"
+								>Cancel</button>
+							</div>
+							<form
+								{...createEventLocation}
+								onsubmit={() => (showVenuePicker = false)}
+								class="space-y-3"
+							>
+								<input type="hidden" name="eventId" value={event.id} />
+								<VenueLocationPicker />
+								<div class="flex justify-end">
+									<Button type="submit" size="sm">Save Location</Button>
+								</div>
+							</form>
+						</div>
+					{/if}
+					<Button variant="outline" size="sm" onclick={() => (addingForDay = 'new')}>
+						<PlusIcon class="size-4" />
+						Add Schedule Item
+					</Button>
+				</div>
 			{/if}
 		</div>
 

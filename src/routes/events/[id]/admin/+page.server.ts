@@ -24,7 +24,7 @@ export const load: PageServerLoad = async ({ params, locals, url }: ServerLoadEv
 	}
 
 	const [eventSchedules, attendees, magicLinks] = await Promise.all([
-		db.select().from(schedules).where(eq(schedules.eventId, params.id)),
+		db.select().from(schedules).where(eq(schedules.eventId, params.id)).orderBy(schedules.startDate),
 		db
 			.select({
 				id: eventUser.id,
@@ -60,7 +60,7 @@ export const actions: Actions = {
 		const name = data.get('name')?.toString().trim();
 		const startDate = data.get('startDate')?.toString();
 		const endDate = data.get('endDate')?.toString();
-		const location = data.get('location')?.toString().trim() || null;
+		const locationId = data.get('locationId')?.toString() || null;
 		const description = data.get('description')?.toString().trim() || null;
 
 		if (!name) return fail(400, { error: 'Name is required' });
@@ -76,7 +76,7 @@ export const actions: Actions = {
 			name,
 			startDate: start,
 			endDate: end,
-			location,
+			locationId: locationId ? parseInt(locationId) : null,
 			description
 		});
 
@@ -95,7 +95,7 @@ export const actions: Actions = {
 		const name = data.get('name')?.toString().trim();
 		const startDate = data.get('startDate')?.toString();
 		const endDate = data.get('endDate')?.toString();
-		const location = data.get('location')?.toString().trim() || null;
+		const locationId = data.get('locationId')?.toString() || null;
 		const description = data.get('description')?.toString().trim() || null;
 
 		if (!id) return fail(400, { error: 'ID is required' });
@@ -108,7 +108,7 @@ export const actions: Actions = {
 
 		await db
 			.update(schedules)
-			.set({ name, startDate: start, endDate: end, location, description, updatedAt: new Date() })
+			.set({ name, startDate: start, endDate: end, locationId: locationId ? parseInt(locationId) : null, description, updatedAt: new Date() })
 			.where(eq(schedules.id, id));
 
 		return { success: true };
