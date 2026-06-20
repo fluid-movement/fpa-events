@@ -55,7 +55,7 @@
 						class="w-full object-cover max-h-80"
 					/>
 					<!-- Gradient overlay for readability -->
-					<div class="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent"></div>
+					<div class="absolute inset-0 bg-linear-to-t from-background/60 via-transparent to-transparent"></div>
 				</div>
 			{/if}
 
@@ -140,6 +140,7 @@
 					</Tabs.List>
 					<Tabs.Content value="description">
 						{#if event.description}
+							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 							<div class="rich-text text-base text-foreground/90">{@html event.description}</div>
 						{:else}
 							<p class="text-muted-foreground">No description provided.</p>
@@ -151,6 +152,7 @@
 				</Tabs.Root>
 			{:else}
 				{#if event.description}
+					<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 					<div class="rich-text text-base text-foreground/90">{@html event.description}</div>
 				{:else}
 					<p class="text-muted-foreground">No description provided.</p>

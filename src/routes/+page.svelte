@@ -86,7 +86,7 @@
 				</Card.Header>
 				{#if event.description}
 					<Card.Content>
-						<p class="text-sm line-clamp-3">{@html event.description.replace(/<[^>]*>/g, ' ').trim()}</p>
+						<p class="text-sm line-clamp-3">{event.description.replace(/<[^>]*>/g, ' ').trim()}</p>
 					</Card.Content>
 				{/if}
 				<Card.Footer>

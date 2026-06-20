@@ -3,6 +3,7 @@ import { events, schedules, scheduleLocations, eventUser, user } from '$lib/serv
 import { eq, count, and, asc } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
+import { sanitizeRichText } from '$lib/utils/html';
 
 const ATTENDEE_PEEK_LIMIT = 4;
 
@@ -56,7 +57,10 @@ export const load = (async ({ params, locals }) => {
 	]);
 
 	return {
-		event,
+		event: {
+			...event,
+			description: event.description ? sanitizeRichText(event.description) : null
+		},
 		schedules: eventSchedules,
 		attendeeCount: attendeeCountResult[0]?.count ?? 0,
 		attendeePeek,
