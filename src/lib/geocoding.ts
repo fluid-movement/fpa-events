@@ -57,5 +57,5 @@ export async function autocomplete(query: string, limit = 5): Promise<GeocodingR
 	if (!res.ok) return [];
 
 	const data = await res.json();
-	return (data.features as PhotonFeature[]).map(featureToResult);
+	return ((data.features as PhotonFeature[] | undefined) ?? []).map(featureToResult);
 }

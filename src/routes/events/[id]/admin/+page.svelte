@@ -6,6 +6,9 @@
 	import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
 	import type { PageProps } from './$types';
 	import { listEventLocations, createEventLocation, deleteEventLocation } from './locations.remote';
+	import { addSchedule, updateSchedule, deleteSchedule } from './schedule.remote';
+	import { generateLink, regenerateLink } from './magic-links.remote';
+	import { deleteEvent } from './delete-event.remote';
 	import VenueLocationPicker from '$lib/components/VenueLocationPicker.svelte';
 	import { SvelteDate } from 'svelte/reactivity';
 	import AttendeeList from '$lib/components/event-admin/AttendeeList.svelte';
@@ -13,6 +16,7 @@
 	import InviteSection from '$lib/components/event-admin/InviteSection.svelte';
 	import DangerZone from '$lib/components/event-admin/DangerZone.svelte';
 	import ScheduleList from '$lib/components/schedule/ScheduleList.svelte';
+	import { toISODate } from '$lib/utils/dates';
 
 	let { data }: PageProps = $props();
 	const event = $derived(data.event);
@@ -27,11 +31,6 @@
 
 	const eventId = $derived(event.id);
 	const eventLocationsList = $derived(await listEventLocations(eventId));
-
-	function toISODate(d: Date) {
-		const pad = (n: number) => n.toString().padStart(2, '0');
-		return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-	}
 
 	const eventDays = $derived.by(() => {
 		const days: string[] = [];
@@ -89,21 +88,28 @@
 			</div>
 			<ScheduleList
 				{schedules}
+				eventId={event.id}
 				editable={true}
 				{eventDays}
 				locations={eventLocationsList ?? []}
+				addScheduleForm={addSchedule}
+				updateScheduleForm={updateSchedule}
+				deleteScheduleForm={deleteSchedule}
 			/>
 		</Tabs.Content>
 		<Tabs.Content value="invite">
 			<InviteSection
+				eventId={event.id}
 				{magicLink}
 				{magicLinkUrl}
 				{organizers}
+				generateLinkForm={generateLink}
+				regenerateLinkForm={regenerateLink}
 			/>
 		</Tabs.Content>
 	</Tabs.Root>
 
-	<DangerZone eventName={event.name} />
+	<DangerZone eventId={event.id} eventName={event.name} deleteEventForm={deleteEvent} />
 
 	<!-- Venue Location Picker Dialog -->
 	<Dialog.Root bind:open={showVenuePicker}>

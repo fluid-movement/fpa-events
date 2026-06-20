@@ -9,12 +9,25 @@
 
 	interface Props {
 		schedules: ScheduleItem[];
+		eventId?: string;
 		editable?: boolean;
 		eventDays?: string[];
 		locations?: EventLocation[];
+		addScheduleForm?: Record<string, unknown>;
+		updateScheduleForm?: Record<string, unknown>;
+		deleteScheduleForm?: Record<string, unknown>;
 	}
 
-	let { schedules, editable = false, eventDays, locations }: Props = $props();
+	let {
+		schedules,
+		eventId,
+		editable = false,
+		eventDays,
+		locations,
+		addScheduleForm,
+		updateScheduleForm,
+		deleteScheduleForm
+	}: Props = $props();
 
 	let editingId = $state<string | null>(null);
 	let addingForDay = $state<string | null>(null);
@@ -65,33 +78,36 @@
 			</h2>
 			<div class="space-y-2">
 				{#each items as item (item.id)}
-					{#if editable && editingId === item.id}
+					{#if editable && editingId === item.id && updateScheduleForm}
 						<ScheduleItemForm
 							mode="edit"
 							{item}
+							{eventId}
 							eventDays={eventDays ?? []}
 							locations={locations ?? []}
-							formAction="?/updateSchedule"
+							formData={updateScheduleForm}
 							onCancel={() => (editingId = null)}
 							onSuccess={() => (editingId = null)}
 						/>
 					{:else}
 						<ScheduleItemCard
 							item={itemWithResolvedLocation(item)}
+							{eventId}
 							onEdit={editable ? () => (editingId = item.id) : undefined}
-							deleteFormAction={editable ? '?/deleteSchedule' : undefined}
+							deleteForm={editable ? deleteScheduleForm : undefined}
 						/>
 					{/if}
 				{/each}
 
-				{#if editable}
+				{#if editable && addScheduleForm}
 					{#if addingForDay === dayKey}
 						<ScheduleItemForm
 							mode="add"
+							{eventId}
 							eventDays={eventDays ?? []}
 							locations={locations ?? []}
 							initialDay={toISODate(new Date(dayKey))}
-							formAction="?/addSchedule"
+							formData={addScheduleForm}
 							onCancel={() => (addingForDay = null)}
 							onSuccess={() => (addingForDay = null)}
 						/>
@@ -111,13 +127,14 @@
 		</div>
 	{/each}
 
-	{#if editable}
+	{#if editable && addScheduleForm}
 		{#if addingForDay === 'new'}
 			<ScheduleItemForm
 				mode="add"
+				{eventId}
 				eventDays={eventDays ?? []}
 				locations={locations ?? []}
-				formAction="?/addSchedule"
+				formData={addScheduleForm}
 				onCancel={() => (addingForDay = null)}
 				onSuccess={() => (addingForDay = null)}
 			/>

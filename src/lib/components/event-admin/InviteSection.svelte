@@ -12,12 +12,16 @@
 	}
 
 	interface Props {
+		eventId: string;
 		magicLink: MagicLink | null;
 		magicLinkUrl: string | null;
 		organizers: Attendee[];
+		generateLinkForm: Record<string, unknown>;
+		regenerateLinkForm: Record<string, unknown>;
 	}
 
-	let { magicLink, magicLinkUrl, organizers }: Props = $props();
+	let { eventId, magicLink, magicLinkUrl, organizers, generateLinkForm, regenerateLinkForm }: Props =
+		$props();
 
 	const magicLinkExpired = $derived(
 		magicLink ? new Date(magicLink.expiresAt).getTime() < Date.now() : false
@@ -39,7 +43,8 @@
 	</div>
 
 	{#if !magicLink}
-		<form method="POST" action="?/generateLink">
+		<form {...generateLinkForm}>
+			<input type="hidden" name="eventId" value={eventId} />
 			<Button type="submit">
 				<LinkIcon class="size-4" />
 				Generate Invite Link
@@ -61,7 +66,8 @@
 						Expires in {hoursUntil(magicLink.expiresAt)} hours
 					</p>
 				{/if}
-				<form method="POST" action="?/regenerateLink">
+				<form {...regenerateLinkForm}>
+					<input type="hidden" name="eventId" value={eventId} />
 					<Button type="submit" variant="outline" size="sm">Regenerate</Button>
 				</form>
 			</div>

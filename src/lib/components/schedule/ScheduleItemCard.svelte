@@ -9,13 +9,14 @@
 
 	interface Props {
 		item: ScheduleItem;
+		eventId?: string;
 		onEdit?: () => void;
-		deleteFormAction?: string;
+		deleteForm?: Record<string, unknown>;
 	}
 
-	let { item, onEdit, deleteFormAction }: Props = $props();
+	let { item, eventId, onEdit, deleteForm }: Props = $props();
 
-	const hasActions = $derived(!!onEdit || !!deleteFormAction);
+	const hasActions = $derived(!!onEdit || !!deleteForm);
 
 	function confirmDelete(event: SubmitEvent) {
 		if (!confirm('Delete this schedule item?')) event.preventDefault();
@@ -47,9 +48,10 @@
 						<PencilIcon class="size-3.5" />
 					</Button>
 				{/if}
-				{#if deleteFormAction}
-					<form method="POST" action={deleteFormAction} onsubmit={confirmDelete}>
+				{#if deleteForm}
+					<form {...deleteForm} onsubmit={confirmDelete}>
 						<input type="hidden" name="id" value={item.id} />
+						{#if eventId}<input type="hidden" name="eventId" value={eventId} />{/if}
 						<Button
 							type="submit"
 							variant="ghost"

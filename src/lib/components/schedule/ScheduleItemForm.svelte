@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Textarea } from '$lib/components/ui/textarea';
@@ -10,15 +9,16 @@
 	interface Props {
 		mode: 'add' | 'edit';
 		item?: ScheduleItem;
+		eventId?: string;
 		eventDays: string[];
 		locations: EventLocation[];
 		initialDay?: string | null;
-		formAction: string;
+		formData: Record<string, unknown>;
 		onCancel: () => void;
 		onSuccess: () => void;
 	}
 
-	let { mode, item, eventDays, locations, initialDay, formAction, onCancel, onSuccess }: Props =
+	let { mode, item, eventId, eventDays, locations, initialDay, formData, onCancel, onSuccess }: Props =
 		$props();
 
 	let selectedDay = $state<string | null>(null);
@@ -52,25 +52,16 @@
 		}
 	});
 
-	async function handleSubmit(event: SubmitEvent) {
-		event.preventDefault();
-		const form = event.currentTarget as HTMLFormElement;
-		const response = await fetch(formAction, { method: 'POST', body: new FormData(form) });
-		if (response.ok) {
-			await invalidateAll();
-			onSuccess();
-		}
-	}
 </script>
 
 <form
-	method="POST"
-	action={formAction}
+	{...formData}
 	class={mode === 'edit'
 		? 'space-y-3 rounded-lg border bg-card p-4'
 		: 'space-y-3 rounded-lg border border-dashed bg-muted/30 p-4'}
-	onsubmit={handleSubmit}
+	onsubmit={() => onSuccess()}
 >
+	{#if eventId}<input type="hidden" name="eventId" value={eventId} />{/if}
 	{#if mode === 'edit'}
 		<input type="hidden" name="id" value={item?.id} />
 	{/if}
