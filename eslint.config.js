@@ -37,5 +37,15 @@ export default defineConfig(
 				svelteConfig
 			}
 		}
+	},
+	{
+		// RichContent is the single controlled component for rendering sanitized HTML.
+		files: ['src/lib/components/RichContent.svelte'],
+		rules: { 'svelte/no-at-html-tags': 'off' }
+	},
+	{
+		// shadcn UI primitives accept arbitrary hrefs from callers — resolve() is the caller's responsibility.
+		files: ['src/lib/components/ui/**/*.svelte'],
+		rules: { 'svelte/no-navigation-without-resolve': 'off' }
 	}
 );

@@ -3,6 +3,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as Tabs from '$lib/components/ui/tabs';
 	import ScheduleList from '$lib/components/schedule/ScheduleList.svelte';
+	import RichContent from '$lib/components/RichContent.svelte';
 	import { toggleRsvp } from './data.remote';
 	import type { PageProps } from './$types';
 	import { formatDateRange } from '$lib/utils/dates';
@@ -140,8 +141,7 @@
 					</Tabs.List>
 					<Tabs.Content value="description">
 						{#if event.description}
-							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-							<div class="rich-text text-base text-foreground/90">{@html event.description}</div>
+							<RichContent content={event.description} class="text-base text-foreground/90" />
 						{:else}
 							<p class="text-muted-foreground">No description provided.</p>
 						{/if}
@@ -152,8 +152,7 @@
 				</Tabs.Root>
 			{:else}
 				{#if event.description}
-					<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-					<div class="rich-text text-base text-foreground/90">{@html event.description}</div>
+					<RichContent content={event.description} class="text-base text-foreground/90" />
 				{:else}
 					<p class="text-muted-foreground">No description provided.</p>
 				{/if}
