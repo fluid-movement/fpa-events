@@ -149,7 +149,7 @@
 				<div class="flex items-center gap-3">
 					<p class="text-xs text-muted-foreground">This will invalidate the current link. Continue?</p>
 					<form
-						{...regenerateToken.formAction}
+						{...regenerateToken}
 						onsubmit={() => {
 							regenerating = true;
 							confirmRegenerate = false;

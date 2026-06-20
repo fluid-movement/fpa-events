@@ -11,7 +11,7 @@
 
 	let element = $state<HTMLElement>();
 	let editorState = $state<{ editor: Editor | null }>({ editor: null });
-	let htmlContent = $state(value);
+	const htmlContent = $derived(editorState.editor?.getHTML() ?? value);
 
 	onMount(() => {
 		editorState.editor = new Editor({
@@ -20,7 +20,6 @@
 			content: value,
 			onTransaction: ({ editor }) => {
 				editorState = { editor };
-				htmlContent = editor.getHTML();
 			}
 		});
 	});
