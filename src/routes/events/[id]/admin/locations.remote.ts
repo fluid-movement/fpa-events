@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { form, query, getRequestEvent } from '$app/server';
 import { db } from '$lib/server/db';
-import { events, eventLocations } from '$lib/server/db/schema';
+import { events, scheduleLocations } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 
 const locationSchema = v.object({
@@ -24,7 +24,7 @@ async function assertAccess(eventId: string) {
 
 export const listEventLocations = query(v.string(), async (eventId) => {
 	await assertAccess(eventId);
-	return db.select().from(eventLocations).where(eq(eventLocations.eventId, eventId));
+	return db.select().from(scheduleLocations).where(eq(scheduleLocations.eventId, eventId));
 });
 
 export const createEventLocation = form(
@@ -32,7 +32,7 @@ export const createEventLocation = form(
 	async (data) => {
 		await assertAccess(data.eventId);
 		const [created] = await db
-			.insert(eventLocations)
+			.insert(scheduleLocations)
 			.values({
 				eventId: data.eventId,
 				name: data.name,
@@ -50,7 +50,7 @@ export const deleteEventLocation = form(
 	v.object({ id: v.pipe(v.string(), v.transform(Number)), eventId: v.string() }),
 	async (data) => {
 		await assertAccess(data.eventId);
-		await db.delete(eventLocations).where(eq(eventLocations.id, data.id));
+		await db.delete(scheduleLocations).where(eq(scheduleLocations.id, data.id));
 		await listEventLocations(data.eventId).refresh();
 	}
 );

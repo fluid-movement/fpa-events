@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { events, schedules, eventLocations, eventUser, user } from '$lib/server/db/schema';
+import { events, schedules, scheduleLocations, eventUser, user } from '$lib/server/db/schema';
 import { eq, count, and, asc } from 'drizzle-orm';
 import { error, type ServerLoadEvent } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
@@ -22,12 +22,12 @@ export const load: PageServerLoad = async ({ params, locals }: ServerLoadEvent) 
 				endDate: schedules.endDate,
 				description: schedules.description,
 				locationId: schedules.locationId,
-				locationName: eventLocations.name,
+				locationName: scheduleLocations.name,
 				createdAt: schedules.createdAt,
 				updatedAt: schedules.updatedAt
 			})
 			.from(schedules)
-			.leftJoin(eventLocations, eq(schedules.locationId, eventLocations.id))
+			.leftJoin(scheduleLocations, eq(schedules.locationId, scheduleLocations.id))
 			.where(eq(schedules.eventId, params.id))
 			.orderBy(asc(schedules.startDate)),
 		db

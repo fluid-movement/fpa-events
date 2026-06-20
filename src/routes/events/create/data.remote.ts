@@ -2,9 +2,10 @@ import * as v from 'valibot';
 import { redirect } from '@sveltejs/kit';
 import { form, getRequestEvent } from '$app/server';
 import { db } from '$lib/server/db';
-import { events } from '$lib/server/db/schema';
+import { events, eventLocations } from '$lib/server/db/schema';
 import { resolve } from '$app/paths';
 import { ulid } from 'ulid';
+import { and, eq } from 'drizzle-orm';
 
 const createEventSchema = v.object({
 	name: v.pipe(v.string(), v.minLength(1), v.maxLength(100)),
@@ -21,6 +22,25 @@ const createEventSchema = v.object({
 	pictureHeight: v.optional(v.string())
 });
 
+async function findOrCreateEventLocation(
+	city: string,
+	country: string,
+	latitude: number,
+	longitude: number
+): Promise<number> {
+	const [existing] = await db
+		.select()
+		.from(eventLocations)
+		.where(and(eq(eventLocations.city, city), eq(eventLocations.country, country)))
+		.limit(1);
+	if (existing) return existing.id;
+	const [created] = await db
+		.insert(eventLocations)
+		.values({ city, country, latitude, longitude })
+		.returning();
+	return created.id;
+}
+
 export const createEvent = form(createEventSchema, async (data) => {
 	const event = getRequestEvent();
 	if (!event.locals.user?.id) {
@@ -30,29 +50,32 @@ export const createEvent = form(createEventSchema, async (data) => {
 	const userId = event.locals.user.id;
 	const eventId = ulid().toLowerCase();
 
+	let eventLocationId: number | null = null;
+	if (data.city && data.country && data.latitude && data.longitude) {
+		eventLocationId = await findOrCreateEventLocation(
+			data.city,
+			data.country,
+			parseFloat(data.latitude),
+			parseFloat(data.longitude)
+		);
+	}
+
 	const insertData: typeof events.$inferInsert = {
 		id: eventId,
-		userId: userId,
+		userId,
 		name: data.name,
 		description: data.description,
 		startDate: new Date(data.startDate),
 		endDate: new Date(data.endDate),
 		location: data.location,
-		city: data.city ?? null,
-		country: data.country ?? null,
-		latitude: data.latitude ? parseFloat(data.latitude) : null,
-		longitude: data.longitude ? parseFloat(data.longitude) : null,
+		eventLocationId,
 		picture: data.picture || null,
 		pictureWidth: data.pictureWidth ? parseInt(data.pictureWidth) : null,
 		pictureHeight: data.pictureHeight ? parseInt(data.pictureHeight) : null,
 		createdAt: new Date()
 	};
 
-	const success = await db.insert(events).values(insertData);
-
-	if (!success) {
-		throw new Error('Failed to create event');
-	}
+	await db.insert(events).values(insertData);
 
 	redirect(303, resolve(`/events/${eventId}`));
 });

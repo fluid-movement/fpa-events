@@ -1,5 +1,5 @@
 import { relations, sql } from 'drizzle-orm';
-import { pgTable, text, integer, index, real, boolean, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, index, real, boolean, timestamp, type AnyPgColumn } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('user', {
 	id: text('id').primaryKey(),
@@ -29,10 +29,7 @@ export const events = pgTable(
 		startDate: timestamp('start_date', { mode: 'date' }).notNull(),
 		endDate: timestamp('end_date', { mode: 'date' }).notNull(),
 		location: text('location').notNull(),
-		city: text('city'),
-		country: text('country'),
-		latitude: real('latitude'),
-		longitude: real('longitude'),
+		eventLocationId: integer('event_location_id').references((): AnyPgColumn => eventLocations.id, { onDelete: 'set null' }),
 		description: text('description').notNull(),
 		picture: text('picture'),
 		pictureWidth: integer('picture_width'),
@@ -93,8 +90,21 @@ export const eventMagicLinks = pgTable(
 	(table) => [index('event_magic_links_event_id_index').on(table.eventId)]
 );
 
-// Event Locations table — venue-level locations scoped to an event, reusable across schedule items
-export const eventLocations = pgTable('event_locations', {
+// Global city-level locations — deduplicated, shared across all events
+export const eventLocations = pgTable(
+	'event_locations',
+	{
+		id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+		city: text('city').notNull(),
+		country: text('country').notNull(),
+		latitude: real('latitude').notNull(),
+		longitude: real('longitude').notNull()
+	},
+	(table) => [index('event_locations_city_country_idx').on(table.city, table.country)]
+);
+
+// Per-event venue locations — scoped to one event, reusable across its schedule items
+export const scheduleLocations = pgTable('schedule_locations', {
 	id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
 	eventId: text('event_id')
 		.notNull()
@@ -118,7 +128,7 @@ export const schedules = pgTable('schedules', {
 	startDate: timestamp('start_date', { mode: 'date' }).notNull(),
 	endDate: timestamp('end_date', { mode: 'date' }).notNull(),
 	description: text('description'),
-	locationId: integer('location_id').references(() => eventLocations.id, { onDelete: 'set null' }),
+	locationId: integer('location_id').references(() => scheduleLocations.id, { onDelete: 'set null' }),
 	createdAt: timestamp('created_at', { mode: 'date' })
 		.notNull()
 		.default(sql`now()`),
@@ -138,15 +148,23 @@ export const eventsRelations = relations(events, ({ one, many }) => ({
 		fields: [events.userId],
 		references: [user.id]
 	}),
+	eventLocation: one(eventLocations, {
+		fields: [events.eventLocationId],
+		references: [eventLocations.id]
+	}),
 	eventUsers: many(eventUser),
 	eventMagicLinks: many(eventMagicLinks),
 	schedules: many(schedules),
-	eventLocations: many(eventLocations)
+	scheduleLocations: many(scheduleLocations)
 }));
 
-export const eventLocationsRelations = relations(eventLocations, ({ one, many }) => ({
+export const eventLocationsRelations = relations(eventLocations, ({ many }) => ({
+	events: many(events)
+}));
+
+export const scheduleLocationsRelations = relations(scheduleLocations, ({ one, many }) => ({
 	event: one(events, {
-		fields: [eventLocations.eventId],
+		fields: [scheduleLocations.eventId],
 		references: [events.id]
 	}),
 	schedules: many(schedules)
@@ -175,9 +193,9 @@ export const schedulesRelations = relations(schedules, ({ one }) => ({
 		fields: [schedules.eventId],
 		references: [events.id]
 	}),
-	location: one(eventLocations, {
+	location: one(scheduleLocations, {
 		fields: [schedules.locationId],
-		references: [eventLocations.id]
+		references: [scheduleLocations.id]
 	})
 }));
 

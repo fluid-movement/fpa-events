@@ -61,8 +61,6 @@
 						value={event.location}
 						city={event.city ?? undefined}
 						country={event.country ?? undefined}
-						latitude={event.latitude ?? undefined}
-						longitude={event.longitude ?? undefined}
 					/>
 				</Field.Field>
 				<Field.Field>

@@ -31,8 +31,12 @@
 	// reflect the incoming props so edit forms pre-populate correctly.
 	let selected = $state<GeocodingResult | null>(null);
 
-	let hiddenLocation = $derived(selected ? selected.displayName : (locationValue || value));
-	let hiddenCity = $derived(selected ? (selected.city ?? '') : city);
+	let hiddenLocation = $derived(
+		selected
+			? [selected.city ?? selected.name, selected.country].filter(Boolean).join(', ')
+			: (locationValue || value)
+	);
+	let hiddenCity = $derived(selected ? (selected.city ?? selected.name ?? '') : city);
 	let hiddenCountry = $derived(selected ? (selected.country ?? '') : country);
 	let hiddenLatitude = $derived(selected ? selected.lat : (latitude ?? null));
 	let hiddenLongitude = $derived(selected ? selected.lng : (longitude ?? null));
@@ -64,7 +68,7 @@
 	}
 
 	function selectSuggestion(result: GeocodingResult) {
-		const parts = [result.city, result.country].filter(Boolean);
+		const parts = [result.city ?? result.name, result.country].filter(Boolean);
 		query = parts.length > 0 ? parts.join(', ') : result.displayName;
 		selected = result;
 		suggestions = [];
@@ -119,7 +123,7 @@
 						class="w-full px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none"
 						onclick={() => selectSuggestion(suggestion)}
 					>
-						{[suggestion.city, suggestion.country].filter(Boolean).join(", ") || suggestion.displayName}
+						{[suggestion.city ?? suggestion.name, suggestion.country].filter(Boolean).join(", ") || suggestion.displayName}
 					</button>
 				</li>
 			{/each}
