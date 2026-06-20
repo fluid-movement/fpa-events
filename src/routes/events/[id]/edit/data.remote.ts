@@ -4,7 +4,8 @@ import { query, form, getRequestEvent } from '$app/server';
 import { db } from '$lib/server/db';
 import { events, eventLocations } from '$lib/server/db/schema';
 import { resolve } from '$app/paths';
-import { and, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
+import { findOrCreateEventLocation } from '$lib/server/db/eventLocations';
 import { deleteImage } from '$lib/server/r2';
 
 const updateEventSchema = v.object({
@@ -21,25 +22,6 @@ const updateEventSchema = v.object({
 	pictureWidth: v.optional(v.string()),
 	pictureHeight: v.optional(v.string())
 });
-
-async function findOrCreateEventLocation(
-	city: string,
-	country: string,
-	latitude: number,
-	longitude: number
-): Promise<number> {
-	const [existing] = await db
-		.select()
-		.from(eventLocations)
-		.where(and(eq(eventLocations.city, city), eq(eventLocations.country, country)))
-		.limit(1);
-	if (existing) return existing.id;
-	const [created] = await db
-		.insert(eventLocations)
-		.values({ city, country, latitude, longitude })
-		.returning();
-	return created.id;
-}
 
 export const getEvent = query(v.string(), async (id) => {
 	const [event] = await db

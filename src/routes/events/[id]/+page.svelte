@@ -1,14 +1,16 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { Button } from '$lib/components/ui/button';
+	import { Tabs } from '$lib/components/ui/tabs';
+	import ScheduleList from '$lib/components/schedule/ScheduleList.svelte';
 	import { toggleRsvp } from './data.remote';
 	import type { PageProps } from './$types';
+	import { formatDateRange } from '$lib/utils/dates';
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
 	import MapPinIcon from '@lucide/svelte/icons/map-pin';
 	import HeartIcon from '@lucide/svelte/icons/heart';
 	import PencilIcon from '@lucide/svelte/icons/pencil';
 	import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
-	import ClockIcon from '@lucide/svelte/icons/clock';
 
 	let { data }: PageProps = $props();
 	const event = $derived(data.event);
@@ -26,30 +28,7 @@
 		optimisticCount = data.attendeeCount;
 	});
 
-	let activeTab = $state<'description' | 'schedule'>('description');
-
-	function formatDateRange(start: Date, end: Date) {
-		const sameDay = start.toDateString() === end.toDateString();
-		if (sameDay) {
-			return start.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
-		}
-		if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
-			return `${start.getDate()} - ${end.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}`;
-		}
-		const startStr = start.toLocaleDateString('en-US', { day: 'numeric', month: 'long' });
-		const endStr = end.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
-		return `${startStr} - ${endStr}`;
-	}
-
-	function formatScheduleTime(d: Date) {
-		return new Date(d).toLocaleString('en-US', {
-			weekday: 'short',
-			month: 'short',
-			day: 'numeric',
-			hour: 'numeric',
-			minute: '2-digit'
-		});
-	}
+	let activeTab = $state<string>('description');
 
 	const dateRange = $derived(formatDateRange(new Date(event.startDate), new Date(event.endDate)));
 
@@ -156,19 +135,14 @@
 
 			<!-- Tabs (only if schedules exist) -->
 			{#if schedules.length > 0}
-				<div class="mb-6 flex gap-1 rounded-lg border bg-muted/40 p-1 w-fit">
-					<button
-						onclick={() => (activeTab = 'description')}
-						class="rounded-md px-4 py-1.5 text-sm font-medium transition-colors {activeTab === 'description' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}"
-					>
-						Description
-					</button>
-					<button
-						onclick={() => (activeTab = 'schedule')}
-						class="rounded-md px-4 py-1.5 text-sm font-medium transition-colors {activeTab === 'schedule' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}"
-					>
-						Schedule
-					</button>
+				<div class="mb-6">
+					<Tabs
+						tabs={[
+							{ id: 'description', label: 'Description' },
+							{ id: 'schedule', label: 'Schedule' }
+						]}
+						bind:active={activeTab}
+					/>
 				</div>
 			{/if}
 
@@ -180,35 +154,7 @@
 					<p class="text-muted-foreground">No description provided.</p>
 				{/if}
 			{:else if activeTab === 'schedule'}
-				<div class="space-y-3">
-					{#each schedules as item (item.id)}
-						<div class="rounded-xl border bg-card p-5">
-							<div class="flex items-start justify-between gap-4">
-								<div class="min-w-0">
-									<p class="font-semibold text-base">{item.name}</p>
-									{#if item.description}
-										<p class="mt-1 text-sm text-muted-foreground">{item.description}</p>
-									{/if}
-									{#if item.locationName}
-										<p class="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
-											<MapPinIcon class="size-3.5 shrink-0" />
-											{item.locationName}
-										</p>
-									{/if}
-								</div>
-								<div class="shrink-0 text-right">
-									<p class="flex items-center gap-1.5 justify-end text-sm font-medium text-foreground/80">
-										<ClockIcon class="size-3.5 text-primary" />
-										{formatScheduleTime(item.startDate)}
-									</p>
-									{#if item.startDate.toString() !== item.endDate.toString()}
-										<p class="mt-1 text-xs text-muted-foreground">→ {formatScheduleTime(item.endDate)}</p>
-									{/if}
-								</div>
-							</div>
-						</div>
-					{/each}
-				</div>
+				<ScheduleList {schedules} />
 			{/if}
 		</div>
 	{:else}

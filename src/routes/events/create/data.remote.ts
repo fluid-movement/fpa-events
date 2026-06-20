@@ -2,10 +2,10 @@ import * as v from 'valibot';
 import { redirect } from '@sveltejs/kit';
 import { form, getRequestEvent } from '$app/server';
 import { db } from '$lib/server/db';
-import { events, eventLocations } from '$lib/server/db/schema';
+import { events } from '$lib/server/db/schema';
 import { resolve } from '$app/paths';
 import { ulid } from 'ulid';
-import { and, eq } from 'drizzle-orm';
+import { findOrCreateEventLocation } from '$lib/server/db/eventLocations';
 
 const createEventSchema = v.object({
 	name: v.pipe(v.string(), v.minLength(1), v.maxLength(100)),
@@ -21,25 +21,6 @@ const createEventSchema = v.object({
 	pictureWidth: v.optional(v.string()),
 	pictureHeight: v.optional(v.string())
 });
-
-async function findOrCreateEventLocation(
-	city: string,
-	country: string,
-	latitude: number,
-	longitude: number
-): Promise<number> {
-	const [existing] = await db
-		.select()
-		.from(eventLocations)
-		.where(and(eq(eventLocations.city, city), eq(eventLocations.country, country)))
-		.limit(1);
-	if (existing) return existing.id;
-	const [created] = await db
-		.insert(eventLocations)
-		.values({ city, country, latitude, longitude })
-		.returning();
-	return created.id;
-}
 
 export const createEvent = form(createEventSchema, async (data) => {
 	const event = getRequestEvent();

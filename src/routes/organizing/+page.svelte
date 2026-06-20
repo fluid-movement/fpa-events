@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { Button } from '$lib/components/ui/button';
+	import { Tabs } from '$lib/components/ui/tabs';
+	import { formatDateRange } from '$lib/utils/dates';
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
 	import MapPinIcon from '@lucide/svelte/icons/map-pin';
 	import HeartIcon from '@lucide/svelte/icons/heart';
@@ -8,21 +10,9 @@
 
 	let { data }: PageProps = $props();
 
-	let activeTab = $state<'upcoming' | 'past'>('upcoming');
+	let activeTab = $state<string>('upcoming');
 
 	const events = $derived(activeTab === 'upcoming' ? data.upcoming : data.past);
-
-	function formatDateRange(start: Date, end: Date) {
-		const s = new Date(start);
-		const e = new Date(end);
-		if (s.toDateString() === e.toDateString()) {
-			return s.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
-		}
-		if (s.getMonth() === e.getMonth() && s.getFullYear() === e.getFullYear()) {
-			return `${s.getDate()} – ${e.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}`;
-		}
-		return `${s.toLocaleDateString('en-US', { day: 'numeric', month: 'long' })} – ${e.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}`;
-	}
 </script>
 
 <div class="space-y-2 pb-6">
@@ -31,20 +21,13 @@
 </div>
 
 <div class="mb-6 flex items-center justify-between">
-	<div class="flex gap-1 rounded-lg border bg-muted/40 p-1 w-fit">
-		<button
-			onclick={() => (activeTab = 'upcoming')}
-			class="rounded-md px-4 py-1.5 text-sm font-medium transition-colors {activeTab === 'upcoming' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}"
-		>
-			Upcoming ({data.upcoming.length})
-		</button>
-		<button
-			onclick={() => (activeTab = 'past')}
-			class="rounded-md px-4 py-1.5 text-sm font-medium transition-colors {activeTab === 'past' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}"
-		>
-			Past ({data.past.length})
-		</button>
-	</div>
+	<Tabs
+		tabs={[
+			{ id: 'upcoming', label: `Upcoming (${data.upcoming.length})` },
+			{ id: 'past', label: `Past (${data.past.length})` }
+		]}
+		bind:active={activeTab}
+	/>
 
 	<Button href={resolve('/events/create')} size="sm">Create Event</Button>
 </div>
