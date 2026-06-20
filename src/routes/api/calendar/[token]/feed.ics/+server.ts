@@ -4,7 +4,7 @@ import { eq, and } from 'drizzle-orm';
 import ical, { ICalCalendarMethod } from 'ical-generator';
 import type { RequestHandler } from './$types';
 
-export const GET: RequestHandler = async ({ params }) => {
+export const GET: RequestHandler = async ({ params, url }) => {
 	const [owner] = await db
 		.select({ id: user.id, name: user.name })
 		.from(user)
@@ -32,7 +32,7 @@ export const GET: RequestHandler = async ({ params }) => {
 			end: event.endDate,
 			summary: event.name,
 			location: event.location,
-			description: event.description.replace(/<[^>]+>/g, '')
+			description: `${url.origin}/events/${event.id}`
 		});
 	}
 
