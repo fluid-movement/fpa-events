@@ -8,6 +8,7 @@ export const user = pgTable('user', {
 	emailVerified: boolean('email_verified').default(false).notNull(),
 	image: text('image'),
 	role: text('role', { enum: ['user', 'admin'] }).default('user').notNull(),
+	calendarToken: text('calendar_token').unique(),
 	createdAt: timestamp('created_at', { mode: 'date' })
 		.default(sql`now()`)
 		.notNull(),

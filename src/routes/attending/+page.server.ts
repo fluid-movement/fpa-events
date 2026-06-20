@@ -3,6 +3,7 @@ import { events, eventUser } from '$lib/server/db/schema';
 import { resolve } from '$app/paths';
 import { redirect, type ServerLoadEvent } from '@sveltejs/kit';
 import { eq, and, asc, desc, lte, gt } from 'drizzle-orm';
+import { ensureCalendarToken } from '$lib/server/utils/calendar';
 
 export const load = async ({ locals }: ServerLoadEvent) => {
 	if (!locals.user) {
@@ -11,7 +12,7 @@ export const load = async ({ locals }: ServerLoadEvent) => {
 
 	const now = new Date();
 
-	const [upcoming, past] = await Promise.all([
+	const [upcoming, past, calendarToken] = await Promise.all([
 		db
 			.select({ event: events })
 			.from(eventUser)
@@ -35,11 +36,13 @@ export const load = async ({ locals }: ServerLoadEvent) => {
 					lte(events.startDate, now)
 				)
 			)
-			.orderBy(desc(events.startDate))
+			.orderBy(desc(events.startDate)),
+		ensureCalendarToken(locals.user.id)
 	]);
 
 	return {
 		upcoming: upcoming.map((r) => r.event),
-		past: past.map((r) => r.event)
+		past: past.map((r) => r.event),
+		calendarToken
 	};
 };
