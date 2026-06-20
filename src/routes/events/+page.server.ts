@@ -4,7 +4,7 @@ import type { PageServerLoad } from './$types';
 import { asc, gt, count, eq, and } from 'drizzle-orm';
 import { groupEventsByMonth, getArchiveYears } from '$lib/server/utils/events';
 
-export const load: PageServerLoad = async () => {
+export const load = (async () => {
 	const [data, archiveYears] = await Promise.all([
 		db
 			.select({
@@ -38,4 +38,4 @@ export const load: PageServerLoad = async () => {
 		eventsByMonth: groupEventsByMonth(data),
 		archiveYears
 	};
-};
+}) satisfies PageServerLoad;

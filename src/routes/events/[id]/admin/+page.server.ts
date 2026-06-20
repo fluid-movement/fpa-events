@@ -2,13 +2,13 @@ import { db } from '$lib/server/db';
 import { events, schedules, eventUser, user, eventMagicLinks, eventLocations } from '$lib/server/db/schema';
 import { autocomplete } from '$lib/geocoding';
 import { eq } from 'drizzle-orm';
-import { error, redirect, fail, type ServerLoadEvent } from '@sveltejs/kit';
+import { error, redirect, fail } from '@sveltejs/kit';
 import { resolve } from '$app/paths';
 import type { PageServerLoad, Actions } from './$types';
 import { ulid } from 'ulid';
 import { deleteImage } from '$lib/server/r2';
 
-export const load: PageServerLoad = async ({ params, locals, url }: ServerLoadEvent) => {
+export const load = (async ({ params, locals, url }) => {
 	if (!locals.user) {
 		redirect(307, resolve('/sign-in'));
 	}
@@ -65,7 +65,7 @@ export const load: PageServerLoad = async ({ params, locals, url }: ServerLoadEv
 		magicLink: magicLinks[0] ?? null,
 		origin: url.origin
 	};
-};
+}) satisfies PageServerLoad;
 
 export const actions: Actions = {
 	addSchedule: async ({ params, locals, request }) => {

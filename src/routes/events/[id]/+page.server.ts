@@ -1,12 +1,12 @@
 import { db } from '$lib/server/db';
 import { events, schedules, scheduleLocations, eventUser, user } from '$lib/server/db/schema';
 import { eq, count, and, asc } from 'drizzle-orm';
-import { error, type ServerLoadEvent } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
 const ATTENDEE_PEEK_LIMIT = 4;
 
-export const load: PageServerLoad = async ({ params, locals }: ServerLoadEvent) => {
+export const load = (async ({ params, locals }) => {
 	if (!params.id) error(404, 'Not found');
 
 	const [event] = await db.select().from(events).where(eq(events.id, params.id));
@@ -64,4 +64,4 @@ export const load: PageServerLoad = async ({ params, locals }: ServerLoadEvent) 
 		userRole: locals.role ?? null,
 		userAttending: userRsvp.length > 0
 	};
-};
+}) satisfies PageServerLoad;

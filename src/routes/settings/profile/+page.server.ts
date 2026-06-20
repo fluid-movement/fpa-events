@@ -1,8 +1,8 @@
-import { redirect, fail, type ServerLoadEvent } from '@sveltejs/kit';
+import { redirect, fail } from '@sveltejs/kit';
 import { resolve } from '$app/paths';
 import type { PageServerLoad, Actions } from './$types';
 
-export const load: PageServerLoad = async ({ locals }: ServerLoadEvent) => {
+export const load = (async ({ locals }) => {
 	if (!locals.user) {
 		redirect(307, resolve('/sign-in'));
 	}
@@ -11,7 +11,7 @@ export const load: PageServerLoad = async ({ locals }: ServerLoadEvent) => {
 		name: locals.user.name,
 		email: locals.user.email
 	};
-};
+}) satisfies PageServerLoad;
 
 export const actions: Actions = {
 	default: async ({ request, locals, fetch }) => {

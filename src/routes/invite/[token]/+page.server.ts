@@ -5,7 +5,7 @@ import { error, redirect } from '@sveltejs/kit';
 import { resolve } from '$app/paths';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params, locals }) => {
+export const load = (async ({ params, locals }) => {
 	const { token } = params;
 
 	const [link] = await db.select().from(eventMagicLinks).where(eq(eventMagicLinks.id, token));
@@ -40,4 +40,4 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	}
 
 	redirect(303, resolve(`/events/${link.eventId}`));
-};
+}) satisfies PageServerLoad;

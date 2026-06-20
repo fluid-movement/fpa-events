@@ -34,9 +34,6 @@
 	<div class="flex items-start gap-3">
 		<div class="flex-1 min-w-0">
 			<p class="font-semibold">{item.name}</p>
-			{#if item.description}
-				<p class="text-sm text-muted-foreground mt-0.5">{item.description}</p>
-			{/if}
 			{#if item.locationName}
 				<div class="flex items-center gap-1 mt-1 text-sm text-muted-foreground">
 					<MapPinIcon class="size-3.5 shrink-0" />
@@ -47,6 +44,9 @@
 				<ClockIcon class="size-3.5 shrink-0" />
 				<span>{formatTime(item.startDate)} → {formatTime(item.endDate)}</span>
 			</div>
+			{#if item.description}
+				<p class="text-sm text-muted-foreground mt-0.5">{item.description}</p>
+			{/if}
 		</div>
 		{#if hasActions}
 			<div class="flex items-center gap-1 shrink-0">

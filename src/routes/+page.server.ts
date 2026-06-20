@@ -3,7 +3,7 @@ import { events, eventUser } from '$lib/server/db/schema';
 import type { PageServerLoad } from './$types';
 import { asc, gte, count, eq, and, sql, countDistinct } from 'drizzle-orm';
 
-export const load: PageServerLoad = async () => {
+export const load = (async () => {
 	const now = new Date();
 	const yearStart = new Date(now.getFullYear(), 0, 1);
 
@@ -51,4 +51,4 @@ export const load: PageServerLoad = async () => {
 		eventsThisYear: statsRows[0]?.eventsThisYear ?? 0,
 		countries: statsRows[0]?.countries ?? 0
 	};
-};
+}) satisfies PageServerLoad;

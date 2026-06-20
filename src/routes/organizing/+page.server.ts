@@ -1,11 +1,11 @@
 import { db } from '$lib/server/db';
 import { events, eventUser } from '$lib/server/db/schema';
-import { redirect, type ServerLoadEvent } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 import { resolve } from '$app/paths';
 import type { PageServerLoad } from './$types';
 import { asc, desc, eq, gt, lte, count } from 'drizzle-orm';
 
-export const load: PageServerLoad = async ({ locals }: ServerLoadEvent) => {
+export const load = (async ({ locals }) => {
 	if (!locals.user) {
 		redirect(307, resolve('/sign-in'));
 	}
@@ -46,4 +46,4 @@ export const load: PageServerLoad = async ({ locals }: ServerLoadEvent) => {
 		upcoming: upcomingEvents.map((e) => ({ ...e, attendeeCount: countMap[e.id] ?? 0 })),
 		past: pastEvents.map((e) => ({ ...e, attendeeCount: countMap[e.id] ?? 0 }))
 	};
-};
+}) satisfies PageServerLoad;

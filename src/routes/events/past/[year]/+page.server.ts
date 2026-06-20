@@ -1,11 +1,11 @@
 import { db } from '$lib/server/db';
 import { events } from '$lib/server/db/schema';
 import { and, gte, lt } from 'drizzle-orm';
-import { error, type ServerLoadEvent } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { groupEventsByMonth, getArchiveYears } from '$lib/server/utils/events';
 
-export const load: PageServerLoad = async ({ params }: ServerLoadEvent) => {
+export const load = (async ({ params }) => {
 	if (!params.year) error(404, 'Not found');
 
 	const year = parseInt(params.year);
@@ -29,4 +29,4 @@ export const load: PageServerLoad = async ({ params }: ServerLoadEvent) => {
 		archiveYears,
 		year
 	};
-};
+}) satisfies PageServerLoad;
