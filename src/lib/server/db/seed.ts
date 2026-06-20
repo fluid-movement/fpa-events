@@ -2,7 +2,7 @@ import postgres from 'postgres';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { ulid } from 'ulid';
 import * as schema from './schema';
-import { eq, sql } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 
 // ---------------------------------------------------------------------------
 // Helpers

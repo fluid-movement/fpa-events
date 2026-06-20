@@ -55,6 +55,7 @@
 	}: ButtonProps = $props();
 </script>
 
+<!-- eslint-disable svelte/no-navigation-without-resolve -->
 {#if href}
 	<a
 		bind:this={ref}
@@ -68,6 +69,7 @@
 	>
 		{@render children?.()}
 	</a>
+<!-- eslint-enable svelte/no-navigation-without-resolve -->
 {:else}
 	<button
 		bind:this={ref}

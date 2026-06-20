@@ -3,7 +3,7 @@ import { events, eventUser } from '$lib/server/db/schema';
 import { redirect } from '@sveltejs/kit';
 import { resolve } from '$app/paths';
 import type { PageServerLoad } from './$types';
-import { asc, desc, eq, gt, lte, count } from 'drizzle-orm';
+import { asc, desc, eq, count } from 'drizzle-orm';
 
 export const load = (async ({ locals }) => {
 	if (!locals.user) {

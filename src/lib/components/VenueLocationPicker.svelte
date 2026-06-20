@@ -105,7 +105,7 @@
 			if (destroyed || !mapContainer) return;
 
 			// Fix broken default icon paths in Vite/bundler environments
-			// @ts-ignore
+			// @ts-expect-error - _getIconUrl is a private Leaflet property not in the types
 			delete L.Icon.Default.prototype._getIconUrl;
 			L.Icon.Default.mergeOptions({
 				iconUrl: new URL('leaflet/dist/images/marker-icon.png', import.meta.url).href,

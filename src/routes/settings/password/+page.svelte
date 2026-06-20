@@ -21,7 +21,7 @@
 		}
 
 		loading = true;
-		const result = await client.changePassword(
+		await client.changePassword(
 			{ currentPassword, newPassword },
 			{
 				onError(context) {

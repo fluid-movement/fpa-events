@@ -1,7 +1,7 @@
 import { db } from '$lib/server/db';
 import { events, eventUser } from '$lib/server/db/schema';
 import type { PageServerLoad } from './$types';
-import { asc, gte, count, eq, and, sql, countDistinct } from 'drizzle-orm';
+import { asc, gte, count, eq, and, sql } from 'drizzle-orm';
 
 export const load = (async () => {
 	const now = new Date();
