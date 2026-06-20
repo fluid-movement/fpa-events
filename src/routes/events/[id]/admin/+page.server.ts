@@ -1,5 +1,6 @@
 import { db } from '$lib/server/db';
-import { events, schedules, eventUser, user, eventMagicLinks } from '$lib/server/db/schema';
+import { events, schedules, eventUser, user, eventMagicLinks, eventLocations } from '$lib/server/db/schema';
+import { autocomplete } from '$lib/geocoding';
 import { eq } from 'drizzle-orm';
 import { error, redirect, fail, type ServerLoadEvent } from '@sveltejs/kit';
 import { resolve } from '$app/paths';
@@ -14,8 +15,13 @@ export const load: PageServerLoad = async ({ params, locals, url }: ServerLoadEv
 
 	if (!params.id) error(404, 'Not found');
 
-	const [event] = await db.select().from(events).where(eq(events.id, params.id));
-	if (!event) error(404, 'Not found');
+	const [row] = await db
+		.select({ event: events, location: eventLocations })
+		.from(events)
+		.leftJoin(eventLocations, eq(events.eventLocationId, eventLocations.id))
+		.where(eq(events.id, params.id));
+	if (!row) error(404, 'Not found');
+	const { event, location: eventLocation } = row;
 
 	const isOwner = locals.user.id === event.userId;
 	const isAdmin = locals.role === 'admin';
@@ -39,8 +45,21 @@ export const load: PageServerLoad = async ({ params, locals, url }: ServerLoadEv
 		db.select().from(eventMagicLinks).where(eq(eventMagicLinks.eventId, params.id))
 	]);
 
+	let eventLat = eventLocation?.latitude ?? null;
+	let eventLng = eventLocation?.longitude ?? null;
+
+	if ((eventLat === null || eventLng === null) && event.location) {
+		const results = await autocomplete(event.location, 1).catch(() => []);
+		if (results[0]) {
+			eventLat = results[0].lat;
+			eventLng = results[0].lng;
+		}
+	}
+
 	return {
 		event,
+		eventLat,
+		eventLng,
 		schedules: eventSchedules,
 		attendees,
 		magicLink: magicLinks[0] ?? null,
