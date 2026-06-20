@@ -5,6 +5,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Textarea } from '$lib/components/ui/textarea';
 	import * as Dialog from '$lib/components/ui/dialog';
+	import * as Select from '$lib/components/ui/select';
 	import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
 	import MapPinIcon from '@lucide/svelte/icons/map-pin';
 	import ClockIcon from '@lucide/svelte/icons/clock';
@@ -33,17 +34,14 @@
 
 	// Location picker state
 	let showVenuePicker = $state(false);
-	let selectedLocationId = $state<number | null>(null);
+	let addLocationId = $state('');
+	let editLocationId = $state('');
 
 	const eventId = $derived(event.id);
 	const eventLocationsList = $derived(await listEventLocations(eventId));
 
-	const editingLocationId = $derived(
-		editingId ? (schedules.find((s) => s.id === editingId)?.locationId ?? null) : null
-	);
-
 	$effect(() => {
-		if (addingForDay === null) selectedLocationId = null;
+		if (addingForDay === null) addLocationId = '';
 	});
 
 	// Auto-select newly created location
@@ -51,7 +49,7 @@
 	$effect(() => {
 		const locs = eventLocationsList ?? [];
 		if (locs.length > prevLocCount && locs.length > 0) {
-			selectedLocationId = locs[locs.length - 1].id;
+			addLocationId = String(locs[locs.length - 1].id);
 		}
 		prevLocCount = locs.length;
 	});
@@ -72,6 +70,7 @@
 				addingForDay !== 'new' ? toISODate(new Date(addingForDay)) : (eventDays[0] ?? null);
 			addStartTime = '';
 			addEndTime = '';
+			addLocationId = '';
 		}
 	});
 
@@ -82,9 +81,15 @@
 				editSelectedDay = toISODate(new Date(item.startDate));
 				editStartTime = new Date(item.startDate).toTimeString().slice(0, 5);
 				editEndTime = new Date(item.endDate).toTimeString().slice(0, 5);
+				editLocationId = item.locationId ? String(item.locationId) : '';
 			}
 		}
 	});
+
+	function locationName(id: string) {
+		if (!id) return 'No location';
+		return (eventLocationsList ?? []).find((l) => String(l.id) === id)?.name ?? 'No location';
+	}
 
 	function formatTime(d: Date) {
 		return new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
@@ -312,18 +317,19 @@
 										<input type="hidden" name="startDate" value={editSelectedDay && editStartTime ? `${editSelectedDay}T${editStartTime}` : ''} />
 										<input type="hidden" name="endDate" value={editSelectedDay && editEndTime ? `${editSelectedDay}T${editEndTime}` : ''} />
 										<div class="col-span-2">
-											<label for="edit-location-select" class="text-xs font-medium text-muted-foreground">Location</label>
-											<select
-												id="edit-location-select"
-												name="locationId"
-												class="mt-1 flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
-												value={editingLocationId}
-											>
-												<option value="">No location</option>
-												{#each eventLocationsList ?? [] as loc (loc.id)}
-													<option value={loc.id}>{loc.name}</option>
-												{/each}
-											</select>
+											<label class="text-xs font-medium text-muted-foreground">Location</label>
+											<Select.Root type="single" bind:value={editLocationId}>
+												<Select.Trigger class="mt-1 w-full">
+													{locationName(editLocationId)}
+												</Select.Trigger>
+												<Select.Content>
+													<Select.Item value="">No location</Select.Item>
+													{#each eventLocationsList ?? [] as loc (loc.id)}
+														<Select.Item value={String(loc.id)} label={loc.name} />
+													{/each}
+												</Select.Content>
+											</Select.Root>
+											<input type="hidden" name="locationId" value={editLocationId} />
 										</div>
 										<div class="col-span-2">
 											<label class="text-xs font-medium text-muted-foreground">Description</label>
@@ -443,22 +449,19 @@
 									<input type="hidden" name="startDate" value={addSelectedDay && addStartTime ? `${addSelectedDay}T${addStartTime}` : ''} />
 									<input type="hidden" name="endDate" value={addSelectedDay && addEndTime ? `${addSelectedDay}T${addEndTime}` : ''} />
 									<div class="col-span-2">
-										<label for="add-day-location-select" class="text-xs font-medium text-muted-foreground">Location</label>
-										<select
-											id="add-day-location-select"
-											name="locationId"
-											class="mt-1 flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
-											value={selectedLocationId}
-											onchange={(e) =>
-												(selectedLocationId = e.currentTarget.value
-													? parseInt(e.currentTarget.value)
-													: null)}
-										>
-											<option value="">No location</option>
-											{#each eventLocationsList ?? [] as loc (loc.id)}
-												<option value={loc.id}>{loc.name}</option>
-											{/each}
-										</select>
+										<label class="text-xs font-medium text-muted-foreground">Location</label>
+										<Select.Root type="single" bind:value={addLocationId}>
+											<Select.Trigger class="mt-1 w-full">
+												{locationName(addLocationId)}
+											</Select.Trigger>
+											<Select.Content>
+												<Select.Item value="">No location</Select.Item>
+												{#each eventLocationsList ?? [] as loc (loc.id)}
+													<Select.Item value={String(loc.id)} label={loc.name} />
+												{/each}
+											</Select.Content>
+										</Select.Root>
+										<input type="hidden" name="locationId" value={addLocationId} />
 									</div>
 									<div class="col-span-2">
 										<label class="text-xs font-medium text-muted-foreground">Description</label>
@@ -532,22 +535,19 @@
 						<input type="hidden" name="startDate" value={addSelectedDay && addStartTime ? `${addSelectedDay}T${addStartTime}` : ''} />
 						<input type="hidden" name="endDate" value={addSelectedDay && addEndTime ? `${addSelectedDay}T${addEndTime}` : ''} />
 						<div class="col-span-2">
-							<label for="add-new-location-select" class="text-xs font-medium text-muted-foreground">Location</label>
-							<select
-								id="add-new-location-select"
-								name="locationId"
-								class="mt-1 flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
-								value={selectedLocationId}
-								onchange={(e) =>
-									(selectedLocationId = e.currentTarget.value
-										? parseInt(e.currentTarget.value)
-										: null)}
-							>
-								<option value="">No location</option>
-								{#each eventLocationsList ?? [] as loc (loc.id)}
-									<option value={loc.id}>{loc.name}</option>
-								{/each}
-							</select>
+							<label class="text-xs font-medium text-muted-foreground">Location</label>
+							<Select.Root type="single" bind:value={addLocationId}>
+								<Select.Trigger class="mt-1 w-full">
+									{locationName(addLocationId)}
+								</Select.Trigger>
+								<Select.Content>
+									<Select.Item value="">No location</Select.Item>
+									{#each eventLocationsList ?? [] as loc (loc.id)}
+										<Select.Item value={String(loc.id)} label={loc.name} />
+									{/each}
+								</Select.Content>
+							</Select.Root>
+							<input type="hidden" name="locationId" value={addLocationId} />
 						</div>
 						<div class="col-span-2">
 							<label class="text-xs font-medium text-muted-foreground">Description</label>
