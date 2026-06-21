@@ -9,18 +9,13 @@
 
 	interface Props {
 		item: ScheduleItem;
-		eventId?: string;
 		onEdit?: () => void;
-		deleteForm?: Record<string, unknown>;
+		onDelete?: () => void;
 	}
 
-	let { item, eventId, onEdit, deleteForm }: Props = $props();
+	let { item, onEdit, onDelete }: Props = $props();
 
-	const hasActions = $derived(!!onEdit || !!deleteForm);
-
-	function confirmDelete(event: SubmitEvent) {
-		if (!confirm('Delete this schedule item?')) event.preventDefault();
-	}
+	const hasActions = $derived(!!onEdit || !!onDelete);
 </script>
 
 <div class="rounded-lg border bg-card p-4">
@@ -48,19 +43,17 @@
 						<PencilIcon class="size-3.5" />
 					</Button>
 				{/if}
-				{#if deleteForm}
-					<form {...deleteForm} onsubmit={confirmDelete}>
-						<input type="hidden" name="id" value={item.id} />
-						{#if eventId}<input type="hidden" name="eventId" value={eventId} />{/if}
-						<Button
-							type="submit"
-							variant="ghost"
-							size="icon"
-							class="size-7 text-destructive hover:text-destructive"
-						>
-							<TrashIcon class="size-3.5" />
-						</Button>
-					</form>
+				{#if onDelete}
+					<Button
+						variant="ghost"
+						size="icon"
+						class="size-7 text-destructive hover:text-destructive"
+						onclick={() => {
+							if (confirm('Delete this schedule item?')) onDelete!();
+						}}
+					>
+						<TrashIcon class="size-3.5" />
+					</Button>
 				{/if}
 			</div>
 		{/if}

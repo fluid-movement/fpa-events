@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 	import { Button } from '$lib/components/ui/button';
 	import PlusIcon from '@lucide/svelte/icons/plus';
@@ -31,6 +32,14 @@
 
 	let editingId = $state<string | null>(null);
 	let addingForDay = $state<string | null>(null);
+	let deletingId = $state<string | null>(null);
+	let deleteFormEl = $state<HTMLFormElement | null>(null);
+
+	async function handleDelete(id: string) {
+		deletingId = id;
+		await tick();
+		deleteFormEl?.requestSubmit();
+	}
 
 	const groupedSchedules = $derived.by(() => {
 		const sorted = [...schedules].sort(
@@ -66,6 +75,19 @@
 	}
 </script>
 
+<!-- Single delete form — only one instance of deleteScheduleForm ever attached to the DOM -->
+{#if deleteScheduleForm}
+	<form
+		{...deleteScheduleForm}
+		bind:this={deleteFormEl}
+		class="hidden"
+		onsubmit={() => (deletingId = null)}
+	>
+		<input type="hidden" name="id" value={deletingId ?? ''} />
+		{#if eventId}<input type="hidden" name="eventId" value={eventId} />{/if}
+	</form>
+{/if}
+
 <div class="space-y-8">
 	{#if groupedSchedules.length === 0 && (!editable || addingForDay === null)}
 		<p class="py-8 text-center text-muted-foreground">No schedule items yet.</p>
@@ -92,9 +114,8 @@
 					{:else}
 						<ScheduleItemCard
 							item={itemWithResolvedLocation(item)}
-							{eventId}
 							onEdit={editable ? () => (editingId = item.id) : undefined}
-							deleteForm={editable ? deleteScheduleForm : undefined}
+							onDelete={editable && deleteScheduleForm ? () => handleDelete(item.id) : undefined}
 						/>
 					{/if}
 				{/each}
