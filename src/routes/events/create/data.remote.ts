@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { redirect } from '@sveltejs/kit';
 import { form, getRequestEvent } from '$app/server';
 import { db } from '$lib/server/db';
-import { events } from '$lib/server/db/schema';
+import { events, eventUser } from '$lib/server/db/schema';
 import { resolve } from '$app/paths';
 import { ulid } from 'ulid';
 import { findOrCreateEventLocation } from '$lib/server/db/eventLocations';
@@ -57,6 +57,7 @@ export const createEvent = form(createEventSchema, async (data) => {
 	};
 
 	await db.insert(events).values(insertData);
+	await db.insert(eventUser).values({ eventId, userId, status: 'organizing' });
 
 	redirect(303, resolve(`/events/${eventId}`));
 });

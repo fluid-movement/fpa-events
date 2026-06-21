@@ -39,13 +39,7 @@ export const load = (async ({ params, locals }) => {
 			? db
 					.select()
 					.from(eventUser)
-					.where(
-						and(
-							eq(eventUser.eventId, params.id),
-							eq(eventUser.userId, locals.user.id),
-							eq(eventUser.status, 'attending')
-						)
-					)
+					.where(and(eq(eventUser.eventId, params.id), eq(eventUser.userId, locals.user.id)))
 			: Promise.resolve([]),
 		db
 			.select({ name: user.name, image: user.image })
@@ -66,6 +60,6 @@ export const load = (async ({ params, locals }) => {
 		attendeePeek,
 		userId: locals.user?.id ?? null,
 		userRole: locals.role ?? null,
-		userAttending: userRsvp.length > 0
+		userStatus: (userRsvp[0]?.status ?? null) as 'attending' | 'organizing' | null
 	};
 }) satisfies PageServerLoad;

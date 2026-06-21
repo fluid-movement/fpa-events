@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { Button } from '$lib/components/ui/button';
+	import { Badge } from '$lib/components/ui/badge';
 	import * as Tabs from '$lib/components/ui/tabs';
 	import ScheduleList from '$lib/components/schedule/ScheduleList.svelte';
 	import RichContent from '$lib/components/RichContent.svelte';
@@ -12,6 +13,7 @@
 	import HeartIcon from '@lucide/svelte/icons/heart';
 	import PencilIcon from '@lucide/svelte/icons/pencil';
 	import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
+	import StarIcon from '@lucide/svelte/icons/star';
 
 	let { data }: PageProps = $props();
 	const event = $derived(data.event);
@@ -25,7 +27,7 @@
 	let optimisticCount = $state(0);
 
 	$effect(() => {
-		attending = data.userAttending;
+		attending = data.userStatus === 'attending';
 		optimisticCount = data.attendeeCount;
 	});
 
@@ -95,7 +97,14 @@
 
 				<!-- RSVP + attendee peek -->
 				<div class="flex flex-col gap-2">
-					{#if userId}
+					{#if data.userStatus === 'organizing'}
+						<div class="flex items-center gap-2">
+							<Badge variant="secondary" data-testid="organizing-badge">
+								<StarIcon data-icon="inline-start" />
+								Organizing
+							</Badge>
+						</div>
+					{:else if userId}
 						<form {...toggleRsvp}>
 							<button
 								type="submit"

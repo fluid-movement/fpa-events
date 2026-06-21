@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import type { Event } from '$lib/types/event';
+	import { Badge } from '$lib/components/ui/badge';
 	import MapPinIcon from '@lucide/svelte/icons/map-pin';
 	import UsersIcon from '@lucide/svelte/icons/users';
 
-	let { event, attendeeCount }: { event: Event; attendeeCount?: number } = $props();
+	let { event, attendeeCount, userStatus }: { event: Event; attendeeCount?: number; userStatus?: 'attending' | 'organizing' | null } = $props();
 
 	const start = $derived(new Date(event.startDate));
 	const end = $derived(new Date(event.endDate));
@@ -47,10 +48,15 @@
 				<div class="meta-row">
 					<span class="date-range">{dateRange}</span>
 					{#if attendeeCount != null && attendeeCount > 0}
-						<span class="attendee-badge">
-							<UsersIcon class="size-3" />
+						<Badge variant="outline">
+							<UsersIcon data-icon="inline-start" />
 							{attendeeCount}
-						</span>
+						</Badge>
+					{/if}
+					{#if userStatus === 'attending'}
+						<Badge variant="default">Attending</Badge>
+					{:else if userStatus === 'organizing'}
+						<Badge variant="secondary">Organizing</Badge>
 					{/if}
 				</div>
 			</div>
@@ -217,15 +223,4 @@
 		color: var(--muted-foreground);
 	}
 
-	.attendee-badge {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.25rem;
-		font-size: 0.7rem;
-		font-weight: 600;
-		color: var(--primary);
-		background: oklch(from var(--primary) l c h / 0.12);
-		border-radius: 999px;
-		padding: 0.125rem 0.5rem;
-	}
 </style>

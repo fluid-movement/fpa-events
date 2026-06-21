@@ -11,7 +11,7 @@
 
 {#if eventsByMonth.length === 0}
 	<div class="text-center py-16 text-muted-foreground">
-		<p class="text-lg">No upcoming events found.</p>
+		<p class="text-lg">No events found.</p>
 	</div>
 {:else}
 	{#each eventsByMonth as { month, label, events } (month)}
@@ -28,7 +28,11 @@
 			<!-- 2-column grid -->
 			<div class="grid gap-6 grid-cols-1 items-stretch sm:grid-cols-2">
 				{#each events as event (event.id)}
-					<EventCalendarCard {event} attendeeCount={'attendeeCount' in event ? (event as { attendeeCount: number }).attendeeCount : undefined} />
+					<EventCalendarCard
+						{event}
+						attendeeCount={'attendeeCount' in event ? (event as { attendeeCount: number }).attendeeCount : undefined}
+						userStatus={'userStatus' in event ? (event as { userStatus: 'attending' | 'organizing' | null }).userStatus : undefined}
+					/>
 				{/each}
 			</div>
 		</section>

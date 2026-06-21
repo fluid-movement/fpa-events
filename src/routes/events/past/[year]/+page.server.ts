@@ -1,11 +1,11 @@
 import { db } from '$lib/server/db';
-import { events } from '$lib/server/db/schema';
-import { and, gte, lt } from 'drizzle-orm';
+import { events, eventUser } from '$lib/server/db/schema';
+import { and, gte, lt, count, eq, inArray, asc } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { groupEventsByMonth, getArchiveYears } from '$lib/server/utils/events';
 
-export const load = (async ({ params }) => {
+export const load = (async ({ params, locals }) => {
 	if (!params.year) error(404, 'Not found');
 
 	const year = parseInt(params.year);
@@ -16,16 +16,50 @@ export const load = (async ({ params }) => {
 
 	const [data, archiveYears] = await Promise.all([
 		db
-			.select()
+			.select({
+				id: events.id,
+				name: events.name,
+				startDate: events.startDate,
+				endDate: events.endDate,
+				location: events.location,
+				eventLocationId: events.eventLocationId,
+				description: events.description,
+				picture: events.picture,
+				pictureWidth: events.pictureWidth,
+				pictureHeight: events.pictureHeight,
+				userId: events.userId,
+				createdAt: events.createdAt,
+				updatedAt: events.updatedAt,
+				attendeeCount: count(eventUser.id)
+			})
 			.from(events)
-			.where(and(gte(events.startDate, yearStart), lt(events.startDate, yearEnd))),
+			.leftJoin(
+				eventUser,
+				and(eq(eventUser.eventId, events.id), eq(eventUser.status, 'attending'))
+			)
+			.where(and(gte(events.startDate, yearStart), lt(events.startDate, yearEnd)))
+			.groupBy(events.id)
+			.orderBy(asc(events.startDate)),
 		getArchiveYears()
 	]);
 
-	if (!data) error(404, 'Not found');
+	let statusMap = new Map<string, string>();
+	if (locals.user && data.length > 0) {
+		const eventIds = data.map((e) => e.id);
+		const userStatuses = await db
+			.select({ eventId: eventUser.eventId, status: eventUser.status })
+			.from(eventUser)
+			.where(and(eq(eventUser.userId, locals.user.id), inArray(eventUser.eventId, eventIds)));
+		statusMap = new Map(userStatuses.map((r) => [r.eventId, r.status]));
+	}
+
+	const eventsWithStatus = data.map((e) => ({
+		...e,
+		userStatus: (statusMap.get(e.id) ?? null) as 'attending' | 'organizing' | null
+	}));
 
 	return {
-		eventsByMonth: groupEventsByMonth(data),
+		eventsByMonth: groupEventsByMonth(eventsWithStatus),
 		archiveYears,
 		year
 	};

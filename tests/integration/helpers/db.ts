@@ -98,6 +98,34 @@ export async function setUserRole(userId: string, role: 'user' | 'admin'): Promi
 	await sql()`UPDATE "user" SET role = ${role} WHERE id = ${userId}`;
 }
 
+export async function createMagicLink(
+	eventId: string,
+	expiresAt: Date = new Date(Date.now() + 24 * 60 * 60 * 1000)
+): Promise<string> {
+	const id = ulid().toLowerCase();
+	await sql()`
+		INSERT INTO event_magic_links (id, event_id, expires_at, created_at, updated_at)
+		VALUES (${id}, ${eventId}, ${expiresAt}, now(), now())
+	`;
+	return id;
+}
+
+export async function getEventUserStatus(
+	eventId: string,
+	userId: string
+): Promise<string | null> {
+	const rows = await sql()<[{ status: string }]>`
+		SELECT status FROM event_user
+		WHERE event_id = ${eventId} AND user_id = ${userId}
+		LIMIT 1
+	`;
+	return rows[0]?.status ?? null;
+}
+
+export async function clearEventUser(eventId: string, userId: string): Promise<void> {
+	await sql()`DELETE FROM event_user WHERE event_id = ${eventId} AND user_id = ${userId}`;
+}
+
 export async function closeDb(): Promise<void> {
 	if (_sql) {
 		await _sql.end();
