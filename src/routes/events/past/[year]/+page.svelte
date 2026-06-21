@@ -31,23 +31,26 @@
 <!-- Year picker -->
 {#if data.archiveYears.length > 0}
 	<div class="flex justify-end mb-8">
-		<Select.Root
-			value={String(data.year)}
-			onValueChange={(val) => {
-				if (val) goto(resolve(`/events/past/${val}`));
-			}}
-		>
-			<Select.Trigger class="w-32">
-				{data.year}
-			</Select.Trigger>
-			<Select.Content>
-				<Select.Group>
-					{#each data.archiveYears as y (y)}
-						<Select.Item value={String(y)}>{y}</Select.Item>
-					{/each}
-				</Select.Group>
-			</Select.Content>
-		</Select.Root>
+		{#key data.year}
+			<Select.Root
+				type="single"
+				value={String(data.year)}
+				onValueChange={(val) => {
+					if (val) goto(resolve(`/events/past/${val}`));
+				}}
+			>
+				<Select.Trigger class="w-32">
+					{data.year}
+				</Select.Trigger>
+				<Select.Content>
+					<Select.Group>
+						{#each data.archiveYears as y (y)}
+							<Select.Item value={String(y)}>{y}</Select.Item>
+						{/each}
+					</Select.Group>
+				</Select.Content>
+			</Select.Root>
+		{/key}
 	</div>
 {/if}
 
