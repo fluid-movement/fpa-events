@@ -2,14 +2,12 @@
 	import { resolve } from '$app/paths';
 	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
+	import * as Select from '$lib/components/ui/select';
 	import EventCalendar from '$lib/components/EventCalendar.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
 
-	const RADIO_COUNT = 3;
-	const radioYears = $derived(data.archiveYears.slice(0, RADIO_COUNT));
-	const dropdownYears = $derived(data.archiveYears.slice(RADIO_COUNT));
 	const mostRecentYear = $derived(data.archiveYears[0] ?? data.year);
 </script>
 
@@ -32,31 +30,24 @@
 
 <!-- Year picker -->
 {#if data.archiveYears.length > 0}
-	<div class="flex justify-end gap-2 mb-8">
-		{#each radioYears as y (y)}
-			<Button
-				variant={y === data.year ? 'default' : 'ghost'}
-				size="sm"
-				href={resolve(`/events/past/${y}`)}
-			>
-				{y}
-			</Button>
-		{/each}
-		{#if dropdownYears.length > 0}
-			<select
-				class="h-9 rounded-md border border-input bg-background px-3 text-sm cursor-pointer hover:bg-muted/50 transition-colors"
-				onchange={(e) => {
-					const val = e.currentTarget.value;
-					if (val) goto(resolve(`/events/past/${val}`));
-					e.currentTarget.value = '';
-				}}
-			>
-				<option value="" disabled selected>More</option>
-				{#each dropdownYears as y (y)}
-					<option value={y} selected={y === data.year}>{y}</option>
-				{/each}
-			</select>
-		{/if}
+	<div class="flex justify-end mb-8">
+		<Select.Root
+			value={String(data.year)}
+			onValueChange={(val) => {
+				if (val) goto(resolve(`/events/past/${val}`));
+			}}
+		>
+			<Select.Trigger class="w-32">
+				{data.year}
+			</Select.Trigger>
+			<Select.Content>
+				<Select.Group>
+					{#each data.archiveYears as y (y)}
+						<Select.Item value={String(y)}>{y}</Select.Item>
+					{/each}
+				</Select.Group>
+			</Select.Content>
+		</Select.Root>
 	</div>
 {/if}
 
