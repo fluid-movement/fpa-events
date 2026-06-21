@@ -42,5 +42,9 @@
 	<Sidebar.Footer>
 		<Button href={resolve('/events/create')}><PlusIcon /> Create Event</Button>
 		<SidebarLogin />
+		<div class="flex gap-3 px-1 pb-1">
+			<a href={resolve('/privacy-policy')} class="text-xs text-muted-foreground hover:text-foreground">Privacy</a>
+			<a href={resolve('/legal-notice')} class="text-xs text-muted-foreground hover:text-foreground">Legal Notice</a>
+		</div>
 	</Sidebar.Footer>
 </Sidebar.Root>

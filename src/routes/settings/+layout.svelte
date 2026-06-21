@@ -26,6 +26,12 @@
 		>
 			Password
 		</a>
+		<a
+			href={resolve('/settings/account')}
+			class="rounded-md px-4 py-1.5 text-sm font-medium transition-colors {page.url.pathname.startsWith(resolve('/settings/account')) ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}"
+		>
+			Account
+		</a>
 	</div>
 
 	{@render children()}
