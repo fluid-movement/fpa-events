@@ -8,12 +8,14 @@
 	import { toggleRsvp } from './data.remote';
 	import type { PageProps } from './$types';
 	import { formatDateRange } from '$lib/utils/dates';
+	import * as Dialog from '$lib/components/ui/dialog';
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
 	import MapPinIcon from '@lucide/svelte/icons/map-pin';
 	import HeartIcon from '@lucide/svelte/icons/heart';
 	import PencilIcon from '@lucide/svelte/icons/pencil';
 	import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
 	import StarIcon from '@lucide/svelte/icons/star';
+	import UserIcon from '@lucide/svelte/icons/user';
 
 	let { data }: PageProps = $props();
 	const event = $derived(data.event);
@@ -25,6 +27,8 @@
 
 	let attending = $state(false);
 	let optimisticCount = $state(0);
+	let showAttendeesModal = $state(false);
+	const allAttendees = $derived(data.allAttendees);
 
 	$effect(() => {
 		attending = data.userStatus === 'attending';
@@ -139,10 +143,37 @@
 						{/if}
 					{/if}
 					{#if attendeePeekLabel}
-						<p class="text-xs text-muted-foreground pl-0.5">{attendeePeekLabel}</p>
+						<button
+							class="text-xs text-muted-foreground pl-0.5 text-left hover:underline cursor-pointer"
+							onclick={() => (showAttendeesModal = true)}
+						>
+							{attendeePeekLabel}
+						</button>
 					{/if}
 				</div>
 			</div>
+
+			<Dialog.Root bind:open={showAttendeesModal}>
+				<Dialog.Content class="max-w-sm">
+					<Dialog.Header>
+						<Dialog.Title>{isPast ? 'Who attended' : 'Attendees'}</Dialog.Title>
+					</Dialog.Header>
+					<ul class="flex flex-col gap-3 py-2 max-h-96 overflow-y-auto">
+						{#each allAttendees as attendee}
+							<li class="flex items-center gap-3">
+								{#if attendee.image}
+									<img src={attendee.image} alt={attendee.name} class="size-8 rounded-full object-cover shrink-0" />
+								{:else}
+									<div class="bg-primary/10 rounded-full p-1.5 shrink-0">
+										<UserIcon class="size-4 text-primary" />
+									</div>
+								{/if}
+								<span class="text-sm">{attendee.name}</span>
+							</li>
+						{/each}
+					</ul>
+				</Dialog.Content>
+			</Dialog.Root>
 
 			<!-- Tabs (only if schedules exist) -->
 			{#if schedules.length > 0}

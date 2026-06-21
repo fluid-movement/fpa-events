@@ -13,7 +13,7 @@ export const load = (async ({ params, locals }) => {
 	const [event] = await db.select().from(events).where(eq(events.id, params.id));
 	if (!event) error(404, 'Not found');
 
-	const [eventSchedules, attendeeCountResult, userRsvp, attendeePeek] = await Promise.all([
+	const [eventSchedules, attendeeCountResult, userRsvp, attendeePeek, allAttendees] = await Promise.all([
 		db
 			.select({
 				id: schedules.id,
@@ -47,7 +47,13 @@ export const load = (async ({ params, locals }) => {
 			.innerJoin(user, eq(eventUser.userId, user.id))
 			.where(and(eq(eventUser.eventId, params.id), eq(eventUser.status, 'attending')))
 			.orderBy(asc(eventUser.createdAt))
-			.limit(ATTENDEE_PEEK_LIMIT)
+			.limit(ATTENDEE_PEEK_LIMIT),
+		db
+			.select({ name: user.name, image: user.image })
+			.from(eventUser)
+			.innerJoin(user, eq(eventUser.userId, user.id))
+			.where(and(eq(eventUser.eventId, params.id), eq(eventUser.status, 'attending')))
+			.orderBy(asc(eventUser.createdAt))
 	]);
 
 	return {
@@ -58,6 +64,7 @@ export const load = (async ({ params, locals }) => {
 		schedules: eventSchedules,
 		attendeeCount: attendeeCountResult[0]?.count ?? 0,
 		attendeePeek,
+		allAttendees,
 		userId: locals.user?.id ?? null,
 		userRole: locals.role ?? null,
 		userStatus: (userRsvp[0]?.status ?? null) as 'attending' | 'organizing' | null
