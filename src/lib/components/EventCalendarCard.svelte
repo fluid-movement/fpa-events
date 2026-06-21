@@ -53,14 +53,18 @@
 							{attendeeCount}
 						</Badge>
 					{/if}
-					{#if userStatus === 'attending'}
-						<Badge variant="default">Attending</Badge>
-					{:else if userStatus === 'organizing'}
-						<Badge variant="secondary">Organizing</Badge>
-					{/if}
 				</div>
 			</div>
 		</div>
+		{#if userStatus === 'attending'}
+			<div class="status-badge">
+				<Badge variant="default">Attending</Badge>
+			</div>
+		{:else if userStatus === 'organizing'}
+			<div class="status-badge">
+				<Badge variant="secondary">Organizing</Badge>
+			</div>
+		{/if}
 	</article>
 </a>
 
@@ -223,4 +227,10 @@
 		color: var(--muted-foreground);
 	}
 
+	.status-badge {
+		position: absolute;
+		top: 0.625rem;
+		right: 0.625rem;
+		z-index: 2;
+	}
 </style>
