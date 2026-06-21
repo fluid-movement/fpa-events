@@ -8,6 +8,7 @@
 	import MapPinIcon from '@lucide/svelte/icons/map-pin';
 	import ArrowRightIcon from '@lucide/svelte/icons/arrow-right';
 	import GlobeIcon from '@lucide/svelte/icons/globe';
+	import EventsMap from '$lib/components/EventsMap.svelte';
 
 	let { data }: PageProps = $props();
 	const event = $derived(data.nextEvent);
@@ -52,6 +53,9 @@
 			</p>
 		{/if}
 	</section>
+
+	<!-- Events map -->
+	<EventsMap events={data.mapEvents} />
 
 	<!-- Next event highlight -->
 	{#if event}

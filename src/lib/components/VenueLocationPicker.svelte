@@ -35,6 +35,10 @@
 		lngValue = result.lng;
 	}
 
+	function handleClear() {
+		addressValue = '';
+	}
+
 	$effect(() => {
 		const currentLat = latValue;
 		const currentLng = lngValue;
@@ -97,6 +101,7 @@
 			placeholder="Search for a venue or address..."
 			inputClass="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
 			onSelect={handleSelect}
+			onClear={handleClear}
 		/>
 	</div>
 

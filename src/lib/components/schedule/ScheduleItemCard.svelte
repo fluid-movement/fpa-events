@@ -4,6 +4,7 @@
 	import ClockIcon from '@lucide/svelte/icons/clock';
 	import PencilIcon from '@lucide/svelte/icons/pencil';
 	import TrashIcon from '@lucide/svelte/icons/trash-2';
+	import RichContent from '$lib/components/RichContent.svelte';
 	import type { ScheduleItem } from '$lib/types/event';
 	import { formatTime } from '$lib/utils/dates';
 
@@ -33,7 +34,9 @@
 				<span>{formatTime(item.startDate)} → {formatTime(item.endDate)}</span>
 			</div>
 			{#if item.description}
-				<p class="mt-0.5 text-sm text-muted-foreground">{item.description}</p>
+				<div class="mt-1">
+					<RichContent content={item.description} class="text-sm text-muted-foreground" />
+				</div>
 			{/if}
 		</div>
 		{#if hasActions}

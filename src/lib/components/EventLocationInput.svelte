@@ -36,6 +36,10 @@
 		selected = result;
 	}
 
+	function handleClear() {
+		selected = null;
+	}
+
 	function getDisplayValue(result: GeocodingResult): string {
 		const parts = [result.city ?? result.name, result.country].filter(Boolean);
 		return parts.length > 0 ? parts.join(', ') : result.displayName;
@@ -47,6 +51,7 @@
 		{value}
 		placeholder="Search for a city..."
 		onSelect={handleSelect}
+		onClear={handleClear}
 		{getDisplayValue}
 	/>
 

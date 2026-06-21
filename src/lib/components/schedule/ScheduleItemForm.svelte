@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
-	import { Textarea } from '$lib/components/ui/textarea';
+	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
 	import * as Select from '$lib/components/ui/select';
 	import type { ScheduleItem, EventLocation } from '$lib/types/event';
 	import { toISODate } from '$lib/utils/dates';
@@ -149,16 +149,14 @@
 
 		<!-- Description -->
 		<div class="col-span-2">
-			<label for="schedule-description" class="text-xs font-medium text-muted-foreground"
-				>Description</label
-			>
-			<Textarea
-				id="schedule-description"
-				name="description"
-				value={mode === 'edit' ? (item?.description ?? '') : undefined}
-				placeholder="Optional"
-				class="mt-1"
-			/>
+			<span class="text-xs font-medium text-muted-foreground">Description</span>
+			<div class="mt-1">
+				<RichTextEditor
+					name="description"
+					value={mode === 'edit' ? (item?.description ?? '') : ''}
+					placeholder="Optional"
+				/>
+			</div>
 		</div>
 	</div>
 
