@@ -24,12 +24,8 @@
 
 <!-- Upcoming / Past toggle -->
 <div class="mb-6 p-1.5 w-full flex gap-2 border bg-muted/40 rounded-lg">
-	<Button class="w-full" variant="ghost" href={resolve('/events')}>Upcoming Events</Button>
-	<Button
-		class="w-full"
-		variant="default"
-		href={resolve(`/events/past/${mostRecentYear}`)}
-	>
+	<Button class="flex-1" variant="ghost" href={resolve('/events')}>Upcoming Events</Button>
+	<Button class="flex-1" variant="default" href={resolve(`/events/past/${mostRecentYear}`)}>
 		Past Events
 	</Button>
 </div>
