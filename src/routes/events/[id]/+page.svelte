@@ -16,6 +16,7 @@
 	import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
 	import StarIcon from '@lucide/svelte/icons/star';
 	import UserIcon from '@lucide/svelte/icons/user';
+	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 
 	let { data }: PageProps = $props();
 	const event = $derived(data.event);
@@ -144,10 +145,11 @@
 					{/if}
 					{#if attendeePeekLabel}
 						<button
-							class="text-xs text-muted-foreground pl-0.5 text-left hover:underline cursor-pointer"
+							class="flex items-center gap-1 text-xs text-muted-foreground pl-0.5 text-left underline underline-offset-2 cursor-pointer"
 							onclick={() => (showAttendeesModal = true)}
 						>
 							{attendeePeekLabel}
+							<ChevronRightIcon class="size-3 shrink-0" />
 						</button>
 					{/if}
 				</div>
