@@ -161,7 +161,7 @@
 						<Dialog.Title>{isPast ? 'Who attended' : 'Attendees'}</Dialog.Title>
 					</Dialog.Header>
 					<ul class="flex flex-col gap-3 py-2 max-h-96 overflow-y-auto">
-						{#each allAttendees as attendee}
+						{#each allAttendees as attendee, i (i)}
 							<li class="flex items-center gap-3">
 								{#if attendee.image}
 									<img src={attendee.image} alt={attendee.name} class="size-8 rounded-full object-cover shrink-0" />

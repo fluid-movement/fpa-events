@@ -11,6 +11,7 @@
 
 <RangeCalendarPrimitive.Root
 	bind:value
+	weekdayFormat="short"
 	class={cn('p-3', className)}
 	{...restProps}
 >
