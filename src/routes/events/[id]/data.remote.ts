@@ -1,9 +1,9 @@
 import * as v from 'valibot';
 import { form, getRequestEvent } from '$app/server';
-import { redirect } from '@sveltejs/kit';
+import { redirect, error } from '@sveltejs/kit';
 import { resolve } from '$app/paths';
 import { db } from '$lib/server/db';
-import { eventUser } from '$lib/server/db/schema';
+import { events, eventUser } from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
 
 export const toggleRsvp = form(v.object({}), async () => {
@@ -13,6 +13,10 @@ export const toggleRsvp = form(v.object({}), async () => {
 
 	const eventId = params.id;
 	if (!eventId) throw new Error('Event ID required');
+
+	const [event] = await db.select().from(events).where(eq(events.id, eventId));
+	if (!event) error(404, 'Event not found');
+	if (new Date(event.startDate) < new Date()) error(400, 'Cannot RSVP to a past event');
 
 	const [existing] = await db
 		.select()

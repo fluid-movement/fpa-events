@@ -32,15 +32,16 @@
 	});
 
 	const dateRange = $derived(formatDateRange(new Date(event.startDate), new Date(event.endDate)));
+	const isPast = $derived(new Date(event.startDate) < new Date());
 
 	const attendeePeekLabel = $derived.by(() => {
 		if (optimisticCount === 0) return null;
 		const names = attendeePeek.map((a) => a.name.split(' ')[0]);
 		const shown = names.slice(0, 3);
 		const rest = optimisticCount - shown.length;
-		if (rest > 0) return `${shown.join(', ')} and ${rest} other${rest === 1 ? '' : 's'} attending`;
-		if (shown.length === 1) return `${shown[0]} is attending`;
-		return `${shown.slice(0, -1).join(', ')} and ${shown[shown.length - 1]} are attending`;
+		if (rest > 0) return `${shown.join(', ')} and ${rest} other${rest === 1 ? '' : 's'} ${isPast ? 'attended' : 'attending'}`;
+		if (shown.length === 1) return isPast ? `${shown[0]} attended` : `${shown[0]} is attending`;
+		return `${shown.slice(0, -1).join(', ')} and ${shown[shown.length - 1]} ${isPast ? 'attended' : 'are attending'}`;
 	});
 </script>
 
@@ -104,36 +105,38 @@
 								Organizing
 							</Badge>
 						</div>
-					{:else if userId}
-						<form {...toggleRsvp}>
-							<button
-								type="submit"
-								data-testid="rsvp-button"
-								onclick={() => {
-									attending = !attending;
-									optimisticCount += attending ? 1 : -1;
-								}}
-								class="flex items-center gap-2 text-sm rounded-md px-3 py-1.5 border transition-colors {attending
-									? 'bg-primary/15 border-primary/40 text-primary hover:bg-primary/20'
-									: 'border-border text-muted-foreground hover:text-foreground hover:border-foreground/30'}"
+					{:else if !isPast}
+						{#if userId}
+							<form {...toggleRsvp}>
+								<button
+									type="submit"
+									data-testid="rsvp-button"
+									onclick={() => {
+										attending = !attending;
+										optimisticCount += attending ? 1 : -1;
+									}}
+									class="flex items-center gap-2 text-sm rounded-md px-3 py-1.5 border transition-colors {attending
+										? 'bg-primary/15 border-primary/40 text-primary hover:bg-primary/20'
+										: 'border-border text-muted-foreground hover:text-foreground hover:border-foreground/30'}"
+								>
+									<HeartIcon class="size-4 shrink-0 {attending ? 'fill-primary' : ''}" />
+									{#if attending}
+										Attending · {optimisticCount}
+									{:else}
+										Attend · {optimisticCount}
+									{/if}
+								</button>
+							</form>
+						{:else}
+							<a
+								href={resolve('/sign-in')}
+								data-testid="rsvp-sign-in-link"
+								class="flex items-center gap-2 text-sm rounded-md px-3 py-1.5 border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors w-fit"
 							>
-								<HeartIcon class="size-4 shrink-0 {attending ? 'fill-primary' : ''}" />
-								{#if attending}
-									Attending · {optimisticCount}
-								{:else}
-									Attend · {optimisticCount}
-								{/if}
-							</button>
-						</form>
-					{:else}
-						<a
-							href={resolve('/sign-in')}
-							data-testid="rsvp-sign-in-link"
-							class="flex items-center gap-2 text-sm rounded-md px-3 py-1.5 border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors w-fit"
-						>
-							<HeartIcon class="size-4 shrink-0" />
-							Attend · {optimisticCount}
-						</a>
+								<HeartIcon class="size-4 shrink-0" />
+								Attend · {optimisticCount}
+							</a>
+						{/if}
 					{/if}
 					{#if attendeePeekLabel}
 						<p class="text-xs text-muted-foreground pl-0.5">{attendeePeekLabel}</p>
