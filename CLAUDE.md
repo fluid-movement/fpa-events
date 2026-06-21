@@ -30,3 +30,12 @@ After completing each feature or meaningful unit of work, create a commit using 
 **Unauthenticated tests**: use `context.clearCookies()` on the existing Playwright context rather than `browser.newContext()`.
 
 **Identity sequences**: if seeding the DB with explicit IDs, reset the sequence afterward — otherwise inserts will fail with duplicate key errors.
+
+## Seed Script
+
+**Keep `src/lib/server/db/seed.ts` in sync with the schema and features** — any change to the database schema or data model must be reflected in the seed script. This includes:
+
+- New tables: add seed data and include the table in the teardown block (FK-safe order)
+- New columns: populate them in the relevant seed rows
+- New statuses or enum values: cover them in seed RSVPs / event_user rows
+- Changed relationships: update the seed to wire up the FK correctly
