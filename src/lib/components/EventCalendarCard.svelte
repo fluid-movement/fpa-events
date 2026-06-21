@@ -62,7 +62,7 @@
 			</div>
 		{:else if userStatus === 'organizing'}
 			<div class="status-badge">
-				<Badge variant="secondary">Organizing</Badge>
+				<Badge variant="outline">Organizing</Badge>
 			</div>
 		{/if}
 	</article>
