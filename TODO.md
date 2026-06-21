@@ -1,4 +1,0 @@
-- "attending" and "organizing" chips on event cards in the event calendar
-- user is automatically "organizing" an event they created. the "attend" button is hidden to them. Organizers are always attending
-- test magic link, anyone who accepts should also be status "organizing" the event
-- "past events" tab in the event calendar
