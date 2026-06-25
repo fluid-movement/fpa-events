@@ -53,6 +53,13 @@
 <svelte:boundary>
 	{#if event}
 		<div class="max-w-4xl mx-auto">
+			<div class="mb-3">
+				<Button href={resolve('/events')} variant="ghost" size="sm">
+					<ArrowLeftIcon class="size-4" />
+					All Events
+				</Button>
+			</div>
+
 			<!-- Cover image hero -->
 			{#if event.picture}
 				<div class="relative w-full mb-6 rounded-xl overflow-hidden">
@@ -68,16 +75,10 @@
 				</div>
 			{/if}
 
-			<div class="mb-4">
-				<Button href={resolve('/events')} variant="ghost" size="sm">
-					<ArrowLeftIcon class="size-4" />
-					All Events
-				</Button>
-			</div>
-
 			<!-- Header: title + meta -->
-			<div class="flex flex-col gap-3 mb-8">
-				<div class="flex items-start justify-between gap-4">
+			<div class="mb-6">
+				<!-- Title + manage controls -->
+				<div class="flex items-start justify-between gap-4 mb-4">
 					<h1 class="text-3xl font-bold leading-tight">{event.name}</h1>
 					{#if canManage}
 						<div class="flex gap-2 shrink-0">
@@ -92,14 +93,17 @@
 					{/if}
 				</div>
 
-				<p class="flex items-center gap-2 text-muted-foreground">
-					<CalendarIcon class="size-4 shrink-0" />
-					{dateRange}
-				</p>
-				<p class="flex items-center gap-2 text-muted-foreground">
-					<MapPinIcon class="size-4 shrink-0" />
-					{event.location}
-				</p>
+				<!-- Logistics: date + location -->
+				<div class="flex flex-col gap-1.5 mb-5">
+					<p class="flex items-center gap-2 text-muted-foreground">
+						<CalendarIcon class="size-4 shrink-0" />
+						{dateRange}
+					</p>
+					<p class="flex items-center gap-2 text-muted-foreground">
+						<MapPinIcon class="size-4 shrink-0" />
+						{event.location}
+					</p>
+				</div>
 
 				<!-- RSVP + attendee peek -->
 				<div class="flex flex-col gap-2">
@@ -120,7 +124,7 @@
 										attending = !attending;
 										optimisticCount += attending ? 1 : -1;
 									}}
-									class="flex items-center gap-2 text-sm rounded-md px-3 py-1.5 border transition-colors {attending
+									class="flex items-center gap-2 text-sm rounded-md px-3 py-2 border transition-colors {attending
 										? 'bg-primary/15 border-primary/40 text-primary hover:bg-primary/20'
 										: 'border-border text-muted-foreground hover:text-foreground hover:border-foreground/30'}"
 								>
@@ -136,7 +140,7 @@
 							<a
 								href={resolve('/sign-in')}
 								data-testid="rsvp-sign-in-link"
-								class="flex items-center gap-2 text-sm rounded-md px-3 py-1.5 border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors w-fit"
+								class="flex items-center gap-2 text-sm rounded-md px-3 py-2 border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors w-fit"
 							>
 								<HeartIcon class="size-4 shrink-0" />
 								Attend · {optimisticCount}
@@ -178,30 +182,32 @@
 			</Dialog.Root>
 
 			<!-- Tabs (only if schedules exist) -->
-			{#if schedules.length > 0}
-				<Tabs.Root value="description">
-					<Tabs.List>
-						<Tabs.Trigger value="description">Description</Tabs.Trigger>
-						<Tabs.Trigger value="schedule">Schedule</Tabs.Trigger>
-					</Tabs.List>
-					<Tabs.Content value="description">
-						{#if event.description}
-							<RichContent content={event.description} class="text-base text-foreground/90" />
-						{:else}
-							<p class="text-muted-foreground">No description provided.</p>
-						{/if}
-					</Tabs.Content>
-					<Tabs.Content value="schedule">
-						<ScheduleList {schedules} />
-					</Tabs.Content>
-				</Tabs.Root>
-			{:else}
-				{#if event.description}
-					<RichContent content={event.description} class="text-base text-foreground/90" />
+			<div class="border-t pt-6">
+				{#if schedules.length > 0}
+					<Tabs.Root value="description">
+						<Tabs.List>
+							<Tabs.Trigger value="description">Description</Tabs.Trigger>
+							<Tabs.Trigger value="schedule">Schedule</Tabs.Trigger>
+						</Tabs.List>
+						<Tabs.Content value="description">
+							{#if event.description}
+								<RichContent content={event.description} class="text-base text-foreground/90" />
+							{:else}
+								<p class="text-muted-foreground">No description provided.</p>
+							{/if}
+						</Tabs.Content>
+						<Tabs.Content value="schedule">
+							<ScheduleList {schedules} />
+						</Tabs.Content>
+					</Tabs.Root>
 				{:else}
-					<p class="text-muted-foreground">No description provided.</p>
+					{#if event.description}
+						<RichContent content={event.description} class="text-base text-foreground/90" />
+					{:else}
+						<p class="text-muted-foreground">No description provided.</p>
+					{/if}
 				{/if}
-			{/if}
+			</div>
 		</div>
 	{:else}
 		<div class="text-center py-16 text-muted-foreground">

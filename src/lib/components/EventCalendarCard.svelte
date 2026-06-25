@@ -29,11 +29,6 @@
 <a href={resolve(`/events/${event.id}`)} class="card-link">
 	<div class="glow"></div>
 	<article class="card">
-		{#if event.picture}
-			<div class="thumbnail">
-				<img src={event.picture} alt={event.name} class="thumbnail-img" />
-			</div>
-		{/if}
 		<div class="body">
 			<div class="chip">
 				<span class="day">{startDay}</span>
@@ -123,25 +118,6 @@
 		border-radius: inherit;
 		background: rgb(255 255 255 / 0.07);
 		z-index: 0;
-	}
-
-	.thumbnail {
-		position: relative;
-		z-index: 1;
-		width: 100%;
-		height: 9rem;
-		overflow: hidden;
-	}
-
-	.thumbnail-img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		transition: transform 0.4s ease;
-	}
-
-	.card-link:hover .thumbnail-img {
-		transform: scale(1.04);
 	}
 
 	.body {

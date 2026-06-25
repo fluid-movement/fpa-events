@@ -90,7 +90,10 @@ const eventSeeds: EventSeed[] = [
 		locationCountry: 'USA',
 		startDate: date('2023-08-10'),
 		endDate: date('2023-08-13'),
-		description: `<p>The annual FPA World Championship brought together the best freestyle disc players from around the globe. Four days of open pairs, mixed pairs, coop, and individual competition, culminating in an unforgettable finals night.</p>`
+		description: `<p>The annual FPA World Championship brought together the best freestyle disc players from around the globe. Four days of open pairs, mixed pairs, coop, and individual competition, culminating in an unforgettable finals night.</p>`,
+		picture: 'https://picsum.photos/seed/fpa-world-2023/1600/700',
+		pictureWidth: 1600,
+		pictureHeight: 700
 	},
 	{
 		id: id(),
@@ -100,7 +103,10 @@ const eventSeeds: EventSeed[] = [
 		locationCountry: 'Netherlands',
 		startDate: date('2023-05-19'),
 		endDate: date('2023-05-21'),
-		description: `<p>Three days of freestyle competition in the heart of Amsterdam. The European Open drew competitors from over 20 countries, with fierce competition in all divisions.</p>`
+		description: `<p>Three days of freestyle competition in the heart of Amsterdam. The European Open drew competitors from over 20 countries, with fierce competition in all divisions.</p>`,
+		picture: 'https://picsum.photos/seed/euro-open-2023/1200/800',
+		pictureWidth: 1200,
+		pictureHeight: 800
 	},
 	{
 		id: id(),
@@ -110,7 +116,10 @@ const eventSeeds: EventSeed[] = [
 		locationCountry: 'Germany',
 		startDate: date('2023-07-01'),
 		endDate: date('2023-07-02'),
-		description: `<p>A classic summer jam in Tempelhof Park. Relaxed format, great vibes, open to all skill levels. Bring your disc and your friends.</p>`
+		description: `<p>A classic summer jam in Tempelhof Park. Relaxed format, great vibes, open to all skill levels. Bring your disc and your friends.</p>`,
+		picture: 'https://picsum.photos/seed/berlin-jam-2023/1200/675',
+		pictureWidth: 1200,
+		pictureHeight: 675
 	},
 	{
 		id: id(),
@@ -120,7 +129,10 @@ const eventSeeds: EventSeed[] = [
 		locationCountry: 'Japan',
 		startDate: date('2023-09-22'),
 		endDate: date('2023-09-24'),
-		description: `<p>The first major freestyle disc event in Japan drew competitors from across Asia and the Pacific. An incredible atmosphere with performances that wowed both judges and spectators.</p>`
+		description: `<p>The first major freestyle disc event in Japan drew competitors from across Asia and the Pacific. An incredible atmosphere with performances that wowed both judges and spectators.</p>`,
+		picture: 'https://picsum.photos/seed/apac-2023/1200/900',
+		pictureWidth: 1200,
+		pictureHeight: 900
 	},
 	{
 		id: id(),
@@ -131,6 +143,7 @@ const eventSeeds: EventSeed[] = [
 		startDate: date('2023-06-09'),
 		endDate: date('2023-06-11'),
 		description: `<p>Switzerland's premier disc festival, set against the backdrop of Lake Geneva. Freestyle competitions during the day, disc golf in the mornings, and live music in the evenings.</p>`
+		// no picture — test the no-image state
 	},
 
 	// --- 2024 past events ---
@@ -142,7 +155,10 @@ const eventSeeds: EventSeed[] = [
 		locationCountry: 'Sweden',
 		startDate: date('2024-08-08'),
 		endDate: date('2024-08-11'),
-		description: `<p>Gothenburg hosted the 2024 World Championship, marking the first time Sweden has held the event. Spectacular performances throughout the week with a record number of registered competitors.</p>`
+		description: `<p>Gothenburg hosted the 2024 World Championship, marking the first time Sweden has held the event. Spectacular performances throughout the week with a record number of registered competitors.</p>`,
+		picture: 'https://picsum.photos/seed/fpa-world-2024/1600/600',
+		pictureWidth: 1600,
+		pictureHeight: 600
 	},
 	{
 		id: id(),
@@ -152,7 +168,10 @@ const eventSeeds: EventSeed[] = [
 		locationCountry: 'USA',
 		startDate: date('2024-04-13'),
 		endDate: date('2024-04-14'),
-		description: `<p>A beloved annual tradition in Portland's waterfront parks. The Spring Fling focuses on co-op and pairs, with a relaxed judging format designed to welcome newcomers.</p>`
+		description: `<p>A beloved annual tradition in Portland's waterfront parks. The Spring Fling focuses on co-op and pairs, with a relaxed judging format designed to welcome newcomers.</p>`,
+		picture: 'https://picsum.photos/seed/spring-fling-2024/1200/675',
+		pictureWidth: 1200,
+		pictureHeight: 675
 	},
 	{
 		id: id(),
@@ -163,6 +182,7 @@ const eventSeeds: EventSeed[] = [
 		startDate: date('2024-03-23'),
 		endDate: date('2024-03-23'),
 		description: `<p>A one-day meetup in Hyde Park, organised by the London freestyle community. Drop in, throw some disc, and connect with players from around the UK.</p>`
+		// no picture — test the no-image state
 	},
 	{
 		id: id(),
@@ -172,7 +192,10 @@ const eventSeeds: EventSeed[] = [
 		locationCountry: 'France',
 		startDate: date('2024-06-14'),
 		endDate: date('2024-06-16'),
-		description: `<p>Held in the beautiful Parc des Princes grounds, this Paris Open brought together some of Europe's finest freestylers for a weekend of competition and workshops.</p>`
+		description: `<p>Held in the beautiful Parc des Princes grounds, this Paris Open brought together some of Europe's finest freestylers for a weekend of competition and workshops.</p>`,
+		picture: 'https://picsum.photos/seed/paris-open-2024/1200/800',
+		pictureWidth: 1200,
+		pictureHeight: 800
 	},
 	{
 		id: id(),
@@ -182,7 +205,10 @@ const eventSeeds: EventSeed[] = [
 		locationCountry: 'Spain',
 		startDate: date('2024-07-19'),
 		endDate: date('2024-07-20'),
-		description: `<p>Sand, sun, and spinning discs on the beach in Barcelona. A casual two-day beach jam with an optional pairs competition on Sunday afternoon.</p>`
+		description: `<p>Sand, sun, and spinning discs on the beach in Barcelona. A casual two-day beach jam with an optional pairs competition on Sunday afternoon.</p>`,
+		picture: 'https://picsum.photos/seed/barcelona-2024/1600/500',
+		pictureWidth: 1600,
+		pictureHeight: 500
 	},
 	{
 		id: id(),
@@ -192,7 +218,10 @@ const eventSeeds: EventSeed[] = [
 		locationCountry: 'Brazil',
 		startDate: date('2024-10-04'),
 		endDate: date('2024-10-06'),
-		description: `<p>South America's biggest freestyle disc event returned to São Paulo with a packed schedule of competitions, clinics, and a spectacular exhibition show.</p>`
+		description: `<p>South America's biggest freestyle disc event returned to São Paulo with a packed schedule of competitions, clinics, and a spectacular exhibition show.</p>`,
+		picture: 'https://picsum.photos/seed/sao-paulo-2024/1200/675',
+		pictureWidth: 1200,
+		pictureHeight: 675
 	},
 	{
 		id: id(),
@@ -202,7 +231,10 @@ const eventSeeds: EventSeed[] = [
 		locationCountry: 'Austria',
 		startDate: date('2024-11-01'),
 		endDate: date('2024-11-03'),
-		description: `<p>An indoor autumn classic held in Vienna's sports complex. The Vienna Classic is known for its high technical level and tight, competitive open pairs divisions.</p>`
+		description: `<p>An indoor autumn classic held in Vienna's sports complex. The Vienna Classic is known for its high technical level and tight, competitive open pairs divisions.</p>`,
+		picture: 'https://picsum.photos/seed/vienna-2024/1200/900',
+		pictureWidth: 1200,
+		pictureHeight: 900
 	},
 
 	// --- 2025 events ---
@@ -214,7 +246,10 @@ const eventSeeds: EventSeed[] = [
 		locationCountry: 'Canada',
 		startDate: date('2025-08-07'),
 		endDate: date('2025-08-10'),
-		description: `<p>Montreal welcomed the world for the 2025 FPA World Championship. A spectacular venue in Parc Jean-Drapeau and record-breaking attendance made this one for the history books.</p>`
+		description: `<p>Montreal welcomed the world for the 2025 FPA World Championship. A spectacular venue in Parc Jean-Drapeau and record-breaking attendance made this one for the history books.</p>`,
+		picture: 'https://picsum.photos/seed/fpa-world-2025/1600/700',
+		pictureWidth: 1600,
+		pictureHeight: 700
 	},
 	{
 		id: id(),
@@ -224,7 +259,10 @@ const eventSeeds: EventSeed[] = [
 		locationCountry: 'Switzerland',
 		startDate: date('2025-05-02'),
 		endDate: date('2025-05-04'),
-		description: `<p>The Geneva Spring Classic returns with a full schedule of pairs and co-op divisions. Set along the lakefront with a view of the Alps, this is one of Europe's most scenic events.</p>`
+		description: `<p>The Geneva Spring Classic returns with a full schedule of pairs and co-op divisions. Set along the lakefront with a view of the Alps, this is one of Europe's most scenic events.</p>`,
+		picture: 'https://picsum.photos/seed/geneva-sc-2025/1200/800',
+		pictureWidth: 1200,
+		pictureHeight: 800
 	},
 	{
 		id: id(),
@@ -234,7 +272,10 @@ const eventSeeds: EventSeed[] = [
 		locationCountry: 'Japan',
 		startDate: date('2025-02-15'),
 		endDate: date('2025-02-16'),
-		description: `<p>An indoor winter jam organised by the Tokyo Freestyle Club. Short routines, a laid-back atmosphere, and great food make this a highlight of the winter calendar.</p>`
+		description: `<p>An indoor winter jam organised by the Tokyo Freestyle Club. Short routines, a laid-back atmosphere, and great food make this a highlight of the winter calendar.</p>`,
+		picture: 'https://picsum.photos/seed/tokyo-jam-2025/1200/675',
+		pictureWidth: 1200,
+		pictureHeight: 675
 	},
 	{
 		id: id(),
@@ -244,7 +285,10 @@ const eventSeeds: EventSeed[] = [
 		locationCountry: 'UK',
 		startDate: date('2025-07-12'),
 		endDate: date('2025-07-13'),
-		description: `<p>Brighton's seafront is the backdrop for the annual UK Freestyle Open. Open pairs and mixed pairs divisions, with a Sunday evening exhibition on the promenade.</p>`
+		description: `<p>Brighton's seafront is the backdrop for the annual UK Freestyle Open. Open pairs and mixed pairs divisions, with a Sunday evening exhibition on the promenade.</p>`,
+		picture: 'https://picsum.photos/seed/uk-open-2025/1600/600',
+		pictureWidth: 1600,
+		pictureHeight: 600
 	},
 	{
 		id: id(),
@@ -254,7 +298,10 @@ const eventSeeds: EventSeed[] = [
 		locationCountry: 'Germany',
 		startDate: date('2025-10-10'),
 		endDate: date('2025-10-12'),
-		description: `<p>Berlin's iconic autumn festival is back with competitions, workshops by top players, and the legendary Saturday evening jam session in Volkspark Friedrichshain.</p>`
+		description: `<p>Berlin's iconic autumn festival is back with competitions, workshops by top players, and the legendary Saturday evening jam session in Volkspark Friedrichshain.</p>`,
+		picture: 'https://picsum.photos/seed/berlin-autumn-2025/1200/900',
+		pictureWidth: 1200,
+		pictureHeight: 900
 	},
 	{
 		id: id(),
@@ -264,7 +311,10 @@ const eventSeeds: EventSeed[] = [
 		locationCountry: 'Australia',
 		startDate: date('2025-12-06'),
 		endDate: date('2025-12-07'),
-		description: `<p>The Southern Hemisphere summer kicks off with the Melbourne Open, held in the Royal Botanic Gardens. Australia's top freestylers battle it out in an open pairs format.</p>`
+		description: `<p>The Southern Hemisphere summer kicks off with the Melbourne Open, held in the Royal Botanic Gardens. Australia's top freestylers battle it out in an open pairs format.</p>`,
+		picture: 'https://picsum.photos/seed/melbourne-2025/1200/675',
+		pictureWidth: 1200,
+		pictureHeight: 675
 	},
 
 	// --- 2026 upcoming events ---
@@ -276,7 +326,10 @@ const eventSeeds: EventSeed[] = [
 		locationCountry: 'Switzerland',
 		startDate: date('2026-08-06'),
 		endDate: date('2026-08-09'),
-		description: `<p>The 2026 World Championship comes to Geneva — a true highlight of the freestyle calendar. Four divisions, hundreds of competitors, and the most spectacular setting in the event's history. Registration opens in March 2026.</p>`
+		description: `<p>The 2026 World Championship comes to Geneva — a true highlight of the freestyle calendar. Four divisions, hundreds of competitors, and the most spectacular setting in the event's history. Registration opens in March 2026.</p>`,
+		picture: 'https://picsum.photos/seed/fpa-world-2026/1600/700',
+		pictureWidth: 1600,
+		pictureHeight: 700
 	},
 	{
 		id: id(),
@@ -286,7 +339,10 @@ const eventSeeds: EventSeed[] = [
 		locationCountry: 'Switzerland',
 		startDate: date('2026-05-08'),
 		endDate: date('2026-05-10'),
-		description: `<p>The traditional warm-up event for the Swiss freestyle season. The Spring Classic features full open pairs, mixed pairs, and co-op divisions, with a relaxed side event for newcomers.</p>`
+		description: `<p>The traditional warm-up event for the Swiss freestyle season. The Spring Classic features full open pairs, mixed pairs, and co-op divisions, with a relaxed side event for newcomers.</p>`,
+		picture: 'https://picsum.photos/seed/geneva-sc-2026/1200/800',
+		pictureWidth: 1200,
+		pictureHeight: 800
 	},
 	{
 		id: id(),
@@ -296,7 +352,10 @@ const eventSeeds: EventSeed[] = [
 		locationCountry: 'Portugal',
 		startDate: date('2026-04-17'),
 		endDate: date('2026-04-19'),
-		description: `<p>Lisbon hosts its first ever major freestyle disc event. Three days of competition, workshops, and evening socials in one of Europe's most vibrant cities.</p>`
+		description: `<p>Lisbon hosts its first ever major freestyle disc event. Three days of competition, workshops, and evening socials in one of Europe's most vibrant cities.</p>`,
+		picture: 'https://picsum.photos/seed/lisbon-2026/1200/675',
+		pictureWidth: 1200,
+		pictureHeight: 675
 	},
 	{
 		id: id(),
@@ -306,7 +365,10 @@ const eventSeeds: EventSeed[] = [
 		locationCountry: 'USA',
 		startDate: date('2026-04-11'),
 		endDate: date('2026-04-12'),
-		description: `<p>Portland's beloved spring jam returns to the waterfront. All skill levels welcome; co-op and pairs format with beginner-friendly judging clinics on Saturday morning.</p>`
+		description: `<p>Portland's beloved spring jam returns to the waterfront. All skill levels welcome; co-op and pairs format with beginner-friendly judging clinics on Saturday morning.</p>`,
+		picture: 'https://picsum.photos/seed/pdx-fling-2026/1600/600',
+		pictureWidth: 1600,
+		pictureHeight: 600
 	},
 	{
 		id: id(),
@@ -317,6 +379,7 @@ const eventSeeds: EventSeed[] = [
 		startDate: date('2026-07-04'),
 		endDate: date('2026-07-05'),
 		description: `<p>Tempelhof Park once again hosts the Berlin Summer Jam — a staple of the European freestyle summer. Free to enter, open to all, and guaranteed good vibes.</p>`
+		// no picture — test the no-image state
 	},
 	{
 		id: id(),
@@ -326,7 +389,10 @@ const eventSeeds: EventSeed[] = [
 		locationCountry: 'Finland',
 		startDate: date('2026-06-20'),
 		endDate: date('2026-06-21'),
-		description: `<p>The Nordic Open makes its debut in Helsinki on the longest days of the year. Open pairs competition with a midnight sun jam session on Saturday evening.</p>`
+		description: `<p>The Nordic Open makes its debut in Helsinki on the longest days of the year. Open pairs competition with a midnight sun jam session on Saturday evening.</p>`,
+		picture: 'https://picsum.photos/seed/nordic-2026/1600/500',
+		pictureWidth: 1600,
+		pictureHeight: 500
 	},
 	{
 		id: id(),
@@ -336,7 +402,10 @@ const eventSeeds: EventSeed[] = [
 		locationCountry: 'South Korea',
 		startDate: date('2026-09-19'),
 		endDate: date('2026-09-20'),
-		description: `<p>The Seoul Disc Classic returns for its third edition. Two days of competitive freestyle in the heart of the city, with a growing community of Korean freestylers at the forefront.</p>`
+		description: `<p>The Seoul Disc Classic returns for its third edition. Two days of competitive freestyle in the heart of the city, with a growing community of Korean freestylers at the forefront.</p>`,
+		picture: 'https://picsum.photos/seed/seoul-2026/1200/800',
+		pictureWidth: 1200,
+		pictureHeight: 800
 	},
 	{
 		id: id(),
@@ -346,7 +415,10 @@ const eventSeeds: EventSeed[] = [
 		locationCountry: 'South Africa',
 		startDate: date('2026-11-14'),
 		endDate: date('2026-11-15'),
-		description: `<p>Africa's premier freestyle disc event, held at a beachfront venue with Table Mountain as the backdrop. An unforgettable setting for a world-class competition.</p>`
+		description: `<p>Africa's premier freestyle disc event, held at a beachfront venue with Table Mountain as the backdrop. An unforgettable setting for a world-class competition.</p>`,
+		picture: 'https://picsum.photos/seed/capetown-2026/1200/900',
+		pictureWidth: 1200,
+		pictureHeight: 900
 	}
 ];
 
