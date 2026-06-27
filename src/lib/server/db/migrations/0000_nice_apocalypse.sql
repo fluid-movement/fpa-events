@@ -1,7 +1,3 @@
-CREATE SCHEMA IF NOT EXISTS "public";
-
-SET search_path TO "public";
-
 CREATE TABLE "account" (
 	"id" text PRIMARY KEY NOT NULL,
 	"account_id" text NOT NULL,
