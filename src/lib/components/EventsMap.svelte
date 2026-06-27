@@ -101,6 +101,58 @@
 			}
 
 			mapInstance = map;
+
+			// Allow the page to scroll on touch devices — two fingers to pan the map
+			if ('ontouchstart' in window) {
+				const container = map.getContainer();
+				let twoFingers = false;
+
+				container.addEventListener(
+					'touchstart',
+					(e) => {
+						twoFingers = e.touches.length >= 2;
+						if (twoFingers) {
+							map.dragging.enable();
+							map.touchZoom.enable();
+						} else {
+							map.dragging.disable();
+						}
+					},
+					{ passive: true }
+				);
+
+				container.addEventListener(
+					'touchmove',
+					(e) => {
+						if (e.touches.length >= 2 && !twoFingers) {
+							twoFingers = true;
+							map.dragging.enable();
+							map.touchZoom.enable();
+						}
+					},
+					{ passive: true }
+				);
+
+				container.addEventListener(
+					'touchend',
+					() => {
+						if (twoFingers) {
+							map.dragging.disable();
+							twoFingers = false;
+						}
+					},
+					{ passive: true }
+				);
+
+				container.addEventListener(
+					'touchcancel',
+					() => {
+						map.dragging.disable();
+						twoFingers = false;
+					},
+					{ passive: true }
+				);
+			}
 		});
 
 		return () => {
