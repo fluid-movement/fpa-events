@@ -1,5 +1,11 @@
 # FPA Events
 
+## Boundary
+
+Do not make changes I didn't explicitly ask for. Only act on clear instructions.
+
+# FPA Events
+
 ## Git Workflow
 
 **Mode: direct-to-main**
