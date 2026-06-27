@@ -1,2 +1,0 @@
-- better keyboard accessibility for  location inputs on event and schedule. The suggested list has the first entry marked as selected, pressing enter while typing selects that entry. arrow keys select other entries. this makes the component fully keyboard controllable.
-- 

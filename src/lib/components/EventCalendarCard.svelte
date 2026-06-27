@@ -205,7 +205,7 @@
 
 	.status-badge {
 		position: absolute;
-		top: 0.625rem;
+		bottom: 0.625rem;
 		right: 0.625rem;
 		z-index: 2;
 	}
