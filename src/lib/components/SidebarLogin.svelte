@@ -7,6 +7,8 @@
 	import LogOutIcon from '@lucide/svelte/icons/log-out';
 	import LogInIcon from '@lucide/svelte/icons/log-in';
 
+	let { onNavigate = () => {} }: { onNavigate?: () => void } = $props();
+
 	const session = client.useSession();
 </script>
 
@@ -25,8 +27,10 @@
 			variant="outline"
 			size="sm"
 			class="w-full"
-			onclick={() =>
-				client.signOut({ fetchOptions: { onSuccess: () => goto(resolve('/')) } })}
+			onclick={() => {
+				onNavigate();
+				client.signOut({ fetchOptions: { onSuccess: () => goto(resolve('/')) } });
+			}}
 		>
 			<LogOutIcon class="size-4" />
 			Sign Out
@@ -34,11 +38,11 @@
 	</div>
 {:else}
 	<div class="flex flex-col gap-2">
-		<Button href={resolve('/sign-in')} class="w-full">
+		<Button href={resolve('/sign-in')} class="w-full" onclick={onNavigate}>
 			<LogInIcon class="size-4" />
 			Sign In
 		</Button>
-		<Button href={resolve('/sign-up')} variant="outline" class="w-full">
+		<Button href={resolve('/sign-up')} variant="outline" class="w-full" onclick={onNavigate}>
 			Create Account
 		</Button>
 	</div>

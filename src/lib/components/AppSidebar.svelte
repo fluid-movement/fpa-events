@@ -4,12 +4,14 @@
 	import { page } from '$app/state';
 	import type { Pathname } from '$app/types';
 	import { menuGroups, routeActive } from '$lib/config/sidebarMenu';
+	import { useSidebar } from '$lib/components/ui/sidebar/context.svelte.js';
 	import Logo from './Logo.svelte';
 	import SidebarLogin from './SidebarLogin.svelte';
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import { Button } from './ui/button';
 
 	const isActive = (url: Pathname) => routeActive(url, page.url.pathname);
+	const sidebar = useSidebar();
 </script>
 
 <Sidebar.Root>
@@ -26,7 +28,7 @@
 							<Sidebar.MenuItem>
 								<Sidebar.MenuButton isActive={isActive(item.url)}>
 									{#snippet child({ props })}
-										<a href={resolve(item.url)} {...props}>
+										<a href={resolve(item.url)} {...props} onclick={() => sidebar.setOpenMobile(false)}>
 											<item.icon />
 											<span>{item.label}</span>
 										</a>
@@ -40,11 +42,11 @@
 		</Sidebar.Group>
 	</Sidebar.Content>
 	<Sidebar.Footer>
-		<Button href={resolve('/events/create')}><PlusIcon /> Create Event</Button>
-		<SidebarLogin />
+		<Button href={resolve('/events/create')} onclick={() => sidebar.setOpenMobile(false)}><PlusIcon /> Create Event</Button>
+		<SidebarLogin onNavigate={() => sidebar.setOpenMobile(false)} />
 		<div class="flex gap-3 px-1 pb-1">
-			<a href={resolve('/privacy-policy')} class="text-xs text-muted-foreground hover:text-foreground">Privacy</a>
-			<a href={resolve('/legal-notice')} class="text-xs text-muted-foreground hover:text-foreground">Legal Notice</a>
+			<a href={resolve('/privacy-policy')} class="text-xs text-muted-foreground hover:text-foreground" onclick={() => sidebar.setOpenMobile(false)}>Privacy</a>
+			<a href={resolve('/legal-notice')} class="text-xs text-muted-foreground hover:text-foreground" onclick={() => sidebar.setOpenMobile(false)}>Legal Notice</a>
 		</div>
 	</Sidebar.Footer>
 </Sidebar.Root>
