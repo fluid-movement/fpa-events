@@ -12,7 +12,7 @@ Do not make changes I didn't explicitly ask for. Only act on clear instructions.
 
 This is a private repository without branch protection enabled. Commits go directly to `main` — no feature branches or PRs required.
 
-After completing each feature or meaningful unit of work, create a commit using the `/commit` skill before moving to the next task.
+**I decide when to push** — do not push unless I explicitly ask you to. Commit after each meaningful unit of work using the `/commit` skill, but don't push.
 
 ## Code Style
 
