@@ -67,7 +67,6 @@
 	.card-link {
 		display: block;
 		position: relative;
-		overflow-x: hidden;
 	}
 
 	/* Circular glow behind the card, centered on the chip */

@@ -170,6 +170,6 @@
 		<p class="text-sm font-medium text-muted-foreground uppercase tracking-widest mb-4">
 			Where in the World
 		</p>
-		<div bind:this={mapContainer} class="h-96 w-full rounded-lg overflow-hidden border relative z-0"></div>
+		<div bind:this={mapContainer} class="h-96 w-full rounded-lg overflow-hidden border"></div>
 	</section>
 {/if}
