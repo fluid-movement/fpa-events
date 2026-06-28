@@ -90,6 +90,12 @@
 		opacity: 1;
 	}
 
+	@media (max-width: 767px) {
+		.glow {
+			display: none;
+		}
+	}
+
 	.card {
 		position: relative;
 		z-index: 1;
