@@ -1,12 +1,16 @@
 import { test as setup, expect } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 import { TEST_USER } from './helpers/constants';
+import { sql } from './helpers/db';
 
 const authFile = 'playwright/.auth/user.json';
 
 setup('create test user and authenticate', async ({ page, request }) => {
 	// Sign up (safe to call repeatedly — ignore if already exists)
 	await request.post('/api/auth/sign-up/email', { data: TEST_USER });
+
+	// With requireEmailVerification enabled, manually mark the test user as verified
+	await sql()`UPDATE "user" SET email_verified = true WHERE email = ${TEST_USER.email}`;
 
 	// Sign in via API to get session cookie
 	const signInResp = await request.post('/api/auth/sign-in/email', {

@@ -3,6 +3,7 @@
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import type { Map as LeafletMap } from 'leaflet';
+	import { SvelteMap } from 'svelte/reactivity';
 
 	type MapEvent = {
 		id: string;
@@ -71,7 +72,7 @@
 			}).addTo(map);
 
 			// Group events by eventLocationId (or fall back to stringified coords for events without one)
-			const groups = new Map<string, MapEvent[]>();
+			const groups = new SvelteMap<string, MapEvent[]>();
 			for (const ev of locatedEvents) {
 				const key = ev.eventLocationId != null ? `loc:${ev.eventLocationId}` : `coord:${ev.latitude},${ev.longitude}`;
 				const existing = groups.get(key);

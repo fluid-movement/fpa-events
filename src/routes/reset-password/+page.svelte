@@ -3,6 +3,7 @@
 	import { resolve } from '$app/paths';
 	import { client } from '$lib/auth-client';
 	import { Button } from '$lib/components/ui/button';
+	import { browser } from '$app/environment';
 	import * as Card from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
@@ -12,15 +13,26 @@
 	let loading = $state(false);
 	let error = $state('');
 
+	function getToken() {
+		if (!browser) return '';
+		return new URLSearchParams(window.location.search).get('token') ?? '';
+	}
+
 	async function handleReset() {
+		const token = getToken();
 		if (password !== confirmPassword) {
 			error = 'Passwords do not match';
+			return;
+		}
+		if (!token) {
+			error = 'Invalid reset link';
 			return;
 		}
 		error = '';
 		loading = true;
 		await client.resetPassword({
 			newPassword: password,
+			token,
 			fetchOptions: {
 				onSuccess() {
 					goto(resolve('/sign-in'));

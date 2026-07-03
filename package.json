@@ -3,7 +3,9 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
-  "engines": { "node": ">=22.12" },
+  "engines": {
+    "node": ">=22.12"
+  },
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
@@ -77,6 +79,7 @@
     "drizzle-valibot": "^0.4.2",
     "ical-generator": "^11.0.0",
     "leaflet": "^1.9.4",
+    "mailgun.js": "^13.2.0",
     "mode-watcher": "^1.1.0",
     "postgres": "^3.4.5",
     "sanitize-html": "^2.17.5",

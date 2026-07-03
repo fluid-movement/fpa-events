@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { signIn } from '$lib/auth-client';
+	import { client, signIn } from '$lib/auth-client';
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
@@ -10,19 +10,43 @@
 	let password = $state('');
 	let loading = $state(false);
 	let error = $state('');
+	let unverified = $state(false);
+	let resent = $state(false);
 
 	async function handleSignIn() {
 		error = '';
+		unverified = false;
+		resent = false;
 		loading = true;
 		await signIn.email(
 			{ email, password, callbackURL: '/dashboard' },
 			{
 				onError(context) {
-					error = context.error.message;
+					if (context.error.code === 'EMAIL_NOT_VERIFIED') {
+						unverified = true;
+						error = 'Please verify your email before signing in.';
+					} else {
+						error = context.error.message;
+					}
 				}
 			}
 		);
 		loading = false;
+	}
+
+	async function resendVerification() {
+		resent = false;
+		await client.sendVerificationEmail(
+			{ email, callbackURL: '/' },
+			{
+				onSuccess() {
+					resent = true;
+				},
+				onError(ctx) {
+					error = ctx.error.message;
+				}
+			}
+		);
 	}
 </script>
 
@@ -49,6 +73,16 @@
 				</div>
 				{#if error}
 					<p class="text-sm text-destructive">{error}</p>
+				{/if}
+				{#if unverified}
+					<div class="flex flex-col gap-2">
+						<Button type="button" variant="outline" class="w-full text-sm" onclick={resendVerification}>
+							Resend verification email
+						</Button>
+						{#if resent}
+							<p class="text-sm text-muted-foreground text-center">Verification email sent!</p>
+						{/if}
+					</div>
 				{/if}
 				<Button type="submit" class="w-full" disabled={loading}>
 					{loading ? 'Signing in…' : 'Sign In'}

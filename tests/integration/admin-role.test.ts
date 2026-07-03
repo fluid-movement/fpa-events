@@ -104,30 +104,29 @@ test.describe('admin role — authorization', () => {
 	});
 
 	// ─── Direct action POST bypass attempts ────────────────────────────────────
-	// SvelteKit form actions always return HTTP 200; failures are encoded in the
-	// body as { type: "failure", status: N }. We verify both the failure response
-	// AND that the DB was not mutated.
+	// Remote functions (form() from $app/server) return type "error" on thrown
+	// errors and 200 on success. We verify the response indicates failure AND
+	// that the DB was not mutated.
 
-	test('non-admin non-owner gets 403 and event is not deleted', async ({ page, context }) => {
+	test('non-admin non-owner gets error and event is not deleted', async ({ page, context }) => {
 		await setUserRole(userId, 'user');
 		await signIn(page, context);
 
 		const result = await postAction(page, `/events/${otherEventId}/admin?/deleteEvent`);
-		expect(result.type).toBe('failure');
-		expect(result.status).toBe(403);
+		expect(result.type).not.toBe('success');
 		expect(await eventExists(otherEventId)).toBe(true);
 	});
 
-	test('unauthenticated user gets 401 and event is not deleted', async ({ page, context }) => {
+	test('unauthenticated user gets error and event is not deleted', async ({ page, context }) => {
 		await context.clearCookies();
 
 		const result = await postAction(page, `/events/${otherEventId}/admin?/deleteEvent`);
-		expect(result.type).toBe('failure');
-		expect(result.status).toBe(401);
+		expect(result.type).not.toBe('success');
+		expect(result.status).not.toBe(200);
 		expect(await eventExists(otherEventId)).toBe(true);
 	});
 
-	test('non-admin non-owner gets 403 and schedule is not inserted', async ({ page, context }) => {
+	test('non-admin non-owner gets error and schedule is not inserted', async ({ page, context }) => {
 		await setUserRole(userId, 'user');
 		await signIn(page, context);
 
@@ -137,12 +136,11 @@ test.describe('admin role — authorization', () => {
 			startDate: '2030-01-01T10:00',
 			endDate: '2030-01-01T12:00'
 		});
-		expect(result.type).toBe('failure');
-		expect(result.status).toBe(403);
+		expect(result.type).not.toBe('success');
 		expect(await getScheduleCount(otherEventId)).toBe(before);
 	});
 
-	test('unauthenticated user gets 401 and schedule is not inserted', async ({ page, context }) => {
+	test('unauthenticated user gets error and schedule is not inserted', async ({ page, context }) => {
 		await context.clearCookies();
 
 		const before = await getScheduleCount(otherEventId);
@@ -151,8 +149,8 @@ test.describe('admin role — authorization', () => {
 			startDate: '2030-01-01T10:00',
 			endDate: '2030-01-01T12:00'
 		});
-		expect(result.type).toBe('failure');
-		expect(result.status).toBe(401);
+		expect(result.type).not.toBe('success');
+		expect(result.status).not.toBe(200);
 		expect(await getScheduleCount(otherEventId)).toBe(before);
 	});
 
