@@ -49,12 +49,7 @@
 			<Field.Group>
 				<Field.Field>
 					<Field.Label for="event-name">Event name</Field.Label>
-					<Input
-						id="event-name"
-						placeholder="Your event name"
-						{...updateEvent.fields.name.as('text')}
-						value={event.name}
-					/>
+					<Input id="event-name" name="name" placeholder="Your event name" value={event.name} />
 				</Field.Field>
 			</Field.Group>
 			<Field.Group>
