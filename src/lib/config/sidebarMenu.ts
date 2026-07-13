@@ -1,12 +1,7 @@
 import type { Component } from 'svelte';
 import type { Pathname } from '$app/types';
 import { page } from '$app/state';
-import HouseIcon from '@lucide/svelte/icons/house';
-import CalendarIcon from '@lucide/svelte/icons/calendar';
-import CircleUserRoundIcon from '@lucide/svelte/icons/circle-user-round';
-import HeartIcon from '@lucide/svelte/icons/heart';
-import ClipboardListIcon from '@lucide/svelte/icons/clipboard-list';
-import SettingsIcon from '@lucide/svelte/icons/settings';
+import { House, Calendar, CircleUserRound, Heart, ClipboardList, Settings, Podium } from '@lucide/svelte/icons';
 
 export type MenuGroup = {
 	label?: string;
@@ -25,12 +20,17 @@ export const menuGroups: MenuGroup[] = [
 			{
 				label: 'Home',
 				url: '/',
-				icon: HouseIcon
+				icon: House
 			},
 			{
 				label: 'Event Calendar',
 				url: '/events',
-				icon: CalendarIcon
+				icon: Calendar
+			},
+			{
+				label: 'Rankings',
+				url: '/rankings',
+				icon: Podium
 			}
 		]
 	},
@@ -40,22 +40,22 @@ export const menuGroups: MenuGroup[] = [
 			{
 				label: 'My Dashboard',
 				url: '/dashboard',
-				icon: CircleUserRoundIcon
+				icon: CircleUserRound
 			},
 			{
 				label: 'Attending',
 				url: '/attending',
-				icon: HeartIcon
+				icon: Heart
 			},
 			{
 				label: 'Organizing',
 				url: '/organizing',
-				icon: ClipboardListIcon
+				icon: ClipboardList
 			},
 			{
 				label: 'Settings',
 				url: '/settings/profile',
-				icon: SettingsIcon
+				icon: Settings
 			}
 		]
 	}
