@@ -5,6 +5,7 @@
 	import * as Card from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
+	import Turnstile, { captchaEnabled } from '$lib/components/Turnstile.svelte';
 
 	let firstName = $state('');
 	let lastName = $state('');
@@ -13,6 +14,8 @@
 	let loading = $state(false);
 	let error = $state('');
 	let signedUp = $state(false);
+	let token = $state('');
+	let turnstile = $state<Turnstile>();
 
 	async function handleSignUp() {
 		error = '';
@@ -22,11 +25,13 @@
 			password,
 			name: `${firstName} ${lastName}`.trim(),
 			fetchOptions: {
+				headers: { 'x-captcha-response': token },
 				onSuccess() {
 					signedUp = true;
 				},
 				onError(context) {
 					error = context.error.message;
+					turnstile?.reset();
 				}
 			}
 		});
@@ -74,7 +79,8 @@
 					{#if error}
 						<p class="text-sm text-destructive">{error}</p>
 					{/if}
-					<Button type="submit" class="w-full" disabled={loading}>
+					<Turnstile bind:this={turnstile} bind:token />
+					<Button type="submit" class="w-full" disabled={loading || (captchaEnabled && !token)}>
 						{loading ? 'Creating account…' : 'Create Account'}
 					</Button>
 				</form>

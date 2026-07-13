@@ -13,7 +13,8 @@ export default defineConfig({
 			'$app/paths': '/src/test/mocks/app-paths.ts',
 			'$app/state': '/src/test/mocks/app-state.ts',
 			'$lib/server/db': '/src/test/mocks/db.ts',
-			'$env/dynamic/private': '/src/test/mocks/env-dynamic-private.ts'
+			'$env/dynamic/private': '/src/test/mocks/env-dynamic-private.ts',
+			'$env/dynamic/public': '/src/test/mocks/env-dynamic-public.ts'
 		}
 	},
 	resolve: {

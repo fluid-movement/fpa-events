@@ -5,11 +5,14 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { resolve } from '$app/paths';
+	import Turnstile, { captchaEnabled } from '$lib/components/Turnstile.svelte';
 
 	let email = $state('');
 	let loading = $state(false);
 	let sent = $state(false);
 	let error = $state('');
+	let token = $state('');
+	let turnstile = $state<Turnstile>();
 
 	async function handleSubmit() {
 		if (!email) return;
@@ -18,11 +21,13 @@
 		await client.requestPasswordReset(
 			{ email, redirectTo: '/reset-password' },
 			{
+				headers: { 'x-captcha-response': token },
 				onSuccess() {
 					sent = true;
 				},
 				onError(context: { error: { message: string } }) {
 					error = context.error.message;
+					turnstile?.reset();
 				}
 			}
 		);
@@ -50,7 +55,8 @@
 					{#if error}
 						<p class="text-sm text-destructive">{error}</p>
 					{/if}
-					<Button type="submit" class="w-full" disabled={loading}>
+					<Turnstile bind:this={turnstile} bind:token />
+					<Button type="submit" class="w-full" disabled={loading || (captchaEnabled && !token)}>
 						{loading ? 'Sending…' : 'Send Reset Link'}
 					</Button>
 				</form>

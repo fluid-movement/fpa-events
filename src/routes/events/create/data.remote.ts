@@ -6,6 +6,7 @@ import { events, eventUser } from '$lib/server/db/schema';
 import { resolve } from '$app/paths';
 import { ulid } from 'ulid';
 import { findOrCreateEventLocation } from '$lib/server/db/eventLocations';
+import { verifyTurnstile } from '$lib/server/turnstile';
 
 const createEventSchema = v.object({
 	name: v.pipe(v.string(), v.minLength(1), v.maxLength(100)),
@@ -19,13 +20,18 @@ const createEventSchema = v.object({
 	longitude: v.optional(v.string()),
 	picture: v.optional(v.string()),
 	pictureWidth: v.optional(v.string()),
-	pictureHeight: v.optional(v.string())
+	pictureHeight: v.optional(v.string()),
+	turnstileToken: v.optional(v.string())
 });
 
 export const createEvent = form(createEventSchema, async (data) => {
 	const event = getRequestEvent();
 	if (!event.locals.user?.id) {
 		throw new Error('Unauthorized: You must be logged in to create an event');
+	}
+
+	if (!(await verifyTurnstile(data.turnstileToken))) {
+		throw new Error('Captcha verification failed');
 	}
 
 	const userId = event.locals.user.id;

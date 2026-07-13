@@ -6,6 +6,7 @@
 	import { RangeCalendar } from '$lib/components/ui/range-calendar/index.js';
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
 	import ImageUpload from '$lib/components/ImageUpload.svelte';
+	import Turnstile, { captchaEnabled } from '$lib/components/Turnstile.svelte';
 	import type { DateValue } from '@internationalized/date';
 
 	import { createEvent } from './data.remote';
@@ -14,6 +15,7 @@
 		start: undefined,
 		end: undefined
 	});
+	let token = $state('');
 </script>
 
 <div class="w-full max-w-2xl">
@@ -63,8 +65,10 @@
 				</Field.Field>
 			</Field.Group>
 			<Field.Separator />
+			<Turnstile bind:token />
+			<input type="hidden" name="turnstileToken" value={token} />
 			<Field.Field orientation="horizontal">
-				<Button type="submit">Create Event</Button>
+				<Button type="submit" disabled={captchaEnabled && !token}>Create Event</Button>
 			</Field.Field>
 		</Field.Group>
 	</form>

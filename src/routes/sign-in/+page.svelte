@@ -5,6 +5,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { resolve } from '$app/paths';
+	import Turnstile, { captchaEnabled } from '$lib/components/Turnstile.svelte';
 
 	let email = $state('');
 	let password = $state('');
@@ -12,6 +13,8 @@
 	let error = $state('');
 	let unverified = $state(false);
 	let resent = $state(false);
+	let token = $state('');
+	let turnstile = $state<Turnstile>();
 
 	async function handleSignIn() {
 		error = '';
@@ -21,6 +24,7 @@
 		await signIn.email(
 			{ email, password, callbackURL: '/dashboard' },
 			{
+				headers: { 'x-captcha-response': token },
 				onError(context) {
 					if (context.error.code === 'EMAIL_NOT_VERIFIED') {
 						unverified = true;
@@ -28,6 +32,7 @@
 					} else {
 						error = context.error.message;
 					}
+					turnstile?.reset();
 				}
 			}
 		);
@@ -39,11 +44,13 @@
 		await client.sendVerificationEmail(
 			{ email, callbackURL: '/' },
 			{
+				headers: { 'x-captcha-response': token },
 				onSuccess() {
 					resent = true;
 				},
 				onError(ctx) {
 					error = ctx.error.message;
+					turnstile?.reset();
 				}
 			}
 		);
@@ -76,7 +83,13 @@
 				{/if}
 				{#if unverified}
 					<div class="flex flex-col gap-2">
-						<Button type="button" variant="outline" class="w-full text-sm" onclick={resendVerification}>
+						<Button
+							type="button"
+							variant="outline"
+							class="w-full text-sm"
+							disabled={captchaEnabled && !token}
+							onclick={resendVerification}
+						>
 							Resend verification email
 						</Button>
 						{#if resent}
@@ -84,7 +97,8 @@
 						{/if}
 					</div>
 				{/if}
-				<Button type="submit" class="w-full" disabled={loading}>
+				<Turnstile bind:this={turnstile} bind:token />
+				<Button type="submit" class="w-full" disabled={loading || (captchaEnabled && !token)}>
 					{loading ? 'Signing in…' : 'Sign In'}
 				</Button>
 			</form>

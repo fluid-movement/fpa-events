@@ -1,8 +1,27 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { captcha } from 'better-auth/plugins';
 import { db } from '$lib/server/db';
 import { env } from '$env/dynamic/private';
 import { sendPasswordResetEmail, sendVerificationEmail } from './email';
+
+// Only guard endpoints with Turnstile when a secret key is configured; otherwise
+// leave captcha off so local dev and tests work without keys (mirrors the Mailgun
+// console fallback in ./email.ts).
+const plugins = env.TURNSTILE_SECRET_KEY
+	? [
+			captcha({
+				provider: 'cloudflare-turnstile',
+				secretKey: env.TURNSTILE_SECRET_KEY,
+				endpoints: [
+					'/sign-up/email',
+					'/sign-in/email',
+					'/request-password-reset',
+					'/send-verification-email'
+				]
+			})
+		]
+	: [];
 
 export const auth = betterAuth({
 	database: drizzleAdapter(db, {
@@ -24,5 +43,6 @@ export const auth = betterAuth({
 		}
 	},
 	secret: env.BETTER_AUTH_SECRET,
-	baseURL: env.BETTER_AUTH_URL
+	baseURL: env.BETTER_AUTH_URL,
+	plugins
 });
