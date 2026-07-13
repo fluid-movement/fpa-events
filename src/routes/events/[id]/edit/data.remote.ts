@@ -7,6 +7,8 @@ import { resolve } from '$app/paths';
 import { eq } from 'drizzle-orm';
 import { findOrCreateEventLocation } from '$lib/server/db/eventLocations';
 import { deleteImage } from '$lib/server/r2';
+import { requireEventManager } from '$lib/server/authz';
+import { verifyTurnstile } from '$lib/server/turnstile';
 
 const updateEventSchema = v.object({
 	name: v.pipe(v.string(), v.minLength(1), v.maxLength(100)),
@@ -20,7 +22,8 @@ const updateEventSchema = v.object({
 	longitude: v.optional(v.string()),
 	picture: v.optional(v.string()),
 	pictureWidth: v.optional(v.string()),
-	pictureHeight: v.optional(v.string())
+	pictureHeight: v.optional(v.string()),
+	turnstileToken: v.optional(v.string())
 });
 
 export const getEvent = query(v.string(), async (id) => {
@@ -64,19 +67,14 @@ export const getEvent = query(v.string(), async (id) => {
 export const updateEvent = form(updateEventSchema, async (data) => {
 	const event = getRequestEvent();
 
-	if (!event.locals.user?.id) {
-		throw new Error('Unauthorized: You must be logged in to create an event');
-	}
-
 	const eventId = event.params.id;
 	if (!eventId) throw new Error('Event ID is required');
 
-	const [existingEvent] = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
-	if (!existingEvent) throw new Error('Event not found');
+	const existingEvent = await requireEventManager(eventId);
 
-	const isOwner = existingEvent.userId === event.locals.user?.id;
-	const isAdmin = event.locals.role === 'admin';
-	if (!isOwner && !isAdmin) throw new Error('Unauthorized: You can only edit your own events');
+	if (!(await verifyTurnstile(data.turnstileToken))) {
+		throw new Error('Captcha verification failed');
+	}
 
 	const newPicture = data.picture || null;
 	if (existingEvent.picture && newPicture && newPicture !== existingEvent.picture) {

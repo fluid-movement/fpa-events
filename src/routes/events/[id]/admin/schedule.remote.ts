@@ -1,20 +1,10 @@
 import * as v from 'valibot';
-import { form, getRequestEvent } from '$app/server';
+import { form } from '$app/server';
 import { db } from '$lib/server/db';
-import { events, schedules } from '$lib/server/db/schema';
+import { schedules } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { ulid } from 'ulid';
-
-async function assertAccess(eventId: string) {
-	const event = getRequestEvent();
-	if (!event.locals.user) throw new Error('Unauthorized');
-	const [ev] = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
-	if (!ev) throw new Error('Event not found');
-	if (ev.userId !== event.locals.user.id && event.locals.role !== 'admin') {
-		throw new Error('Forbidden');
-	}
-	return ev;
-}
+import { requireEventManager } from '$lib/server/authz';
 
 const scheduleBaseSchema = v.object({
 	eventId: v.string(),
@@ -26,7 +16,7 @@ const scheduleBaseSchema = v.object({
 });
 
 export const addSchedule = form(scheduleBaseSchema, async (data) => {
-	await assertAccess(data.eventId);
+	await requireEventManager(data.eventId);
 	const start = new Date(data.startDate);
 	const end = new Date(data.endDate);
 	if (end <= start) throw new Error('End time must be after start time');
@@ -45,7 +35,7 @@ export const addSchedule = form(scheduleBaseSchema, async (data) => {
 export const updateSchedule = form(
 	v.object({ id: v.string(), ...scheduleBaseSchema.entries }),
 	async (data) => {
-		await assertAccess(data.eventId);
+		await requireEventManager(data.eventId);
 		const start = new Date(data.startDate);
 		const end = new Date(data.endDate);
 		if (end <= start) throw new Error('End time must be after start time');
@@ -67,7 +57,7 @@ export const updateSchedule = form(
 export const deleteSchedule = form(
 	v.object({ id: v.string(), eventId: v.string() }),
 	async (data) => {
-		await assertAccess(data.eventId);
+		await requireEventManager(data.eventId);
 		await db.delete(schedules).where(eq(schedules.id, data.id));
 	}
 );

@@ -4,6 +4,7 @@ import { autocomplete } from '$lib/geocoding';
 import { eq } from 'drizzle-orm';
 import { error, redirect } from '@sveltejs/kit';
 import { resolve } from '$app/paths';
+import { isEventManager } from '$lib/server/authz';
 import type { PageServerLoad } from './$types';
 
 export const load = (async ({ params, locals, url }) => {
@@ -21,9 +22,7 @@ export const load = (async ({ params, locals, url }) => {
 	if (!row) error(404, 'Not found');
 	const { event, location: eventLocation } = row;
 
-	const isOwner = locals.user.id === event.userId;
-	const isAdmin = locals.role === 'admin';
-	if (!isOwner && !isAdmin) {
+	if (!isEventManager(event, locals.user.id, locals.role)) {
 		redirect(307, resolve(`/events/${params.id}`));
 	}
 
