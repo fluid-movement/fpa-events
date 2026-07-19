@@ -4,6 +4,7 @@ import { captcha } from 'better-auth/plugins';
 import { db } from '$lib/server/db';
 import { env } from '$env/dynamic/private';
 import { sendPasswordResetEmail, sendVerificationEmail } from './email';
+import { hashPassword, verifyPassword } from './password';
 
 // Only guard endpoints with Turnstile when a secret key is configured; otherwise
 // leave captcha off so local dev and tests work without keys (mirrors the Mailgun
@@ -30,6 +31,9 @@ export const auth = betterAuth({
 	emailAndPassword: {
 		enabled: true,
 		requireEmailVerification: true,
+		// Custom verify so bcrypt hashes migrated from the legacy Laravel app
+		// keep working alongside Better Auth's default scrypt hashes.
+		password: { hash: hashPassword, verify: verifyPassword },
 		sendResetPassword: async ({ user, url }) => {
 			void sendPasswordResetEmail({ user, url });
 		}
