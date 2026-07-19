@@ -1,1 +1,134 @@
-{}
+{
+  "Anzio, Italy": {
+    "city": "Anzio",
+    "country": "Italia",
+    "latitude": 41.4471008,
+    "longitude": 12.6285618
+  },
+  "Berlin": {
+    "city": "Berlin",
+    "country": "Deutschland",
+    "latitude": 52.5173885,
+    "longitude": 13.3951309
+  },
+  "Berlin ": {
+    "city": "Berlin",
+    "country": "Deutschland",
+    "latitude": 52.5173885,
+    "longitude": 13.3951309
+  },
+  "Berlin - tba": {
+    "city": "Berlin",
+    "country": "Deutschland",
+    "latitude": 52.5173885,
+    "longitude": 13.3951309
+  },
+  "Bonn/Bad Honnef ": {
+    "city": "Bad Honnef",
+    "country": "Deutschland",
+    "latitude": 50.6444681,
+    "longitude": 7.2295527
+  },
+  "Cologne ": {
+    "city": "Köln",
+    "country": "Deutschland",
+    "latitude": 50.938361,
+    "longitude": 6.959974
+  },
+  "Dębki": {
+    "city": "Dębki",
+    "country": "Polska",
+    "latitude": 54.8287805,
+    "longitude": 18.088712
+  },
+  "Dębki, Poland": {
+    "city": "Dębki",
+    "country": "Polska",
+    "latitude": 54.8287805,
+    "longitude": 18.088712
+  },
+  "Heinsfjord Isl, Oslo, Norway": {
+    "city": "Oslo",
+    "country": "Norge",
+    "latitude": 59.9105545,
+    "longitude": 10.7740512
+  },
+  "Jax Beach": {
+    "city": "Jacksonville Beach",
+    "country": "United States",
+    "latitude": 30.264964,
+    "longitude": -81.3908098
+  },
+  "Las Palmas, Gran Canaria": {
+    "city": "Las Palmas de Gran Canaria",
+    "country": "España",
+    "latitude": 28.1288694,
+    "longitude": -15.4349015
+  },
+  "MEDELLÍN, COLOMBIA": {
+    "city": "Medellín",
+    "country": "Colombia",
+    "latitude": 6.2697324,
+    "longitude": -75.6025597
+  },
+  "Medellín, Colombia ": {
+    "city": "Medellín",
+    "country": "Colombia",
+    "latitude": 6.2697324,
+    "longitude": -75.6025597
+  },
+  "Milano ": {
+    "city": "Milano",
+    "country": "Italia",
+    "latitude": 45.4641943,
+    "longitude": 9.1896346
+  },
+  "Munich": {
+    "city": "München",
+    "country": "Deutschland",
+    "latitude": 48.1371079,
+    "longitude": 11.5753822
+  },
+  "Munich, Germany": {
+    "city": "München",
+    "country": "Deutschland",
+    "latitude": 48.1371079,
+    "longitude": 11.5753822
+  },
+  "Prague": {
+    "city": "Praha",
+    "country": "Česko",
+    "latitude": 50.0874654,
+    "longitude": 14.4212535
+  },
+  "Rivazzura Beach": {
+    "city": "Rimini",
+    "country": "Italia",
+    "latitude": 44.0399249,
+    "longitude": 12.6108183
+  },
+  "Santa Barbara, CA": {
+    "city": "Santa Barbara",
+    "country": "United States",
+    "latitude": 34.4221319,
+    "longitude": -119.702667
+  },
+  "Tübingen": {
+    "city": "Tübingen",
+    "country": "Deutschland",
+    "latitude": 48.5203263,
+    "longitude": 9.053596
+  },
+  "Wilton, Connecticut ": {
+    "city": "Wilton",
+    "country": "United States",
+    "latitude": 41.1953739,
+    "longitude": -73.4378988
+  },
+  "Zandvoort Beach": {
+    "city": "Zandvoort",
+    "country": "Nederland",
+    "latitude": 52.3671876,
+    "longitude": 4.5246479
+  }
+}
