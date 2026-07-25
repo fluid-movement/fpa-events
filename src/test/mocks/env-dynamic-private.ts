@@ -6,5 +6,6 @@ export const env: Record<string, string> = {
 	R2_PUBLIC_URL: 'https://test.r2.dev',
 	DATABASE_URL: 'postgresql://test',
 	BETTER_AUTH_SECRET: 'test-secret',
-	BETTER_AUTH_URL: 'http://localhost:5173'
+	BETTER_AUTH_URL: 'http://localhost:5173',
+	FPA_API_URL: 'https://fpa-api.test'
 };
