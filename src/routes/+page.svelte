@@ -24,7 +24,7 @@
 <div class="space-y-12 py-6">
 	<!-- Hero -->
 	<section class="text-center space-y-4">
-		<h1 class="text-5xl font-bold tracking-tight">FPA Events</h1>
+		<h1 class="text-5xl font-bold tracking-tight">FPA Event Calendar</h1>
 		<p class="text-lg text-muted-foreground max-w-xl mx-auto">
 			Freestyle disc competitions, jams, and gatherings around the world.
 		</p>
@@ -71,7 +71,7 @@
 							alt={event.name}
 							width={event.pictureWidth ?? undefined}
 							height={event.pictureHeight ?? undefined}
-							class="w-full object-cover max-h-48"
+							class="w-full object-cover object-top max-h-48"
 						/>
 					</div>
 				{/if}

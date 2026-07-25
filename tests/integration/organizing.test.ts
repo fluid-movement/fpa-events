@@ -60,10 +60,16 @@ test.describe('organizing status', () => {
 			await page.getByRole('button', { name: 'Create Event' }).click();
 			await page.waitForLoadState('networkidle');
 
-			// Should have redirected to the event detail page
+			// Creating an event now lands the organizer in the manage area
 			const url = page.url();
-			expect(url).toMatch(/\/events\/[a-z0-9]+$/);
-			createdEventId = url.split('/events/')[1];
+			expect(url).toMatch(/\/events\/[a-z0-9]+\/admin$/);
+			createdEventId = url.split('/events/')[1].replace('/admin', '');
+
+			await expect(page.getByTestId('setup-checklist')).toBeVisible();
+
+			// The public page is where the RSVP controls live
+			await page.goto(`/events/${createdEventId}`);
+			await page.waitForLoadState('networkidle');
 
 			// No RSVP button for the creator
 			await expect(page.getByTestId('rsvp-button')).not.toBeVisible();

@@ -8,6 +8,7 @@
 	import { toggleRsvp } from './data.remote';
 	import type { PageProps } from './$types';
 	import { formatDateRange } from '$lib/utils/dates';
+	import { attendeeSummary, firstName } from '$lib/utils/attendees';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
 	import MapPinIcon from '@lucide/svelte/icons/map-pin';
@@ -24,7 +25,10 @@
 	const userRole = $derived(data.userRole);
 	const schedules = $derived(data.schedules);
 	const attendeePeek = $derived(data.attendeePeek);
-	const canManage = $derived(userId === event.userId || userRole === 'admin');
+	// Co-organizers who accepted a magic-link invite manage the event too.
+	const canManage = $derived(
+		userId === event.userId || userRole === 'admin' || data.userStatus === 'organizing'
+	);
 
 	let attending = $state(false);
 	let optimisticCount = $state(0);
@@ -39,15 +43,12 @@
 	const dateRange = $derived(formatDateRange(new Date(event.startDate), new Date(event.endDate)));
 	const isPast = $derived(new Date(event.startDate) < new Date());
 
-	const attendeePeekLabel = $derived.by(() => {
-		if (optimisticCount === 0) return null;
-		const names = attendeePeek.map((a) => a.name.split(' ')[0]);
-		const shown = names.slice(0, 3);
-		const rest = optimisticCount - shown.length;
-		if (rest > 0) return `${shown.join(', ')} and ${rest} other${rest === 1 ? '' : 's'} ${isPast ? 'attended' : 'attending'}`;
-		if (shown.length === 1) return isPast ? `${shown[0]} attended` : `${shown[0]} is attending`;
-		return `${shown.slice(0, -1).join(', ')} and ${shown[shown.length - 1]} ${isPast ? 'attended' : 'are attending'}`;
-	});
+	const attendeePeekLabel = $derived(
+		attendeeSummary(attendeePeek.map((a) => firstName(a.name)), optimisticCount, isPast)
+	);
+
+	// Attendees who opted out of being named are still counted in the total.
+	const hiddenAttendeeCount = $derived(Math.max(0, optimisticCount - allAttendees.length));
 </script>
 
 <svelte:boundary>
@@ -82,12 +83,14 @@
 					<h1 class="text-3xl font-bold leading-tight">{event.name}</h1>
 					{#if canManage}
 						<div class="flex gap-2 shrink-0">
-							<Button href={resolve(`/events/${event.id}/edit`)} variant="outline" size="sm">
+							<Button
+								href={resolve(`/events/${event.id}/admin`)}
+								variant="outline"
+								size="sm"
+								data-testid="manage-event-link"
+							>
 								<PencilIcon class="size-4" />
-								Edit
-							</Button>
-							<Button href={resolve(`/events/${event.id}/admin`)} variant="outline" size="sm">
-								Manage
+								Manage event
 							</Button>
 						</div>
 					{/if}
@@ -177,6 +180,17 @@
 								<span class="text-sm">{attendee.name}</span>
 							</li>
 						{/each}
+						{#if hiddenAttendeeCount > 0}
+							<li class="flex items-center gap-3" data-testid="hidden-attendee-count">
+								<div class="bg-muted rounded-full p-1.5 shrink-0">
+									<UserIcon class="size-4 text-muted-foreground" />
+								</div>
+								<span class="text-sm text-muted-foreground">
+									and {hiddenAttendeeCount}
+									{hiddenAttendeeCount === 1 ? 'other' : 'others'}
+								</span>
+							</li>
+						{/if}
 					</ul>
 				</Dialog.Content>
 			</Dialog.Root>

@@ -6,9 +6,18 @@ import {
 	S3Client,
 	GetObjectCommand,
 	PutObjectCommand,
-	HeadObjectCommand
+	HeadObjectCommand,
+	ListObjectsV2Command,
+	DeleteObjectsCommand
 } from '@aws-sdk/client-s3';
 import { legacyPool, requireEnv } from './db';
+
+// --wipe-target deletes every object in the target bucket before copying, so
+// the bucket converges to exactly the legacy pictures (drops orphaned dev
+// uploads). npm swallows the flag when the `--` separator is forgotten but
+// records it as npm_config_wipe_target, so honor both.
+const wipeTarget =
+	process.argv.includes('--wipe-target') || process.env.npm_config_wipe_target === 'true';
 
 // TARGET_* falls back to the app's own R2_* names (see src/lib/server/r2.ts)
 // so the tool can run inside the deployed app container without extra config.
@@ -39,11 +48,38 @@ async function exists(client: S3Client, bucket: string, key: string): Promise<bo
 	}
 }
 
+async function emptyBucket(client: S3Client, bucket: string): Promise<number> {
+	let deleted = 0;
+	let token: string | undefined;
+	do {
+		const page = await client.send(
+			new ListObjectsV2Command({ Bucket: bucket, ContinuationToken: token })
+		);
+		const keys = (page.Contents ?? []).flatMap((o) => (o.Key ? [{ Key: o.Key }] : []));
+		if (keys.length > 0) {
+			await client.send(new DeleteObjectsCommand({ Bucket: bucket, Delete: { Objects: keys } }));
+			deleted += keys.length;
+		}
+		token = page.IsTruncated ? page.NextContinuationToken : undefined;
+	} while (token);
+	return deleted;
+}
+
 async function main() {
 	const legacyBucket = requireEnv('LEGACY_R2_BUCKET_NAME');
 	const targetBucket = targetEnv('BUCKET_NAME');
 	const legacyR2 = r2Client('LEGACY');
 	const targetR2 = r2Client('TARGET');
+
+	if (wipeTarget) {
+		// Paranoia guard: never wipe the bucket we are about to read from.
+		if (targetBucket === legacyBucket) {
+			console.error(`Refusing --wipe-target: target and legacy bucket are both "${targetBucket}".`);
+			process.exit(1);
+		}
+		const deleted = await emptyBucket(targetR2, targetBucket);
+		console.log(`Wiped target bucket "${targetBucket}": ${deleted} object(s) deleted.`);
+	}
 
 	const legacy = legacyPool();
 	const { rows } = await legacy.query<{ id: string; name: string; picture: string }>(

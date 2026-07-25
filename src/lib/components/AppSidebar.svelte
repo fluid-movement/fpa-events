@@ -2,7 +2,7 @@
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import type { Pathname } from '$app/types';
+	import type { ResolvedPathname } from '$app/types';
 	import { menuGroups, routeActive } from '$lib/config/sidebarMenu';
 	import { useSidebar } from '$lib/components/ui/sidebar/context.svelte.js';
 	import Logo from './Logo.svelte';
@@ -10,7 +10,7 @@
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import { Button } from './ui/button';
 
-	const isActive = (url: Pathname) => routeActive(url, page.url.pathname);
+	const isActive = (url: ResolvedPathname) => routeActive(url, page.url.pathname);
 	const sidebar = useSidebar();
 </script>
 
@@ -31,7 +31,7 @@
 								<Sidebar.MenuButton isActive={isActive(item.url)}>
 									{#snippet child({ props })}
 										<a
-											href={resolve(item.url)}
+											href={item.url}
 											{...props}
 											onclick={() => sidebar.setOpenMobile(false)}
 										>

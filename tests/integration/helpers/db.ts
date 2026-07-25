@@ -69,6 +69,22 @@ export async function setAttending(eventId: string, userId: string): Promise<voi
 	`;
 }
 
+/** Seed an accepted co-organizer seat, as `/invite/[token]` would create. */
+export async function setOrganizing(eventId: string, userId: string): Promise<void> {
+	await sql()`
+		INSERT INTO event_user (event_id, user_id, status, created_at, updated_at)
+		VALUES (${eventId}, ${userId}, 'organizing', now(), now())
+		ON CONFLICT DO NOTHING
+	`;
+}
+
+export async function getEventName(eventId: string): Promise<string | null> {
+	const rows = await sql()<[{ name: string }]>`
+		SELECT name FROM events WHERE id = ${eventId} LIMIT 1
+	`;
+	return rows[0]?.name ?? null;
+}
+
 export async function clearAttending(eventId: string, userId: string): Promise<void> {
 	await sql()`
 		DELETE FROM event_user
@@ -96,6 +112,28 @@ export async function eventExists(eventId: string): Promise<boolean> {
 
 export async function setUserRole(userId: string, role: 'user' | 'admin'): Promise<void> {
 	await sql()`UPDATE "user" SET role = ${role} WHERE id = ${userId}`;
+}
+
+export async function setShowAttendance(userId: string, show: boolean): Promise<void> {
+	await sql()`UPDATE "user" SET show_attendance = ${show} WHERE id = ${userId}`;
+}
+
+export async function getShowAttendance(userId: string): Promise<boolean> {
+	const rows = await sql()<[{ show_attendance: boolean }]>`
+		SELECT show_attendance FROM "user" WHERE id = ${userId} LIMIT 1
+	`;
+	return rows[0]?.show_attendance ?? true;
+}
+
+export async function getLocationCoords(
+	eventId: string,
+	name: string
+): Promise<{ latitude: number | null; longitude: number | null } | null> {
+	const rows = await sql()<[{ latitude: number | null; longitude: number | null }]>`
+		SELECT latitude, longitude FROM schedule_locations
+		WHERE event_id = ${eventId} AND name = ${name} LIMIT 1
+	`;
+	return rows[0] ?? null;
 }
 
 export async function createMagicLink(

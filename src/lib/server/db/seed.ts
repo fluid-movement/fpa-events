@@ -22,13 +22,28 @@ function date(str: string) {
 
 const ADMIN_EMAIL = 'zaharias.andre@googlemail.com';
 
+// `showAttendance: false` opts a user out of being named publicly — they still
+// count towards an event's attendee total. A few are seeded opted-out so the
+// "and N others" path is exercised locally.
 const users = [
 	{ id: id(), name: 'Andre Zaharias', email: ADMIN_EMAIL, role: 'admin' as const },
 	{ id: id(), name: 'Juliana Vasquez', email: 'juliana.vasquez@example.com', role: 'user' as const },
-	{ id: id(), name: 'Marcus Hellström', email: 'marcus.h@example.com', role: 'user' as const },
+	{
+		id: id(),
+		name: 'Marcus Hellström',
+		email: 'marcus.h@example.com',
+		role: 'user' as const,
+		showAttendance: false
+	},
 	{ id: id(), name: 'Priya Nair', email: 'priya.nair@example.com', role: 'user' as const },
 	{ id: id(), name: 'Tom Leitner', email: 'tom.leitner@example.com', role: 'user' as const },
-	{ id: id(), name: 'Sofía Reyes', email: 'sofia.reyes@example.com', role: 'user' as const },
+	{
+		id: id(),
+		name: 'Sofía Reyes',
+		email: 'sofia.reyes@example.com',
+		role: 'user' as const,
+		showAttendance: false
+	},
 	{ id: id(), name: 'Kenji Tanaka', email: 'kenji.tanaka@example.com', role: 'user' as const },
 	{ id: id(), name: 'Elise Bonnet', email: 'elise.bonnet@example.com', role: 'user' as const },
 	{ id: id(), name: 'Dmitri Volkov', email: 'dmitri.volkov@example.com', role: 'user' as const },
@@ -37,7 +52,13 @@ const users = [
 	{ id: id(), name: 'Lena Brandt', email: 'lena.brandt@example.com', role: 'user' as const },
 	{ id: id(), name: 'Rafael Costa', email: 'rafael.costa@example.com', role: 'user' as const },
 	{ id: id(), name: 'Yuki Shimizu', email: 'yuki.shimizu@example.com', role: 'user' as const },
-	{ id: id(), name: 'Fatima Ouedraogo', email: 'fatima.o@example.com', role: 'user' as const }
+	{
+		id: id(),
+		name: 'Fatima Ouedraogo',
+		email: 'fatima.o@example.com',
+		role: 'user' as const,
+		showAttendance: false
+	}
 ];
 
 // ---------------------------------------------------------------------------
@@ -458,13 +479,18 @@ async function main() {
 				email: u.email,
 				emailVerified: true,
 				role: u.role,
+				showAttendance: u.showAttendance ?? true,
 				createdAt: new Date(),
 				updatedAt: new Date()
 			}))
 		)
 		.onConflictDoUpdate({
 			target: schema.user.email,
-			set: { name: sql`excluded.name`, role: sql`excluded.role` }
+			set: {
+				name: sql`excluded.name`,
+				role: sql`excluded.role`,
+				showAttendance: sql`excluded.show_attendance`
+			}
 		})
 		.returning();
 
@@ -527,6 +553,14 @@ async function main() {
 						address: 'Jardin Anglais, Geneva',
 						latitude: 46.2044,
 						longitude: 6.1527
+					},
+					{
+						// Name-only venue: coordinates are optional.
+						eventId: worldChamp2026.id,
+						name: 'Warm-up Area',
+						address: null,
+						latitude: null,
+						longitude: null
 					}
 				]
 			: []),

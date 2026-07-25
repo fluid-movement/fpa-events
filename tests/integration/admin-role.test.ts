@@ -77,15 +77,14 @@ test.describe('admin role — authorization', () => {
 		await expect(page).toHaveURL(/sign-in/);
 	});
 
-	test('regular user cannot see Edit/Manage buttons on events they do not own', async ({
+	test('regular user cannot see the Manage event button on events they do not own', async ({
 		page,
 		context
 	}) => {
 		await setUserRole(userId, 'user');
 		await signIn(page, context);
 		await page.goto(`/events/${otherEventId}`);
-		await expect(page.getByRole('link', { name: 'Edit' })).not.toBeVisible();
-		await expect(page.getByRole('link', { name: 'Manage' })).not.toBeVisible();
+		await expect(page.getByTestId('manage-event-link')).not.toBeVisible();
 	});
 
 	test('admin can access admin page of any event', async ({ page, context }) => {
@@ -95,12 +94,16 @@ test.describe('admin role — authorization', () => {
 		await expect(page).toHaveURL(/\/admin$/);
 	});
 
-	test('admin sees Edit and Manage buttons on any event', async ({ page, context }) => {
+	test('admin sees the Manage event button on any event', async ({ page, context }) => {
 		await setUserRole(userId, 'admin');
 		await signIn(page, context);
 		await page.goto(`/events/${otherEventId}`);
-		await expect(page.getByRole('link', { name: 'Edit' })).toBeVisible();
-		await expect(page.getByRole('link', { name: 'Manage' })).toBeVisible();
+		// Edit and Manage were merged into a single entry point.
+		await expect(page.getByTestId('manage-event-link')).toBeVisible();
+		await expect(page.getByTestId('manage-event-link')).toHaveAttribute(
+			'href',
+			`/events/${otherEventId}/admin`
+		);
 	});
 
 	// ─── Direct action POST bypass attempts ────────────────────────────────────
@@ -131,7 +134,7 @@ test.describe('admin role — authorization', () => {
 		await signIn(page, context);
 
 		const before = await getScheduleCount(otherEventId);
-		const result = await postAction(page, `/events/${otherEventId}/admin?/addSchedule`, {
+		const result = await postAction(page, `/events/${otherEventId}/admin/schedule?/addSchedule`, {
 			name: 'Injected Schedule',
 			startDate: '2030-01-01T10:00',
 			endDate: '2030-01-01T12:00'
@@ -144,7 +147,7 @@ test.describe('admin role — authorization', () => {
 		await context.clearCookies();
 
 		const before = await getScheduleCount(otherEventId);
-		const result = await postAction(page, `/events/${otherEventId}/admin?/addSchedule`, {
+		const result = await postAction(page, `/events/${otherEventId}/admin/schedule?/addSchedule`, {
 			name: 'Injected Schedule',
 			startDate: '2030-01-01T10:00',
 			endDate: '2030-01-01T12:00'
@@ -174,17 +177,21 @@ test.describe('admin role — authorization', () => {
 		await expect(page).not.toHaveURL(/\/admin$/);
 	});
 
-	// ─── Edit page guard ───────────────────────────────────────────────────────
+	// ─── Details guard ─────────────────────────────────────────────────────────
 
-	test('regular user cannot visit the edit page of another users event', async ({
+	test('regular user cannot reach the details form of another users event', async ({
 		page,
 		context
 	}) => {
 		await setUserRole(userId, 'user');
 		await signIn(page, context);
-		await page.goto(`/events/${otherEventId}/edit`);
-		// Edit page has no server-side load redirect — check that the save action rejects
-		const result = await postAction(page, `/events/${otherEventId}/edit?/updateEvent`, {
+
+		// The manage area's load guard bounces a non-manager to the public event page.
+		await page.goto(`/events/${otherEventId}/admin/edit`);
+		await expect(page).toHaveURL(`/events/${otherEventId}`);
+
+		// And the save action itself still rejects.
+		const result = await postAction(page, `/events/${otherEventId}/admin?/updateEvent`, {
 			name: 'Injected Name',
 			description: '',
 			startDate: '2030-01-01',

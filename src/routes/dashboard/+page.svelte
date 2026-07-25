@@ -257,7 +257,7 @@
 									<Button href={resolve(`/events/${event.id}`)} variant="outline" size="xs"
 										>View</Button
 									>
-									<Button href={resolve(`/events/${event.id}/admin`)} size="xs">Admin</Button>
+									<Button href={resolve(`/events/${event.id}/admin`)} size="xs">Manage</Button>
 								</div>
 							</div>
 						{/each}

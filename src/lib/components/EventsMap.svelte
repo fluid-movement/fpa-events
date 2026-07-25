@@ -64,7 +64,14 @@
 				shadowUrl: new URL('leaflet/dist/images/marker-shadow.png', import.meta.url).href
 			});
 
-			const map = L.map(mapContainer, { zoomControl: true });
+			// Start with dragging off on touch devices. Leaflet only adds the
+			// `leaflet-touch-drag` class (and its `touch-action: none`) while dragging is
+			// enabled, and browsers latch `touch-action` at gesture start — so enabling it
+			// here would swallow the very first one-finger swipe after load: the map
+			// wouldn't pan and the page wouldn't scroll. The touchstart handler below
+			// enables it as soon as a second finger lands.
+			const isTouch = 'ontouchstart' in window;
+			const map = L.map(mapContainer, { zoomControl: true, dragging: !isTouch });
 
 			L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 				attribution:
@@ -104,7 +111,7 @@
 			mapInstance = map;
 
 			// Allow the page to scroll on touch devices — two fingers to pan the map
-			if ('ontouchstart' in window) {
+			if (isTouch) {
 				const container = map.getContainer();
 				let twoFingers = false;
 

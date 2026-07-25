@@ -9,6 +9,7 @@ import { findOrCreateEventLocation } from '$lib/server/db/eventLocations';
 import { deleteImage } from '$lib/server/r2';
 import { requireEventManager } from '$lib/server/authz';
 import { verifyTurnstile } from '$lib/server/turnstile';
+import { sanitizeRichText } from '$lib/utils/html';
 
 const updateEventSchema = v.object({
 	name: v.pipe(v.string(), v.minLength(1), v.maxLength(100)),
@@ -27,6 +28,8 @@ const updateEventSchema = v.object({
 });
 
 export const getEvent = query(v.string(), async (id) => {
+	await requireEventManager(id);
+
 	const [event] = await db
 		.select({
 			id: events.id,
@@ -52,7 +55,9 @@ export const getEvent = query(v.string(), async (id) => {
 	return {
 		id: event.id,
 		name: event.name,
-		description: event.description || '',
+		// Sanitized here because the manage area renders it as HTML: a co-organizer
+		// could otherwise store markup that executes for the owner.
+		description: event.description ? sanitizeRichText(event.description) : '',
 		startDate: event.startDate.toISOString().slice(0, 10),
 		endDate: event.endDate.toISOString().slice(0, 10),
 		location: event.location || '',
@@ -110,5 +115,6 @@ export const updateEvent = form(updateEventSchema, async (data) => {
 		.where(eq(events.id, eventId));
 
 	await getEvent(eventId).refresh();
-	redirect(303, resolve(`/events/${eventId}`));
+	// Back to the read-only record, which is the manage area's index route.
+	redirect(303, resolve(`/events/${eventId}/admin`));
 });

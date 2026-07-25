@@ -11,7 +11,9 @@ import { legacyPool, targetPool, requireEnv } from './db';
 import { Report } from './report';
 import { loadLocationMap } from './locations';
 
-const dryRun = process.argv.includes('--dry-run');
+// Also honor `npm run migrate --dry-run` (without the `--` separator): npm
+// swallows the flag itself but records it as npm_config_dry_run.
+const dryRun = process.argv.includes('--dry-run') || process.env.npm_config_dry_run === 'true';
 
 // Reverse FK order: children before parents.
 const WIPE_ORDER = [
@@ -31,7 +33,6 @@ interface LegacyUser {
 	id: string;
 	name: string;
 	email: string;
-	email_verified: boolean;
 	password: string | null;
 	role: string;
 	created_at: string;
@@ -85,17 +86,19 @@ interface LegacySchedule {
 
 async function migrateUsers(legacy: pg.Pool, target: pg.PoolClient, report: Report): Promise<void> {
 	const { rows } = await legacy.query<LegacyUser>(
-		`SELECT id, name, email, email_verified_at IS NOT NULL AS email_verified,
-		        password, role, created_at::text, updated_at::text
+		`SELECT id, name, email, password, role, created_at::text, updated_at::text
 		 FROM users ORDER BY id`
 	);
 
 	let accounts = 0;
 	for (const u of rows) {
+		// All migrated users are marked verified: the legacy app never used
+		// email verification (email_verified_at is NULL for everyone), and
+		// these are established accounts — don't lock them out at cutover.
 		await target.query(
 			`INSERT INTO "user" (id, name, email, email_verified, image, role, calendar_token, created_at, updated_at)
-			 VALUES ($1, $2, $3, $4, NULL, $5, NULL, $6::timestamp, $7::timestamp)`,
-			[u.id, u.name, u.email, u.email_verified, u.role, u.created_at, u.updated_at]
+			 VALUES ($1, $2, $3, TRUE, NULL, $4, NULL, $5::timestamp, $6::timestamp)`,
+			[u.id, u.name, u.email, u.role, u.created_at, u.updated_at]
 		);
 		if (u.password) {
 			await target.query(
@@ -245,34 +248,42 @@ async function migrateSchedules(
 	// reuses schedule_locations across a single event's schedule items.
 	const venueIds = new Map<string, number>();
 	let venues = 0;
-	let textOnly = 0;
+	let nameOnly = 0;
 
 	for (const s of rows) {
 		const locationText = s.location?.trim() || null;
 		const hasCoords = s.latitude !== null && s.longitude !== null;
 		let locationId: number | null = null;
-		let description = s.description;
+		const description = s.description;
 
-		if (hasCoords) {
-			const name = locationText ?? 'Venue';
-			const key = `${s.event_id}|${name}|${s.latitude}|${s.longitude}`;
+		if (locationText) {
+			// schedule_locations.latitude/longitude are nullable, so a legacy row with
+			// only a location name still becomes a first-class venue rather than being
+			// flattened into the description.
+			const name = locationText;
+			const key = hasCoords
+				? `${s.event_id}|${name}|${s.latitude}|${s.longitude}`
+				: `${s.event_id}|${name}`;
 			let id = venueIds.get(key);
 			if (id === undefined) {
 				const { rows: inserted } = await target.query<{ id: number }>(
 					`INSERT INTO schedule_locations (event_id, name, address, latitude, longitude, created_at)
 					 VALUES ($1, $2, $3, $4, $5, $6::timestamp) RETURNING id`,
-					[s.event_id, name, locationText, s.latitude, s.longitude, s.created_at]
+					[
+						s.event_id,
+						name,
+						hasCoords ? locationText : null,
+						hasCoords ? s.latitude : null,
+						hasCoords ? s.longitude : null,
+						s.created_at
+					]
 				);
 				id = inserted[0].id;
 				venueIds.set(key, id);
 				venues++;
+				if (!hasCoords) nameOnly++;
 			}
 			locationId = id;
-		} else if (locationText) {
-			// No coordinates to build a schedule_locations row from — keep the
-			// text in the description so nothing is lost.
-			description = description ? `${description}\n\n📍 ${locationText}` : `📍 ${locationText}`;
-			textOnly++;
 		}
 
 		await target.query(
@@ -294,9 +305,9 @@ async function migrateSchedules(
 
 	report.count('schedules', rows.length, rows.length);
 	report.count('schedule_locations', venues, venues);
-	if (textOnly > 0) {
-		report.warn(
-			`${textOnly} schedule(s) had a text-only location (no coordinates) — text appended to their description.`
+	if (nameOnly > 0) {
+		report.note(
+			`${nameOnly} venue(s) had no coordinates — migrated as name-only locations.`
 		);
 	}
 }

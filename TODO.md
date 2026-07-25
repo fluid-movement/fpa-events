@@ -1,2 +1,0 @@
-- the map on the homepage needs to not move when one touch event on mobile occurs on it. i think usually maps on mobile are moved with two fingers? scrolling is awkward otherwise
-- 

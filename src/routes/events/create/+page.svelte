@@ -59,7 +59,7 @@
 					{:else}
 						<p class="text-sm text-muted-foreground">Select a date range</p>
 					{/if}
-					<RangeCalendar bind:value={dateRange} class="rounded-md border w-fit" />
+					<RangeCalendar bind:value={dateRange} class="rounded-md border" />
 					<input type="hidden" name="startDate" value={dateRange.start?.toString() ?? ''} />
 					<input type="hidden" name="endDate" value={dateRange.end?.toString() ?? ''} />
 				</Field.Field>

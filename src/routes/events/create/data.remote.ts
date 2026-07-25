@@ -65,5 +65,7 @@ export const createEvent = form(createEventSchema, async (data) => {
 	await db.insert(events).values(insertData);
 	await db.insert(eventUser).values({ eventId, userId, status: 'organizing' });
 
-	redirect(303, resolve(`/events/${eventId}`));
+	// Land the new organizer in the manage area, not the public page — it's where the
+	// remaining setup steps live.
+	redirect(303, resolve(`/events/${eventId}/admin`));
 });

@@ -9,6 +9,9 @@ export const user = pgTable('user', {
 	image: text('image'),
 	role: text('role', { enum: ['user', 'admin'] }).default('user').notNull(),
 	calendarToken: text('calendar_token').unique(),
+	// Whether this user's name may be shown publicly in event attendee lists.
+	// Opting out still counts them towards the attendee total.
+	showAttendance: boolean('show_attendance').default(true).notNull(),
 	createdAt: timestamp('created_at', { mode: 'date' })
 		.default(sql`now()`)
 		.notNull(),
@@ -111,8 +114,9 @@ export const scheduleLocations = pgTable('schedule_locations', {
 		.references(() => events.id, { onDelete: 'cascade' }),
 	name: text('name').notNull(),
 	address: text('address'),
-	latitude: real('latitude').notNull(),
-	longitude: real('longitude').notNull(),
+	// Nullable: a venue can be a plain name with no position on the map.
+	latitude: real('latitude'),
+	longitude: real('longitude'),
 	createdAt: timestamp('created_at', { mode: 'date' })
 		.notNull()
 		.default(sql`now()`)

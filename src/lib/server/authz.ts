@@ -1,7 +1,7 @@
 import { getRequestEvent } from '$app/server';
 import { db } from '$lib/server/db';
-import { events } from '$lib/server/db/schema';
-import { eq } from 'drizzle-orm';
+import { events, eventUser } from '$lib/server/db/schema';
+import { and, eq } from 'drizzle-orm';
 
 type SessionUser = NonNullable<App.Locals['user']>;
 
@@ -18,7 +18,13 @@ export function requireUser(): { user: SessionUser; role: 'user' | 'admin' } {
 	return { user: locals.user, role: locals.role ?? 'user' };
 }
 
-/** Whether the given user may manage (edit/administer) the event: owner or site admin. */
+/**
+ * Whether the given user owns the event outright: the creator or a site admin.
+ *
+ * This is the *owner-level* check, reserved for destructive actions (deleting the
+ * event). For everyday management use `canManageEvent`, which also admits
+ * co-organizers.
+ */
 export function isEventManager(
 	event: { userId: string },
 	userId: string,
@@ -27,14 +33,55 @@ export function isEventManager(
 	return event.userId === userId || role === 'admin';
 }
 
+/** Whether the user holds an accepted co-organizer seat on the event. */
+export async function isEventCoOrganizer(eventId: string, userId: string): Promise<boolean> {
+	const [row] = await db
+		.select({ id: eventUser.id })
+		.from(eventUser)
+		.where(
+			and(
+				eq(eventUser.eventId, eventId),
+				eq(eventUser.userId, userId),
+				eq(eventUser.status, 'organizing')
+			)
+		)
+		.limit(1);
+	return !!row;
+}
+
 /**
- * Require that the current user may manage the given event (owner or admin).
- * Loads and returns the event row.
+ * Whether the given user may manage the event: owner, site admin, or a
+ * co-organizer who accepted a magic-link invite.
+ */
+export async function canManageEvent(
+	event: { id: string; userId: string },
+	userId: string,
+	role: 'user' | 'admin' | undefined
+): Promise<boolean> {
+	if (isEventManager(event, userId, role)) return true;
+	return isEventCoOrganizer(event.id, userId);
+}
+
+/**
+ * Require that the current user may manage the given event (owner, site admin, or
+ * co-organizer). Loads and returns the event row.
  *
  * Throws `Error('Unauthorized')` (not logged in), `Error('Event not found')` (no such
  * event), or `Error('Forbidden')` (logged in but not a manager).
  */
 export async function requireEventManager(eventId: string) {
+	const { user, role } = requireUser();
+	const [event] = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
+	if (!event) throw new Error('Event not found');
+	if (!(await canManageEvent(event, user.id, role))) throw new Error('Forbidden');
+	return event;
+}
+
+/**
+ * Require that the current user owns the given event (creator or site admin).
+ * Use for destructive actions that co-organizers must not perform.
+ */
+export async function requireEventOwner(eventId: string) {
 	const { user, role } = requireUser();
 	const [event] = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
 	if (!event) throw new Error('Event not found');

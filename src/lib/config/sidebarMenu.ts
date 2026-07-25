@@ -1,5 +1,6 @@
 import type { Component } from 'svelte';
-import type { Pathname } from '$app/types';
+import type { ResolvedPathname } from '$app/types';
+import { resolve } from '$app/paths';
 import { page } from '$app/state';
 import { House, Calendar, CircleUserRound, Heart, ClipboardList, Settings, Podium } from '@lucide/svelte/icons';
 
@@ -10,7 +11,12 @@ export type MenuGroup = {
 
 export type MenuItem = {
 	label: string;
-	url: Pathname;
+	/**
+	 * Resolved at the definition site below rather than at render time: `resolve`
+	 * is overloaded per route, and passing the whole `Pathname` union through it
+	 * from inside a loop no longer typechecks as the route table grows.
+	 */
+	url: ResolvedPathname;
 	icon: Component;
 };
 
@@ -19,17 +25,17 @@ export const menuGroups: MenuGroup[] = [
 		items: [
 			{
 				label: 'Home',
-				url: '/',
+				url: resolve('/'),
 				icon: House
 			},
 			{
 				label: 'Event Calendar',
-				url: '/events',
+				url: resolve('/events'),
 				icon: Calendar
 			},
 			{
 				label: 'Rankings',
-				url: '/rankings',
+				url: resolve('/rankings'),
 				icon: Podium
 			}
 		]
@@ -39,29 +45,29 @@ export const menuGroups: MenuGroup[] = [
 		items: [
 			{
 				label: 'My Dashboard',
-				url: '/dashboard',
+				url: resolve('/dashboard'),
 				icon: CircleUserRound
 			},
 			{
 				label: 'Attending',
-				url: '/attending',
+				url: resolve('/attending'),
 				icon: Heart
 			},
 			{
 				label: 'Organizing',
-				url: '/organizing',
+				url: resolve('/organizing'),
 				icon: ClipboardList
 			},
 			{
 				label: 'Settings',
-				url: '/settings/profile',
+				url: resolve('/settings/profile'),
 				icon: Settings
 			}
 		]
 	}
 ];
 
-export const routeActive = (url: Pathname, pathname = page.url.pathname): boolean => {
+export const routeActive = (url: ResolvedPathname, pathname = page.url.pathname): boolean => {
 	if (url === '/') {
 		return pathname === '/';
 	}

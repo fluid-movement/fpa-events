@@ -41,18 +41,32 @@ export const load = (async ({ params, locals }) => {
 					.from(eventUser)
 					.where(and(eq(eventUser.eventId, params.id), eq(eventUser.userId, locals.user.id)))
 			: Promise.resolve([]),
+		// Named lists exclude users who opted out of being shown publicly. The count
+		// above still includes them, so they roll into the "and N others" remainder.
 		db
 			.select({ name: user.name, image: user.image })
 			.from(eventUser)
 			.innerJoin(user, eq(eventUser.userId, user.id))
-			.where(and(eq(eventUser.eventId, params.id), eq(eventUser.status, 'attending')))
+			.where(
+				and(
+					eq(eventUser.eventId, params.id),
+					eq(eventUser.status, 'attending'),
+					eq(user.showAttendance, true)
+				)
+			)
 			.orderBy(asc(eventUser.createdAt))
 			.limit(ATTENDEE_PEEK_LIMIT),
 		db
 			.select({ name: user.name, image: user.image })
 			.from(eventUser)
 			.innerJoin(user, eq(eventUser.userId, user.id))
-			.where(and(eq(eventUser.eventId, params.id), eq(eventUser.status, 'attending')))
+			.where(
+				and(
+					eq(eventUser.eventId, params.id),
+					eq(eventUser.status, 'attending'),
+					eq(user.showAttendance, true)
+				)
+			)
 			.orderBy(asc(eventUser.createdAt))
 	]);
 

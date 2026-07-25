@@ -2,7 +2,7 @@ import { db } from '$lib/server/db';
 import { events, eventUser } from '$lib/server/db/schema';
 import { resolve } from '$app/paths';
 import { redirect, type ServerLoadEvent } from '@sveltejs/kit';
-import { eq, and, asc, desc, lte, gt, count } from 'drizzle-orm';
+import { eq, and, asc, desc, lte, gt, count, inArray, or } from 'drizzle-orm';
 import { ensureCalendarToken } from '$lib/server/utils/calendar';
 
 export const load = async ({ locals }: ServerLoadEvent) => {
@@ -11,6 +11,12 @@ export const load = async ({ locals }: ServerLoadEvent) => {
 	}
 
 	const now = new Date();
+
+	// Events the user co-organizes via an accepted magic-link invite.
+	const coOrganizingEventIds = db
+		.select({ eventId: eventUser.eventId })
+		.from(eventUser)
+		.where(and(eq(eventUser.userId, locals.user.id), eq(eventUser.status, 'organizing')));
 
 	const [attendingUpcoming, attendingPast, calendarToken, allOrganizing] = await Promise.all([
 		db
@@ -38,7 +44,13 @@ export const load = async ({ locals }: ServerLoadEvent) => {
 			)
 			.orderBy(desc(events.startDate)),
 		ensureCalendarToken(locals.user.id),
-		db.select().from(events).where(eq(events.userId, locals.user.id)).orderBy(asc(events.startDate))
+		db
+			.select()
+			.from(events)
+			.where(
+				or(eq(events.userId, locals.user.id), inArray(events.id, coOrganizingEventIds))
+			)
+			.orderBy(asc(events.startDate))
 	]);
 
 	const organizingUpcoming = allOrganizing.filter((e) => e.startDate >= now);

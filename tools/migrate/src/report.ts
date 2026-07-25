@@ -7,6 +7,7 @@ interface CountRow {
 export class Report {
 	private counts: CountRow[] = [];
 	private warnings: string[] = [];
+	private notes: string[] = [];
 
 	count(table: string, source: number, migrated: number): void {
 		this.counts.push({ table, source, migrated });
@@ -14,6 +15,11 @@ export class Report {
 
 	warn(message: string): void {
 		this.warnings.push(message);
+	}
+
+	/** Informational — something worth knowing that is not a problem. */
+	note(message: string): void {
+		this.notes.push(message);
 	}
 
 	print(): void {
@@ -25,6 +31,10 @@ export class Report {
 			console.log(
 				`${c.table.padEnd(width)}  ${String(c.source).padStart(6)}  ${String(c.migrated).padStart(8)}${flag}`
 			);
+		}
+		if (this.notes.length > 0) {
+			console.log('');
+			for (const n of this.notes) console.log(`  ℹ ${n}`);
 		}
 		if (this.warnings.length > 0) {
 			console.log(`\n${this.warnings.length} warning(s):`);
