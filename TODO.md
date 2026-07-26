@@ -24,3 +24,6 @@ stack trace pointed at minified bundle chunks rather than source.
       - Self-hosted GlitchTip (Sentry-API-compatible, available as a Coolify one-click
         service) — keeps data on the Hetzner box, costs another container plus its
         Postgres to maintain.
+
+## UI
+- make event date picker look better, better UX

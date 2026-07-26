@@ -3,6 +3,9 @@
 	import { page } from '$app/state';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
+	import { tabsListVariants, tabsTriggerVariants } from '$lib/components/ui/tabs';
+	import { tabIndicator } from '$lib/actions/tab-indicator';
+	import { cn } from '$lib/utils';
 	import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
 	import MapPinIcon from '@lucide/svelte/icons/map-pin';
@@ -127,17 +130,22 @@
 
 	<!-- Four labels with counts overflow a phone, so the bar scrolls and bleeds to
 	     the screen edge on mobile. -->
-	<div class="-mx-4 mb-6 overflow-x-auto px-4 pb-1 md:mx-0 md:px-0">
-		<nav class="flex w-max gap-1 rounded-lg border bg-muted/40 p-1" aria-label="Manage event">
+	<div class="-mx-4 mb-6 overflow-x-auto px-4 pt-1 pb-3 md:mx-0 md:px-0">
+		<nav
+			class={cn(tabsListVariants(), 'w-max')}
+			data-orientation="horizontal"
+			aria-label="Manage event"
+			use:tabIndicator
+		>
+			<span class="tab-indicator" data-tab-indicator aria-hidden="true"></span>
 			{#each tabs as tab (tab.href)}
 				{@const active = isActive(tab.match)}
 				<a
 					href={tab.href}
 					aria-current={active ? 'page' : undefined}
+					data-state={active ? 'active' : 'inactive'}
 					data-testid="manage-tab-{tab.testid}"
-					class="rounded-md px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors {active
-						? 'bg-background text-foreground shadow-sm'
-						: 'text-muted-foreground hover:text-foreground'}"
+					class={tabsTriggerVariants()}
 				>
 					{tab.label}
 				</a>

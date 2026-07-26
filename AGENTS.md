@@ -24,10 +24,28 @@ This is a private repository without branch protection enabled. Commits go direc
 
 ## Testing
 
-**Write tests as part of implementation** — every feature ships with tests, not after.
+**Test what can break, not what can render.** There is no test-per-component rule — a test needs a reason to exist, and "this component is new" is not one. Tests that only prove a component renders the props it was handed cost maintenance and catch nothing.
 
-- **Unit tests** (Vitest): pure functions, utility logic, component rendering. Lives in `src/**/*.test.ts` alongside the code it tests.
-- **Integration tests** (Playwright): user-visible behavior — form submissions, page navigation, DB state. Lives in `tests/integration/`.
+Write a test when one of these applies:
+
+- **Logic that can be wrong**: pure functions, formatting, grouping, filtering, ranking and points math.
+- **Rules that must hold**: authorization, ownership, privacy visibility, email verification, password hashing and legacy migration.
+- **Hand-written interaction logic**: keyboard navigation, upload success/failure handling, dismissal that persists.
+- **Destructive or hard-to-undo flows**: deleting an event, magic-link invites, role changes.
+- **A bug we actually hit** — the regression is the reason.
+
+Do not write a test for:
+
+- shadcn/bits-ui wrappers in `src/lib/components/ui/` — they are vendored primitives, not our logic.
+- Presentational components that just display what they are given.
+- Styling, layout, animation, or anything else cosmetic.
+- "Renders without throwing" / "renders the name it was passed" smoke tests.
+- Behaviour already covered a level down — don't re-test date formatting through a card that calls the formatter.
+
+Kinds:
+
+- **Unit tests** (Vitest): pure functions, server helpers, and components with real interaction logic of our own. Lives in `src/**/*.test.ts` alongside the code it tests.
+- **Integration tests** (Playwright): user-visible behavior across the stack — form submissions, page navigation, DB state. Lives in `tests/integration/`. These cost a browser and seconds each, so keep them for flows that matter, not for dev-only tooling.
 
 **Test selectors**: use `data-testid` attributes on interactive elements that tests need to target, especially where role-based selectors would be ambiguous (e.g., sidebar nav vs. page content).
 

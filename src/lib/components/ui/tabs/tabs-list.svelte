@@ -1,34 +1,39 @@
 <script lang="ts" module>
-	import { tv, type VariantProps } from "tailwind-variants";
+	import { tv, type VariantProps } from 'tailwind-variants';
 
 	export const tabsListVariants = tv({
-		base: "rounded-lg p-1 group-data-horizontal/tabs:h-8 data-[variant=line]:rounded-none group/tabs-list text-muted-foreground inline-flex w-fit items-center justify-center group-data-[orientation=vertical]/tabs:h-fit group-data-[orientation=vertical]/tabs:flex-col",
+		base: 'tabs-track group/tabs-list text-muted-foreground relative isolate inline-flex w-fit items-center justify-center rounded-xl p-1 group-data-[orientation=vertical]/tabs:h-fit group-data-[orientation=vertical]/tabs:flex-col group-data-[orientation=vertical]/tabs:items-stretch',
 		variants: {
 			variant: {
-				default: "cn-tabs-list-variant-default bg-muted",
-				line: "cn-tabs-list-variant-line gap-1 bg-transparent",
-			},
+				default: '',
+				line: 'gap-1 rounded-none p-0'
+			}
 		},
 		defaultVariants: {
-			variant: "default",
-		},
+			variant: 'default'
+		}
 	});
 
-	export type TabsListVariant = VariantProps<typeof tabsListVariants>["variant"];
+	export type TabsListVariant = VariantProps<typeof tabsListVariants>['variant'];
 </script>
 
 <script lang="ts">
-	import { Tabs as TabsPrimitive } from "bits-ui";
-	import { cn } from "$lib/utils.js";
+	import { Tabs as TabsPrimitive } from 'bits-ui';
+	import { cn } from '$lib/utils.js';
+	import { tabIndicator } from '$lib/actions/tab-indicator';
 
 	let {
 		ref = $bindable(null),
-		variant = "default",
+		variant = 'default',
 		class: className,
+		children,
 		...restProps
 	}: TabsPrimitive.ListProps & {
 		variant?: TabsListVariant;
 	} = $props();
+
+	// The list renders through a component, so the action is wired up by hand.
+	$effect(() => (ref ? tabIndicator(ref).destroy : undefined));
 </script>
 
 <TabsPrimitive.List
@@ -37,4 +42,7 @@
 	data-variant={variant}
 	class={cn(tabsListVariants({ variant }), className)}
 	{...restProps}
-/>
+>
+	<span class="tab-indicator" data-tab-indicator aria-hidden="true"></span>
+	{@render children?.()}
+</TabsPrimitive.List>
