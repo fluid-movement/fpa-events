@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
+	import EmptyState from '$lib/components/layout/EmptyState.svelte';
+	import CloudOffIcon from '@lucide/svelte/icons/cloud-off';
 	import { dev } from '$app/environment';
 
 	interface Props {
@@ -10,21 +12,20 @@
 	let { message }: Props = $props();
 </script>
 
-<div class="rounded-lg border border-dashed p-8 text-center" data-testid="rankings-unavailable">
-	<p class="font-medium">Rankings are temporarily unavailable</p>
-	<p class="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-		The rankings service could not be reached. This is usually brief — the data comes from a
-		separate system that refreshes on a schedule.
-	</p>
-	<Button
-		class="mt-4"
-		variant="outline"
-		data-testid="rankings-retry"
-		onclick={() => location.reload()}
+<div class="rounded-xl border border-dashed" data-testid="rankings-unavailable">
+	<EmptyState
+		icon={CloudOffIcon}
+		title="Rankings are temporarily unavailable"
+		description="The rankings service could not be reached. This is usually brief — the data comes from a separate system that refreshes on a schedule."
 	>
-		Try again
-	</Button>
+		{#snippet action()}
+			<Button variant="outline" data-testid="rankings-retry" onclick={() => location.reload()}>
+				Try again
+			</Button>
+		{/snippet}
+	</EmptyState>
 	{#if dev && message}
-		<pre class="mt-4 overflow-x-auto text-left text-xs text-muted-foreground">{message}</pre>
+		<pre
+			class="mx-4 mb-4 overflow-x-auto rounded-md bg-muted/50 p-3 text-left text-xs text-muted-foreground">{message}</pre>
 	{/if}
 </div>

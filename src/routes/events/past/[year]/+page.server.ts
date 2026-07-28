@@ -33,10 +33,7 @@ export const load = (async ({ params, locals }) => {
 				attendeeCount: count(eventUser.id)
 			})
 			.from(events)
-			.leftJoin(
-				eventUser,
-				and(eq(eventUser.eventId, events.id), eq(eventUser.status, 'attending'))
-			)
+			.leftJoin(eventUser, and(eq(eventUser.eventId, events.id), eq(eventUser.status, 'attending')))
 			.where(and(gte(events.startDate, yearStart), lt(events.startDate, yearEnd)))
 			.groupBy(events.id)
 			.orderBy(asc(events.startDate)),
@@ -59,6 +56,8 @@ export const load = (async ({ params, locals }) => {
 	}));
 
 	return {
+		// Drives the mobile top bar (see $lib/config/pageTitle).
+		title: `Past events ${year}`,
 		eventsByMonth: groupEventsByMonth(eventsWithStatus),
 		archiveYears,
 		year

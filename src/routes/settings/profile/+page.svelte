@@ -1,29 +1,30 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
+	import * as Field from '$lib/components/ui/field';
+	import FormStatus from '$lib/components/layout/FormStatus.svelte';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
 </script>
 
-<form method="POST" class="space-y-4">
-	<div class="grid gap-2">
-		<Label for="name">Name</Label>
-		<Input id="name" name="name" type="text" required value={data.name} />
-	</div>
-	<div class="grid gap-2">
-		<Label for="email">Email</Label>
-		<Input id="email" type="email" value={data.email} disabled />
-		<p class="text-xs text-muted-foreground">Email cannot be changed here.</p>
-	</div>
+<form method="POST">
+	<Field.Group>
+		<Field.Field>
+			<Field.Label for="name">Name</Field.Label>
+			<Input id="name" name="name" type="text" required value={data.name} />
+		</Field.Field>
 
-	{#if form?.error}
-		<p class="text-sm text-destructive">{form.error}</p>
-	{/if}
-	{#if form?.success}
-		<p class="text-sm text-green-600">Profile updated.</p>
-	{/if}
+		<Field.Field>
+			<Field.Label for="email">Email</Field.Label>
+			<Input id="email" type="email" value={data.email} disabled />
+			<Field.Description>Email cannot be changed here.</Field.Description>
+		</Field.Field>
 
-	<Button type="submit">Save</Button>
+		<FormStatus error={form?.error} success={form?.success ? 'Profile updated.' : null} />
+
+		<Field.Field orientation="horizontal">
+			<Button type="submit">Save changes</Button>
+		</Field.Field>
+	</Field.Group>
 </form>

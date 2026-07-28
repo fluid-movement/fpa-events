@@ -34,7 +34,9 @@ export const actions: Actions = {
 
 		if (!res.ok) {
 			const body = await res.json().catch(() => ({}));
-			return fail(res.status, { error: (body as { message?: string }).message ?? 'Failed to update profile.' });
+			return fail(res.status, {
+				error: (body as { message?: string }).message ?? 'Failed to update profile.'
+			});
 		}
 
 		return { success: true };

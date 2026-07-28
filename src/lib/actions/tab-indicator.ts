@@ -58,7 +58,17 @@ export function tabIndicator(node: HTMLElement) {
 		}
 	};
 
-	const observer = new MutationObserver(measure);
+	let alive = true;
+
+	// Every entry point goes through this: observers and the font promise can all
+	// fire after the tab bar has been torn down by a navigation, and measuring a
+	// detached node yields zeroes that would park the indicator in the corner.
+	const safeMeasure = () => {
+		if (!alive || !node.isConnected) return;
+		measure();
+	};
+
+	const observer = new MutationObserver(safeMeasure);
 	observer.observe(node, {
 		attributes: true,
 		attributeFilter: ['data-state', 'aria-current', 'data-variant', 'data-orientation'],
@@ -68,15 +78,17 @@ export function tabIndicator(node: HTMLElement) {
 
 	// Fires once on observe, which is what places the indicator initially.
 	const resize =
-		typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(() => measure());
+		typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(safeMeasure);
 	resize?.observe(node);
-	if (!resize) measure();
+	if (!resize) safeMeasure();
 
-	// Labels reflow once the webfont lands, which moves the tab boundaries.
-	document.fonts?.ready.then(measure);
+	// Labels reflow once the webfont lands, which moves the tab boundaries. This
+	// promise can't be cancelled, so the `alive` flag is what stops it.
+	document.fonts?.ready.then(safeMeasure);
 
 	return {
 		destroy() {
+			alive = false;
 			observer.disconnect();
 			resize?.disconnect();
 		}

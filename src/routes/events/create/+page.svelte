@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import EventLocationInput from '$lib/components/EventLocationInput.svelte';
@@ -7,6 +8,8 @@
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
 	import ImageUpload from '$lib/components/ImageUpload.svelte';
 	import Turnstile, { captchaEnabled } from '$lib/components/Turnstile.svelte';
+	import PageShell from '$lib/components/layout/PageShell.svelte';
+	import PageHeader from '$lib/components/layout/PageHeader.svelte';
 	import type { DateValue } from '@internationalized/date';
 
 	import { createEvent } from './data.remote';
@@ -18,14 +21,15 @@
 	let token = $state('');
 </script>
 
-<div class="w-full max-w-2xl">
+<PageShell width="form">
+	<PageHeader
+		title="Create an event"
+		description="Tell people what's happening, where and when. You can change any of it later."
+		back={{ href: resolve('/events'), label: 'All events' }}
+	/>
+
 	<form {...createEvent}>
 		<Field.Group>
-			<Field.Set>
-				<Field.Legend>Create a new event</Field.Legend>
-				<Field.Description>more information about creating events</Field.Description>
-			</Field.Set>
-			<Field.Separator />
 			<Field.Group>
 				<Field.Field>
 					<Field.Label for="event-name">Event name</Field.Label>
@@ -68,8 +72,10 @@
 			<Turnstile bind:token />
 			<input type="hidden" name="turnstileToken" value={token} />
 			<Field.Field orientation="horizontal">
-				<Button type="submit" disabled={captchaEnabled && !token}>Create Event</Button>
+				<Button type="submit" disabled={(captchaEnabled && !token) || createEvent.pending > 0}>
+					{createEvent.pending > 0 ? 'Creating event…' : 'Create event'}
+				</Button>
 			</Field.Field>
 		</Field.Group>
 	</form>
-</div>
+</PageShell>

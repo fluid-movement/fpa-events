@@ -55,15 +55,14 @@ export interface SeriesLists {
 }
 
 /** Available ranking and rating series, for the division switcher. */
-export const getSeries = query(
-	async (): Promise<ApiResult<SeriesLists>> =>
-		attempt(async () => {
-			const [rankings, ratings] = await Promise.all([
-				fpaApiGet<{ series: SeriesRef[] }>('/rankings/series'),
-				fpaApiGet<{ series: SeriesRef[] }>('/ratings/series')
-			]);
-			return { rankings: rankings.series, ratings: ratings.series };
-		})
+export const getSeries = query(async (): Promise<ApiResult<SeriesLists>> =>
+	attempt(async () => {
+		const [rankings, ratings] = await Promise.all([
+			fpaApiGet<{ series: SeriesRef[] }>('/rankings/series'),
+			fpaApiGet<{ series: SeriesRef[] }>('/ratings/series')
+		]);
+		return { rankings: rankings.series, ratings: ratings.series };
+	})
 );
 
 /**

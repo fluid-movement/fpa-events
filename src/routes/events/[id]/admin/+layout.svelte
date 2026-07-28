@@ -3,14 +3,14 @@
 	import { page } from '$app/state';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
-	import { tabsListVariants, tabsTriggerVariants } from '$lib/components/ui/tabs';
-	import { tabIndicator } from '$lib/actions/tab-indicator';
-	import { cn } from '$lib/utils';
-	import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
+	import PageShell from '$lib/components/layout/PageShell.svelte';
+	import PageHeader from '$lib/components/layout/PageHeader.svelte';
+	import SegmentedTabs from '$lib/components/layout/SegmentedTabs.svelte';
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
 	import MapPinIcon from '@lucide/svelte/icons/map-pin';
-	import SetupChecklist from '$lib/components/event-admin/SetupChecklist.svelte';
-	import type { ChecklistItem } from '$lib/components/event-admin/SetupChecklist.svelte';
+	import SetupChecklist from './SetupChecklist.svelte';
+	import type { ChecklistItem } from './SetupChecklist.svelte';
+	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { getEvent } from './event-details.remote';
 	import { listEventLocations } from './schedule/locations.remote';
 	import { formatDateRange } from '$lib/utils/dates';
@@ -48,27 +48,32 @@
 		attendees.filter((a) => a.status === 'organizing' && a.userId !== event.userId)
 	);
 
-	const tabs = $derived([
-		// Details owns the bare /admin URL, so it also covers the edit form.
-		{ label: 'Details', href: base, match: [base, `${base}/edit`], testid: 'details' },
-		{
-			label: `Attendees (${attendees.length})`,
-			href: `${base}/attendees`,
-			match: [`${base}/attendees`],
-			testid: 'attendees'
-		},
-		{
-			label: `Schedule (${scheduleCount})`,
-			href: `${base}/schedule`,
-			match: [`${base}/schedule`],
-			testid: 'schedule'
-		},
-		{ label: 'Invites', href: `${base}/invites`, match: [`${base}/invites`], testid: 'invites' }
-	]);
-
 	// Exact matching, not `startsWith` — /admin is a prefix of every child route,
 	// so a prefix test would light up Details on every tab.
-	const isActive = (match: string[]) => match.includes(page.url.pathname);
+	const tabs = $derived([
+		// Details owns the bare /admin URL, so it also covers the edit form.
+		{ label: 'Details', href: base, match: [base, `${base}/edit`], testid: 'manage-tab-details' },
+		{
+			label: 'Attendees',
+			count: attendees.length,
+			href: `${base}/attendees`,
+			match: [`${base}/attendees`],
+			testid: 'manage-tab-attendees'
+		},
+		{
+			label: 'Schedule',
+			count: scheduleCount,
+			href: `${base}/schedule`,
+			match: [`${base}/schedule`],
+			testid: 'manage-tab-schedule'
+		},
+		{
+			label: 'Invites',
+			href: `${base}/invites`,
+			match: [`${base}/invites`],
+			testid: 'manage-tab-invites'
+		}
+	]);
 
 	const checklistItems = $derived<ChecklistItem[]>([
 		{ label: 'Event details', done: true },
@@ -87,71 +92,74 @@
 	]);
 </script>
 
-<div class="mx-auto max-w-4xl">
-	<div class="mb-4 flex items-center justify-between">
-		<Button href={resolve('/organizing')} variant="ghost" size="sm">
-			<ArrowLeftIcon class="size-4" />
-			Organizing
-		</Button>
-		<Button href={resolve(`/events/${event.id}`)} variant="outline" size="sm">
-			View public page
-		</Button>
-	</div>
+<PageShell width="content">
+	<svelte:boundary>
+		{#snippet pending()}
+			<div class="pb-5 md:pb-6" aria-hidden="true">
+				<Skeleton class="mb-2 h-3.5 w-28" />
+				<div class="flex flex-wrap items-center gap-3">
+					<Skeleton class="h-7 w-56" />
+					<Skeleton class="h-5 w-24 rounded-full" />
+				</div>
+				<div class="mt-2.5 flex flex-wrap gap-4">
+					<Skeleton class="h-4 w-32" />
+					<Skeleton class="h-4 w-28" />
+				</div>
+			</div>
+			<!-- Mirrors SetupChecklist's panel — keep the surface and padding in sync. -->
+			<div class="surface mb-6 rounded-xl p-5" aria-hidden="true">
+				<div class="mb-4 flex items-start justify-between gap-4">
+					<Skeleton class="h-5 w-48" />
+					<Skeleton class="size-7 rounded-md" />
+				</div>
+				<div class="space-y-1">
+					<Skeleton class="h-8 w-full" />
+					<Skeleton class="h-8 w-full" />
+					<Skeleton class="h-8 w-3/4" />
+				</div>
+			</div>
+		{/snippet}
 
-	<div class="space-y-2 pb-5">
-		<p class="text-xs font-medium tracking-widest text-muted-foreground uppercase">Manage event</p>
-		<div class="flex flex-wrap items-center gap-x-3 gap-y-2">
-			<h1 class="text-2xl leading-tight font-bold">{details.name}</h1>
-			<Badge variant="secondary" data-testid="event-status">{eventStatus}</Badge>
-		</div>
-		<!-- Attendee and schedule counts live in the tab labels; repeating them here
-		     was just noise. -->
-		<div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-			<span class="flex items-center gap-1.5">
-				<CalendarIcon class="size-3.5 shrink-0" />
-				{dateRange}
-			</span>
-			{#if details.location}
-				<span class="flex items-center gap-1.5">
-					<MapPinIcon class="size-3.5 shrink-0" />
-					{details.location}
-				</span>
-			{/if}
-		</div>
-	</div>
-
-	<SetupChecklist
-		eventId={event.id}
-		eventName={details.name}
-		items={checklistItems}
-		publicUrl={`${page.url.origin}/events/${event.id}`}
-		isPast={eventStatus === 'Past'}
-	/>
-
-	<!-- Four labels with counts overflow a phone, so the bar scrolls and bleeds to
-	     the screen edge on mobile. -->
-	<div class="-mx-4 mb-6 overflow-x-auto px-4 pt-1 pb-3 md:mx-0 md:px-0">
-		<nav
-			class={cn(tabsListVariants(), 'w-max')}
-			data-orientation="horizontal"
-			aria-label="Manage event"
-			use:tabIndicator
+		<PageHeader
+			title={details.name}
+			eyebrow="Manage event"
+			back={{ href: resolve('/organizing'), label: 'Organizing' }}
+			class="pb-4"
 		>
-			<span class="tab-indicator" data-tab-indicator aria-hidden="true"></span>
-			{#each tabs as tab (tab.href)}
-				{@const active = isActive(tab.match)}
-				<a
-					href={tab.href}
-					aria-current={active ? 'page' : undefined}
-					data-state={active ? 'active' : 'inactive'}
-					data-testid="manage-tab-{tab.testid}"
-					class={tabsTriggerVariants()}
-				>
-					{tab.label}
-				</a>
-			{/each}
-		</nav>
-	</div>
+			{#snippet badge()}
+				<Badge variant="secondary" data-testid="event-status">{eventStatus}</Badge>
+			{/snippet}
+			<!-- Attendee and schedule counts live in the tab labels; repeating them
+			     here was just noise. -->
+			{#snippet meta()}
+				<span class="flex items-center gap-1.5">
+					<CalendarIcon class="size-3.5 shrink-0" />
+					{dateRange}
+				</span>
+				{#if details.location}
+					<span class="flex items-center gap-1.5">
+						<MapPinIcon class="size-3.5 shrink-0" />
+						{details.location}
+					</span>
+				{/if}
+			{/snippet}
+			{#snippet actions()}
+				<Button href={resolve(`/events/${event.id}`)} variant="outline" size="sm">
+					View public page
+				</Button>
+			{/snippet}
+		</PageHeader>
+
+		<SetupChecklist
+			eventId={event.id}
+			eventName={details.name}
+			items={checklistItems}
+			publicUrl={`${page.url.origin}/events/${event.id}`}
+			isPast={eventStatus === 'Past'}
+		/>
+	</svelte:boundary>
+
+	<SegmentedTabs {tabs} current={page.url.pathname} label="Manage event" class="mb-6" />
 
 	{@render children()}
-</div>
+</PageShell>

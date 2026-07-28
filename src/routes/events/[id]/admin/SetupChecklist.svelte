@@ -29,7 +29,10 @@
 	const allDone = $derived(items.every((i) => i.done));
 	const remaining = $derived(items.filter((i) => !i.done).length);
 
-	// Read on the client only, so SSR and the first client render agree.
+	// Read on the client only, so SSR and the first client render agree. Not a
+	// writable $derived: localStorage isn't a reactive source, and reading it
+	// during render would make the server and the first client paint disagree.
+	// eslint-disable-next-line svelte/prefer-writable-derived
 	let dismissed = $state(true);
 	$effect(() => {
 		dismissed = localStorage.getItem(storageKey) === '1';
@@ -51,7 +54,7 @@
 </script>
 
 {#if visible}
-	<div class="mb-6 rounded-lg border bg-card p-5" data-testid="setup-checklist">
+	<div class="surface mb-6 rounded-xl p-5" data-testid="setup-checklist">
 		<div class="mb-4 flex items-start justify-between gap-4">
 			<div class="space-y-1">
 				<h2 class="text-base font-semibold">Finish setting up {eventName}</h2>

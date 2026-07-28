@@ -19,7 +19,7 @@
 	const hasActions = $derived(!!onEdit || !!onDelete);
 </script>
 
-<div class="rounded-lg border bg-card p-4">
+<div class="surface-row rounded-lg p-4">
 	<div class="flex items-start gap-3">
 		<div class="min-w-0 flex-1">
 			<p class="font-semibold">{item.name}</p>
@@ -42,18 +42,18 @@
 		{#if hasActions}
 			<div class="flex shrink-0 items-center gap-1">
 				{#if onEdit}
-					<Button variant="ghost" size="icon" class="size-7" onclick={onEdit}>
+					<Button variant="ghost" size="icon-sm" aria-label="Edit {item.name}" onclick={onEdit}>
 						<PencilIcon class="size-3.5" />
 					</Button>
 				{/if}
 				{#if onDelete}
+					<!-- Confirmation lives in ScheduleList, which owns the delete form. -->
 					<Button
 						variant="ghost"
-						size="icon"
-						class="size-7 text-destructive hover:text-destructive"
-						onclick={() => {
-							if (confirm('Delete this schedule item?')) onDelete!();
-						}}
+						size="icon-sm"
+						class="text-destructive hover:text-destructive"
+						aria-label="Delete {item.name}"
+						onclick={onDelete}
 					>
 						<TrashIcon class="size-3.5" />
 					</Button>

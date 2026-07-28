@@ -22,6 +22,8 @@ This is a private repository without branch protection enabled. Commits go direc
 
 **No `use:enhance`** — remote functions handle progressive enhancement automatically via `{...formAction}` spread on `<form>` elements.
 
+**Submit feedback uses `formAction.pending > 0`** — remote-function-backed forms disable their submit button and swap its label (e.g. "Save changes" → "Saving…") by reading `.pending` off the `form()` result. Forms with no remote function behind them (the auth pages calling `better-auth` client methods directly) use a local `loading` `$state` boolean for the same disable/label-swap instead — both are legitimate; pick whichever's available and never invent a third pattern.
+
 ## Testing
 
 **Test what can break, not what can render.** There is no test-per-component rule — a test needs a reason to exist, and "this component is new" is not one. Tests that only prove a component renders the props it was handed cost maintenance and catch nothing.
@@ -50,6 +52,31 @@ Kinds:
 **Test selectors**: use `data-testid` attributes on interactive elements that tests need to target, especially where role-based selectors would be ambiguous (e.g., sidebar nav vs. page content).
 
 **After remote function calls**: always `await page.waitForLoadState('networkidle')` before asserting UI state, to let the fetch and page data revalidation complete.
+
+**Wait for hydration before the first click too.** Anything driven by an `onclick`, a remote `form()`, or a bits-ui primitive does nothing until the page hydrates — a click sent too early is silently dropped and surfaces later as a flake. `await page.waitForLoadState('networkidle')` after `page.goto()`, not just after submitting.
+
+**Assert database state with `expect.poll`, not a bare read.** A remote call returns before the row is visible to the test's own Postgres connection, so `expect(await getScheduleCount(id)).toBe(1)` races. Use `await expect.poll(() => getScheduleCount(id)).toBe(1)`.
+
+**Deliberate error responses**: a test that drives a request to a 4xx makes the browser log a failed resource, which trips the error guard. Call `expectConsoleErrors(page)` from `tests/integration/helpers/console.ts` in that test rather than widening the guard's `IGNORED` list, which would blind every other test to the same status.
+
+**Destructive identity tests** must not use the shared `storageState` user — deleting it breaks the rest of the run. Use `signUpAndSignIn()` from `tests/integration/helpers/auth.ts` to get a throwaway account.
+
+## Quality gates
+
+Git hooks are the only thing between a commit and a Coolify production deploy — there is no CI. They are bypassable with `--no-verify`, so treat that as a deliberate act.
+
+- **pre-commit** (~20s): `lint-staged` (Prettier + ESLint on staged files only), then `npm run check`, then `npm run test`. Note `npm run lint` is deliberately _not_ used — it runs `prettier --check .` over the whole repo and would fail on files the commit never touched.
+- **pre-push** (~2-4 min): `npm run build`, then `npm run db:migrate:test`, then `npm run test:integration`. The build runs first because a build failure is the likeliest cause of a broken deploy and it fails fastest.
+
+**Integration tests use their own database.** One-time setup:
+
+```
+createdb fpa_events_test && npm run db:reset:test
+```
+
+`.env.test` is committed and holds no secrets; machine-specific overrides go in `.env.test.local`, which stays gitignored. Playwright serves the app on **port 5174** via `npm run dev:test` so it can never attach to a dev server on 5173 that is wired to the dev database. `tests/integration/helpers/db.ts` refuses to run against a database whose name does not contain `test`.
+
+Mailgun, Turnstile and R2 keys are blank in `.env.test` on purpose, which forces each service's dev fallback — in particular, tests sign up users at `@playwright.local`, and a live Mailgun key would attempt real delivery to a domain that does not exist.
 
 **Unauthenticated tests**: use `context.clearCookies()` on the existing Playwright context rather than `browser.newContext()`.
 

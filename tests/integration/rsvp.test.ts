@@ -9,6 +9,9 @@ import {
 	closeDb
 } from './helpers/db';
 import { TEST_USER } from './helpers/constants';
+import { installErrorGuard } from './helpers/console';
+
+installErrorGuard(test);
 
 test.describe('RSVP toggle', () => {
 	let eventId: string;

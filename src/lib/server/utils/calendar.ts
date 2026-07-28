@@ -3,7 +3,10 @@ import { user } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 
 export async function ensureCalendarToken(userId: string): Promise<string> {
-	const [row] = await db.select({ calendarToken: user.calendarToken }).from(user).where(eq(user.id, userId));
+	const [row] = await db
+		.select({ calendarToken: user.calendarToken })
+		.from(user)
+		.where(eq(user.id, userId));
 
 	if (row?.calendarToken) return row.calendarToken;
 

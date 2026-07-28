@@ -2,7 +2,9 @@
 	import { page } from '$app/state';
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 	import { resolve } from '$app/paths';
-	import { Button } from '$lib/components/ui/button';
+	import PageShell from '$lib/components/layout/PageShell.svelte';
+	import PageHeader from '$lib/components/layout/PageHeader.svelte';
+	import SegmentedTabs from '$lib/components/layout/SegmentedTabs.svelte';
 	import RankingsPanel from '$lib/components/rankings/RankingsPanel.svelte';
 	import RatingsPanel from '$lib/components/rankings/RatingsPanel.svelte';
 	import { DEFAULT_MIN_MATCH_COUNT } from '$lib/rankings/types';
@@ -57,44 +59,39 @@
 	/>
 </svelte:head>
 
-<div class="space-y-2 pb-6">
-	<h1>Rankings</h1>
-	<p class="text-muted-foreground">World rankings and ratings from the freestyle judging system.</p>
-</div>
+<PageShell>
+	<PageHeader
+		title="Rankings"
+		description="World rankings and ratings from the freestyle judging system."
+	/>
 
-<div class="mb-8 flex w-full gap-2 rounded-lg border bg-muted/40 p-1.5" data-testid="rankings-tabs">
-	<Button
-		class="flex-1"
-		variant={tab === 'rankings' ? 'default' : 'ghost'}
-		href={rankingsTabHref}
-		data-testid="tab-rankings"
-	>
-		Rankings
-	</Button>
-	<Button
-		class="flex-1"
-		variant={tab === 'ratings' ? 'default' : 'ghost'}
-		href={ratingsTabHref}
-		data-testid="tab-ratings"
-	>
-		Ratings
-	</Button>
-</div>
+	<SegmentedTabs
+		tabs={[
+			{ label: 'Rankings', href: rankingsTabHref, match: ['rankings'], testid: 'tab-rankings' },
+			{ label: 'Ratings', href: ratingsTabHref, match: ['ratings'], testid: 'tab-ratings' }
+		]}
+		current={tab}
+		label="Leaderboard"
+		fill
+		class="mb-6 md:mb-8"
+		data-testid="rankings-tabs"
+	/>
 
-<!--
-	The panels await their data directly rather than sitting behind a
-	`<svelte:boundary>`. Two things ruled the boundary out:
+	<!--
+		The panels await their data directly rather than sitting behind a
+		`<svelte:boundary>`. Two things ruled the boundary out:
 
-	  - A `pending` snippet makes the boundary defer to the client, so the server
-	    ships a skeleton and the standings never appear in the HTML. Blocking on
-	    the ~150 ms API call instead server-renders them — better for search
-	    engines, and visible without JS.
-	  - `failed` never fires for an unreachable API: an error thrown from a
-	    remote function during SSR 500s the request before the boundary sees it.
-	    Unavailability is handled inside the panels instead, as data.
--->
-{#if tab === 'ratings'}
-	<RatingsPanel {minMatchCount} hrefFor={thresholdHref} />
-{:else}
-	<RankingsPanel {series} hrefFor={seriesHref} />
-{/if}
+		  - A `pending` snippet makes the boundary defer to the client, so the server
+		    ships a skeleton and the standings never appear in the HTML. Blocking on
+		    the ~150 ms API call instead server-renders them — better for search
+		    engines, and visible without JS.
+		  - `failed` never fires for an unreachable API: an error thrown from a
+		    remote function during SSR 500s the request before the boundary sees it.
+		    Unavailability is handled inside the panels instead, as data.
+	-->
+	{#if tab === 'ratings'}
+		<RatingsPanel {minMatchCount} hrefFor={thresholdHref} />
+	{:else}
+		<RankingsPanel {series} hrefFor={seriesHref} />
+	{/if}
+</PageShell>

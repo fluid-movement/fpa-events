@@ -51,7 +51,7 @@
 									{#each weekDates as date (date.toString())}
 										<RangeCalendarPrimitive.Cell {date} month={month.value} class="relative p-0">
 											<RangeCalendarPrimitive.Day
-												class="day-btn inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-normal ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-disabled:pointer-events-none data-disabled:opacity-50 data-today:font-semibold data-selected:bg-primary data-selected:text-primary-foreground data-selected:hover:bg-primary data-outside-month:text-muted-foreground data-outside-month:opacity-50"
+												class="day-btn inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-normal ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none data-disabled:pointer-events-none data-disabled:opacity-50 data-outside-month:text-muted-foreground data-outside-month:opacity-50 data-selected:bg-primary data-selected:text-primary-foreground data-selected:hover:bg-primary data-today:font-semibold"
 											/>
 										</RangeCalendarPrimitive.Cell>
 									{/each}

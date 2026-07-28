@@ -13,6 +13,9 @@ import {
 	setUserRole,
 	closeDb
 } from './helpers/db';
+import { installErrorGuard } from './helpers/console';
+
+installErrorGuard(test);
 
 async function signIn(page: Page, context: BrowserContext) {
 	await context.clearCookies();

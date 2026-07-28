@@ -11,6 +11,9 @@ import {
 	setUserRole,
 	closeDb
 } from './helpers/db';
+import { installErrorGuard } from './helpers/console';
+
+installErrorGuard(test);
 
 async function signIn(page: Page, context: BrowserContext) {
 	await context.clearCookies();
@@ -143,7 +146,10 @@ test.describe('admin role — authorization', () => {
 		expect(await getScheduleCount(otherEventId)).toBe(before);
 	});
 
-	test('unauthenticated user gets error and schedule is not inserted', async ({ page, context }) => {
+	test('unauthenticated user gets error and schedule is not inserted', async ({
+		page,
+		context
+	}) => {
 		await context.clearCookies();
 
 		const before = await getScheduleCount(otherEventId);
@@ -204,10 +210,7 @@ test.describe('admin role — authorization', () => {
 
 	// ─── Edge cases ────────────────────────────────────────────────────────────
 
-	test('admin accessing a non-existent event gets a not-found error', async ({
-		page,
-		context
-	}) => {
+	test('admin accessing a non-existent event gets a not-found error', async ({ page, context }) => {
 		await setUserRole(userId, 'admin');
 		await signIn(page, context);
 		await page.goto('/events/totally-fake-event-id-xyz/admin');

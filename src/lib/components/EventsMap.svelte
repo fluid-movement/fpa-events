@@ -36,13 +36,18 @@
 	function buildPopupHtml(group: MapEvent[]): string {
 		return group
 			.map((ev, i) => {
-				const border = i > 0 ? 'border-top:1px solid #e5e7eb;padding-top:8px;margin-top:8px;' : '';
+				// Leaflet builds popups from an HTML string, so these can't be Tailwind
+				// classes — they read the theme tokens directly rather than the
+				// light-theme hexes they used to hard-code.
+				const border =
+					i > 0 ? 'border-top:1px solid var(--border);padding-top:8px;margin-top:8px;' : '';
+				const muted = 'color:var(--muted-foreground);font-size:0.8rem;margin:0 0 4px';
 				return `
 				<div style="${border}">
 					<p style="font-weight:600;margin:0 0 2px">${ev.name}</p>
-					<p style="color:#6b7280;font-size:0.8rem;margin:0 0 4px">${formatDateRange(ev.startDate, ev.endDate)}</p>
-					${ev.location ? `<p style="color:#6b7280;font-size:0.8rem;margin:0 0 4px">${ev.location}</p>` : ''}
-					<a href="${resolve(`/events/${ev.id}`)}" style="color:#2563eb;font-size:0.8rem;text-decoration:none;">View event →</a>
+					<p style="${muted}">${formatDateRange(ev.startDate, ev.endDate)}</p>
+					${ev.location ? `<p style="${muted}">${ev.location}</p>` : ''}
+					<a href="${resolve(`/events/${ev.id}`)}" style="color:var(--primary);font-size:0.8rem;text-decoration:none;">View event →</a>
 				</div>`;
 			})
 			.join('');
@@ -81,7 +86,10 @@
 			// Group events by eventLocationId (or fall back to stringified coords for events without one)
 			const groups = new SvelteMap<string, MapEvent[]>();
 			for (const ev of locatedEvents) {
-				const key = ev.eventLocationId != null ? `loc:${ev.eventLocationId}` : `coord:${ev.latitude},${ev.longitude}`;
+				const key =
+					ev.eventLocationId != null
+						? `loc:${ev.eventLocationId}`
+						: `coord:${ev.latitude},${ev.longitude}`;
 				const existing = groups.get(key);
 				if (existing) existing.push(ev);
 				else groups.set(key, [ev]);
@@ -175,9 +183,12 @@
 
 {#if hasLocatedEvents}
 	<section>
-		<p class="text-sm font-medium text-muted-foreground uppercase tracking-widest mb-4">
-			Where in the World
-		</p>
-		<div bind:this={mapContainer} class="h-96 w-full rounded-lg overflow-hidden border relative z-0"></div>
+		<h2 class="mb-4 text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+			Where in the world
+		</h2>
+		<div
+			bind:this={mapContainer}
+			class="relative z-0 h-72 w-full overflow-hidden rounded-xl border md:h-96"
+		></div>
 	</section>
 {/if}

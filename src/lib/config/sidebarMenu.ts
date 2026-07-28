@@ -2,7 +2,16 @@ import type { Component } from 'svelte';
 import type { ResolvedPathname } from '$app/types';
 import { resolve } from '$app/paths';
 import { page } from '$app/state';
-import { House, Calendar, CircleUserRound, Heart, ClipboardList, Settings, Podium } from '@lucide/svelte/icons';
+// Deep imports, not the `@lucide/svelte/icons` barrel: the barrel drags all
+// ~1200 icon modules into the SSR graph, which times out Vite's module runner
+// on a cold cache. Every other file in the app imports icons this way too.
+import House from '@lucide/svelte/icons/house';
+import Calendar from '@lucide/svelte/icons/calendar';
+import CircleUserRound from '@lucide/svelte/icons/circle-user-round';
+import Heart from '@lucide/svelte/icons/heart';
+import ClipboardList from '@lucide/svelte/icons/clipboard-list';
+import Settings from '@lucide/svelte/icons/settings';
+import Podium from '@lucide/svelte/icons/podium';
 
 export type MenuGroup = {
 	label?: string;

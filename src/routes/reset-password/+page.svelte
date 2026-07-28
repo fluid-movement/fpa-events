@@ -47,26 +47,44 @@
 </script>
 
 <div class="flex min-h-[60vh] items-center justify-center">
-	<Card.Root class="w-full max-w-sm bg-card/80 backdrop-blur-sm">
+	<Card.Root class="surface-glass w-full max-w-sm">
 		<Card.Header>
-			<Card.Title class="text-2xl">Set New Password</Card.Title>
+			<Card.Title class="text-xl md:text-2xl">Set new password</Card.Title>
 			<Card.Description>Choose a new password for your account</Card.Description>
 		</Card.Header>
 		<Card.Content>
-			<form class="grid gap-4" onsubmit={(e) => { e.preventDefault(); handleReset(); }}>
+			<form
+				class="grid gap-4"
+				onsubmit={(e) => {
+					e.preventDefault();
+					handleReset();
+				}}
+			>
 				<div class="grid gap-2">
 					<Label for="password">New Password</Label>
-					<Input id="password" type="password" required placeholder="New password" bind:value={password} />
+					<Input
+						id="password"
+						type="password"
+						required
+						placeholder="New password"
+						bind:value={password}
+					/>
 				</div>
 				<div class="grid gap-2">
 					<Label for="confirm">Confirm Password</Label>
-					<Input id="confirm" type="password" required placeholder="Confirm password" bind:value={confirmPassword} />
+					<Input
+						id="confirm"
+						type="password"
+						required
+						placeholder="Confirm password"
+						bind:value={confirmPassword}
+					/>
 				</div>
 				{#if error}
 					<p class="text-sm text-destructive">{error}</p>
 				{/if}
 				<Button type="submit" class="w-full" disabled={loading}>
-					{loading ? 'Resetting…' : 'Reset Password'}
+					{loading ? 'Resetting…' : 'Reset password'}
 				</Button>
 			</form>
 		</Card.Content>

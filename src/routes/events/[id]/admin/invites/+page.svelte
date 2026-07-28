@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import InviteSection from '$lib/components/event-admin/InviteSection.svelte';
-	import { generateLink, regenerateLink } from './magic-links.remote';
+	import InviteSection from './InviteSection.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -14,11 +13,4 @@
 	);
 </script>
 
-<InviteSection
-	eventId={event.id}
-	{magicLink}
-	{magicLinkUrl}
-	{organizers}
-	generateLinkForm={generateLink}
-	regenerateLinkForm={regenerateLink}
-/>
+<InviteSection eventId={event.id} {magicLink} {magicLinkUrl} {organizers} />

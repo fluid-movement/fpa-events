@@ -1,24 +1,27 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { Button } from '$lib/components/ui/button';
+	import PageShell from '$lib/components/layout/PageShell.svelte';
+	import PageHeader from '$lib/components/layout/PageHeader.svelte';
+	import SegmentedTabs from '$lib/components/layout/SegmentedTabs.svelte';
 	import EventCalendar from '$lib/components/EventCalendar.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
 
 	const mostRecentYear = $derived(data.archiveYears[0] ?? new Date().getFullYear() - 1);
+
+	// Matched on a plain key rather than the pathname: the Past tab points at
+	// whichever year is most recent, which isn't the year currently being viewed.
+	const tabs = $derived([
+		{ label: 'Upcoming', href: resolve('/events'), match: ['upcoming'] },
+		{ label: 'Past', href: resolve(`/events/past/${mostRecentYear}`), match: ['past'] }
+	]);
 </script>
 
-<div class="space-y-2 pb-6">
-	<h1>Events</h1>
-	<p class="text-muted-foreground">Browse freestyle disc events.</p>
-</div>
+<PageShell>
+	<PageHeader title="Events" description="Browse freestyle disc events." />
 
-<div class="mb-8 p-1.5 w-full flex gap-2 border bg-muted/40 rounded-lg">
-	<Button class="flex-1" variant="default" href={resolve('/events')}>Upcoming Events</Button>
-	<Button class="flex-1" variant="ghost" href={resolve(`/events/past/${mostRecentYear}`)}>
-		Past Events
-	</Button>
-</div>
+	<SegmentedTabs {tabs} current="upcoming" label="Event archive" fill class="mb-6 md:mb-8" />
 
-<EventCalendar eventsByMonth={data.eventsByMonth} />
+	<EventCalendar eventsByMonth={data.eventsByMonth} />
+</PageShell>

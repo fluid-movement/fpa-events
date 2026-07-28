@@ -2,29 +2,22 @@
 	import { tick } from 'svelte';
 	import { Switch } from '$lib/components/ui/switch';
 	import { Label } from '$lib/components/ui/label';
+	import Section from '$lib/components/layout/Section.svelte';
 	import { getPrivacySettings, setShowAttendance } from './data.remote';
 
 	const settings = $derived(await getPrivacySettings());
 
 	let formEl: HTMLFormElement;
 
-	// Local mirror so the switch responds instantly; the query is the source of
-	// truth once the save round-trips.
-	let showAttendance = $state(true);
-	$effect(() => {
-		showAttendance = settings.showAttendance;
-	});
+	// Writable derived: the switch responds instantly to a local assignment, and
+	// the query takes back over once the save round-trips.
+	let showAttendance = $derived(settings.showAttendance);
 </script>
 
-<div class="space-y-6">
-	<div class="space-y-1">
-		<h2 class="text-lg font-semibold">Privacy</h2>
-		<p class="text-sm text-muted-foreground">Control what others can see about you.</p>
-	</div>
-
+<Section title="Privacy" description="Control what others can see about you.">
 	<form {...setShowAttendance} bind:this={formEl}>
 		<input type="hidden" name="showAttendance" value={String(showAttendance)} />
-		<div class="flex items-start justify-between gap-6 rounded-lg border p-4">
+		<div class="surface flex items-start justify-between gap-4 rounded-xl p-4 md:gap-6">
 			<div class="space-y-1">
 				<Label for="show-attendance" class="text-sm font-medium">Show my name on event pages</Label>
 				<p class="text-sm text-muted-foreground">
@@ -47,4 +40,4 @@
 			/>
 		</div>
 	</form>
-</div>
+</Section>

@@ -1,12 +1,14 @@
-<div class="max-w-2xl space-y-8">
-	<div>
-		<h1 class="text-3xl font-bold">Privacy Policy</h1>
-		<p class="text-muted-foreground mt-1">Last updated: June 2026</p>
-	</div>
+<script lang="ts">
+	import PageShell from '$lib/components/layout/PageShell.svelte';
+	import PageHeader from '$lib/components/layout/PageHeader.svelte';
+</script>
+
+<PageShell width="form" class="space-y-8">
+	<PageHeader title="Privacy Policy" description="Last updated: June 2026" class="pb-0" />
 
 	<section class="space-y-3">
-		<h2 class="text-lg font-semibold">1. Controller</h2>
-		<p class="text-muted-foreground text-sm">
+		<h2>1. Controller</h2>
+		<p class="text-sm text-muted-foreground">
 			The controller responsible for data processing on this website within the meaning of the
 			General Data Protection Regulation (GDPR) is:
 		</p>
@@ -21,7 +23,7 @@
 	</section>
 
 	<section class="space-y-3">
-		<h2 class="text-lg font-semibold">2. Data We Collect</h2>
+		<h2>2. Data We Collect</h2>
 
 		<div class="space-y-4 text-sm text-muted-foreground">
 			<div>
@@ -64,7 +66,7 @@
 	</section>
 
 	<section class="space-y-3">
-		<h2 class="text-lg font-semibold">3. Cookies</h2>
+		<h2>3. Cookies</h2>
 		<p class="text-sm text-muted-foreground">
 			This website uses only strictly necessary cookies for authentication (session token). These
 			cookies are essential for the login functionality and are exempt from consent requirements
@@ -73,15 +75,15 @@
 	</section>
 
 	<section class="space-y-3">
-		<h2 class="text-lg font-semibold">4. Third-Party Services</h2>
+		<h2>4. Third-Party Services</h2>
 
 		<div class="space-y-4 text-sm text-muted-foreground">
 			<div>
 				<h3 class="font-medium text-foreground">Hetzner (Hosting)</h3>
 				<p>
-					This website is hosted on servers operated by Hetzner Online GmbH, Industriestr. 25,
-					91710 Gunzenhausen, Germany. All data is stored within the European Union. Hetzner acts as
-					a data processor under a Data Processing Agreement (GDPR Art. 28). See Hetzner's privacy
+					This website is hosted on servers operated by Hetzner Online GmbH, Industriestr. 25, 91710
+					Gunzenhausen, Germany. All data is stored within the European Union. Hetzner acts as a
+					data processor under a Data Processing Agreement (GDPR Art. 28). See Hetzner's privacy
 					policy at <a href="https://www.hetzner.com/legal/privacy-policy" class="underline"
 						>hetzner.com</a
 					>.
@@ -110,7 +112,7 @@
 	</section>
 
 	<section class="space-y-3">
-		<h2 class="text-lg font-semibold">5. Data Retention</h2>
+		<h2>5. Data Retention</h2>
 		<p class="text-sm text-muted-foreground">
 			Account data is retained for as long as your account exists. Sessions are deleted on logout or
 			when they expire. Password reset tokens expire automatically within a short period. You can
@@ -120,9 +122,9 @@
 	</section>
 
 	<section class="space-y-3">
-		<h2 class="text-lg font-semibold">6. Your Rights</h2>
+		<h2>6. Your Rights</h2>
 		<p class="text-sm text-muted-foreground">Under GDPR, you have the right to:</p>
-		<ul class="text-sm text-muted-foreground list-disc list-inside space-y-1">
+		<ul class="list-inside list-disc space-y-1 text-sm text-muted-foreground">
 			<li>Access your personal data (Art. 15)</li>
 			<li>Correct inaccurate data (Art. 16)</li>
 			<li>Request deletion of your data (Art. 17) — available directly via account settings</li>
@@ -138,11 +140,11 @@
 	</section>
 
 	<section class="space-y-3">
-		<h2 class="text-lg font-semibold">7. Right to Lodge a Complaint</h2>
+		<h2>7. Right to Lodge a Complaint</h2>
 		<p class="text-sm text-muted-foreground">
 			You have the right to lodge a complaint with a data protection supervisory authority. The
 			competent authority in Germany is the Bundesbeauftragte für den Datenschutz und die
 			Informationsfreiheit (BfDI).
 		</p>
 	</section>
-</div>
+</PageShell>

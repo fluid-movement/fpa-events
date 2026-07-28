@@ -1,15 +1,36 @@
 import postgres from 'postgres';
 import { ulid } from 'ulid';
-import { config } from 'dotenv';
 
-config(); // load .env
+// No dotenv call here on purpose. playwright.config.ts loads .env.test /
+// .env.test.local before any spec is imported. This file used to call a bare
+// `config()`, which loaded .env and pointed the whole suite at the *dev*
+// database — the helpers below insert and delete rows, so that was live data.
 
 let _sql: ReturnType<typeof postgres> | null = null;
+
+/**
+ * Guard against ever running the destructive helpers below against a database
+ * that is not the throwaway test one. Cheap insurance: every helper here goes
+ * through `sql()`, so one check covers the whole file.
+ */
+function assertTestDatabase(url: string): void {
+	const name = new URL(url).pathname.replace(/^\//, '');
+	if (!/test/i.test(name)) {
+		throw new Error(
+			`Refusing to run integration tests against database "${name}" — the name must ` +
+				`contain "test". These helpers insert and delete rows directly.\n` +
+				`Check DATABASE_URL in .env.test (or .env.test.local).`
+		);
+	}
+}
 
 export function sql() {
 	if (!_sql) {
 		const url = process.env.DATABASE_URL;
-		if (!url) throw new Error('DATABASE_URL not set');
+		if (!url) {
+			throw new Error('DATABASE_URL not set — is playwright.config.ts loading .env.test?');
+		}
+		assertTestDatabase(url);
 		_sql = postgres(url);
 	}
 	return _sql;
@@ -23,10 +44,7 @@ export async function getTestUserId(email: string): Promise<string> {
 	return row.id;
 }
 
-export async function createTestUser(
-	email: string,
-	name: string = 'Test User'
-): Promise<string> {
+export async function createTestUser(email: string, name: string = 'Test User'): Promise<string> {
 	const id = ulid().toLowerCase();
 	await sql()`
 		INSERT INTO "user" (id, name, email, email_verified, role, created_at, updated_at)
@@ -39,6 +57,21 @@ export async function createTestUser(
 
 export async function deleteTestUser(id: string): Promise<void> {
 	await sql()`DELETE FROM "user" WHERE id = ${id}`;
+}
+
+/** Null until the user has loaded /attending or /dashboard, which mint it. */
+export async function getCalendarToken(userId: string): Promise<string | null> {
+	const rows = await sql()<[{ calendar_token: string | null }]>`
+		SELECT calendar_token FROM "user" WHERE id = ${userId} LIMIT 1
+	`;
+	return rows[0]?.calendar_token ?? null;
+}
+
+export async function getUserName(email: string): Promise<string | null> {
+	const rows = await sql()<[{ name: string }]>`
+		SELECT name FROM "user" WHERE email = ${email} LIMIT 1
+	`;
+	return rows[0]?.name ?? null;
 }
 
 export async function createTestEvent(
@@ -59,6 +92,19 @@ export async function createTestEvent(
 
 export async function deleteTestEvent(id: string): Promise<void> {
 	await sql()`DELETE FROM events WHERE id = ${id}`;
+}
+
+/** For events created through the UI, whose id the test never chose. */
+export async function getEventIdByName(name: string): Promise<string | null> {
+	const rows = await sql()<[{ id: string }]>`
+		SELECT id FROM events WHERE name = ${name} LIMIT 1
+	`;
+	return rows[0]?.id ?? null;
+}
+
+/** Cleanup for UI-created events — safe to call when nothing was created. */
+export async function deleteEventsByName(name: string): Promise<void> {
+	await sql()`DELETE FROM events WHERE name = ${name}`;
 }
 
 export async function setAttending(eventId: string, userId: string): Promise<void> {
@@ -148,10 +194,7 @@ export async function createMagicLink(
 	return id;
 }
 
-export async function getEventUserStatus(
-	eventId: string,
-	userId: string
-): Promise<string | null> {
+export async function getEventUserStatus(eventId: string, userId: string): Promise<string | null> {
 	const rows = await sql()<[{ status: string }]>`
 		SELECT status FROM event_user
 		WHERE event_id = ${eventId} AND user_id = ${userId}

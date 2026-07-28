@@ -1,12 +1,9 @@
 {
 	"name": "fpa-migrate",
-	"private": true,
 	"version": "0.0.1",
-	"type": "module",
+	"private": true,
 	"description": "One-off data migration from the legacy Laravel FPA app to fpa-events",
-	"engines": {
-		"node": ">=22"
-	},
+	"type": "module",
 	"scripts": {
 		"geocode": "tsx src/geocode.ts",
 		"migrate": "tsx src/migrate.ts",
@@ -23,5 +20,8 @@
 		"@types/pg": "^8.11.10",
 		"tsx": "^4.19.2",
 		"typescript": "^5.7.2"
+	},
+	"engines": {
+		"node": ">=22"
 	}
 }

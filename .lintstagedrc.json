@@ -1,0 +1,4 @@
+{
+	"*.{js,ts,svelte,json,css,md}": ["prettier --write --ignore-unknown"],
+	"*.{js,ts,svelte}": ["eslint --fix"]
+}

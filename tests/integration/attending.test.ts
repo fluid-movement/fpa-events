@@ -7,6 +7,9 @@ import {
 	clearAttending,
 	closeDb
 } from './helpers/db';
+import { installErrorGuard } from './helpers/console';
+
+installErrorGuard(test);
 
 test.describe('/attending page', () => {
 	let eventId: string;
@@ -28,7 +31,7 @@ test.describe('/attending page', () => {
 
 	test('shows empty state when not attending any upcoming events', async ({ page }) => {
 		await page.goto('/attending');
-		await expect(page.getByText(/No upcoming events/)).toBeVisible();
+		await expect(page.getByText(/Nothing on the calendar yet/)).toBeVisible();
 	});
 
 	test('shows event in upcoming after RSVP', async ({ page }) => {

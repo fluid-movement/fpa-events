@@ -9,6 +9,10 @@ import {
 	closeDb
 } from './helpers/db';
 import { TEST_USER } from './helpers/constants';
+import { installErrorGuard } from './helpers/console';
+import { openCreateEventPage, pickEventDateRange } from './helpers/forms';
+
+installErrorGuard(test);
 
 test.describe('organizing status', () => {
 	let userId: string;
@@ -31,39 +35,22 @@ test.describe('organizing status', () => {
 		test('creator sees Organizing badge and no RSVP button after creating event', async ({
 			page
 		}) => {
-			await page.goto('/events/create');
-
-			// Fill required text fields
+			await openCreateEventPage(page);
 			await page.getByLabel('Event name').fill('Organizing Test Event');
+			// Location is left empty: it is optional, and filling it would mean
+			// driving the geocoding combobox against photon.komoot.io.
+			await pickEventDateRange(page);
 
-			// Set hidden inputs that EventLocationInput and RangeCalendar populate
-			await page.evaluate(() => {
-				const tomorrow = new Date();
-				tomorrow.setDate(tomorrow.getDate() + 30);
-				const end = new Date(tomorrow);
-				end.setDate(end.getDate() + 3);
+			await page.getByRole('button', { name: 'Create event' }).click();
 
-				const set = (name: string, value: string) => {
-					const el = document.querySelector<HTMLInputElement>(`input[name="${name}"]`);
-					if (el) el.value = value;
-				};
-
-				set('location', 'Munich, Germany');
-				set('city', 'Munich');
-				set('country', 'Germany');
-				set('latitude', '48.1371');
-				set('longitude', '11.5754');
-				set('startDate', tomorrow.toISOString().split('T')[0]);
-				set('endDate', end.toISOString().split('T')[0]);
-			});
-
-			await page.getByRole('button', { name: 'Create Event' }).click();
-			await page.waitForLoadState('networkidle');
-
-			// Creating an event now lands the organizer in the manage area
-			const url = page.url();
-			expect(url).toMatch(/\/events\/[a-z0-9]+\/admin$/);
-			createdEventId = url.split('/events/')[1].replace('/admin', '');
+			// Creating an event lands the organizer in the manage area.
+			//
+			// Asserted with `expect(page).toHaveURL`, which retries, rather than a
+			// one-shot `expect(page.url())`. `waitForLoadState('networkidle')` is no
+			// help here: the page already reached networkidle before the submit, so it
+			// returns immediately and the redirect has not happened yet.
+			await expect(page).toHaveURL(/\/events\/[a-z0-9]+\/admin$/);
+			createdEventId = page.url().split('/events/')[1].replace('/admin', '');
 
 			await expect(page.getByTestId('setup-checklist')).toBeVisible();
 

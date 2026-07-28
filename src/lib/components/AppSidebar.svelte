@@ -30,11 +30,7 @@
 							<Sidebar.MenuItem>
 								<Sidebar.MenuButton isActive={isActive(item.url)}>
 									{#snippet child({ props })}
-										<a
-											href={item.url}
-											{...props}
-											onclick={() => sidebar.setOpenMobile(false)}
-										>
+										<a href={item.url} {...props} onclick={() => sidebar.setOpenMobile(false)}>
 											<item.icon />
 											<span>{item.label}</span>
 										</a>
@@ -49,7 +45,7 @@
 	</Sidebar.Content>
 	<Sidebar.Footer>
 		<Button href={resolve('/events/create')} onclick={() => sidebar.setOpenMobile(false)}
-			><PlusIcon /> Create Event</Button
+			><PlusIcon /> Create event</Button
 		>
 		<SidebarLogin onNavigate={() => sidebar.setOpenMobile(false)} />
 		<div class="flex gap-3 px-1 pb-1">

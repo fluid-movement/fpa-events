@@ -36,28 +36,40 @@
 </script>
 
 <div class="flex min-h-[60vh] items-center justify-center">
-	<Card.Root class="w-full max-w-sm bg-card/80 backdrop-blur-sm">
+	<Card.Root class="surface-glass w-full max-w-sm">
 		<Card.Header>
-			<Card.Title class="text-2xl">Forgot Password</Card.Title>
+			<Card.Title class="text-xl md:text-2xl">Forgot password</Card.Title>
 			<Card.Description>Enter your email to receive a reset link</Card.Description>
 		</Card.Header>
 		<Card.Content>
 			{#if sent}
-				<p class="text-sm text-center text-muted-foreground">
+				<p class="text-center text-sm text-muted-foreground">
 					Check your inbox — we sent a reset link to <strong>{email}</strong>.
 				</p>
 			{:else}
-				<form class="grid gap-4" onsubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+				<form
+					class="grid gap-4"
+					onsubmit={(e) => {
+						e.preventDefault();
+						handleSubmit();
+					}}
+				>
 					<div class="grid gap-2">
 						<Label for="email">Email</Label>
-						<Input id="email" type="email" placeholder="you@example.com" required bind:value={email} />
+						<Input
+							id="email"
+							type="email"
+							placeholder="you@example.com"
+							required
+							bind:value={email}
+						/>
 					</div>
 					{#if error}
 						<p class="text-sm text-destructive">{error}</p>
 					{/if}
 					<Turnstile bind:this={turnstile} bind:token />
 					<Button type="submit" class="w-full" disabled={loading || (captchaEnabled && !token)}>
-						{loading ? 'Sending…' : 'Send Reset Link'}
+						{loading ? 'Sending…' : 'Send reset link'}
 					</Button>
 				</form>
 			{/if}

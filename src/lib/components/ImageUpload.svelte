@@ -81,7 +81,9 @@
 
 	<label class="w-fit cursor-pointer">
 		<span
-			class="text-sm text-primary underline-offset-4 hover:underline {uploading ? 'opacity-50' : ''}"
+			class="text-sm text-primary underline-offset-4 hover:underline {uploading
+				? 'opacity-50'
+				: ''}"
 		>
 			{#if uploading}
 				Uploading…

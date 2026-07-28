@@ -5,7 +5,12 @@
 	import MapPinIcon from '@lucide/svelte/icons/map-pin';
 	import UsersIcon from '@lucide/svelte/icons/users';
 
-	let { event, attendeeCount, userStatus }: { event: Event; attendeeCount?: number; userStatus?: 'attending' | 'organizing' | null } = $props();
+	let {
+		event,
+		attendeeCount,
+		userStatus
+	}: { event: Event; attendeeCount?: number; userStatus?: 'attending' | 'organizing' | null } =
+		$props();
 
 	const start = $derived(new Date(event.startDate));
 	const end = $derived(new Date(event.endDate));
@@ -28,7 +33,7 @@
 
 <a href={resolve(`/events/${event.id}`)} class="card-link">
 	<div class="glow"></div>
-	<article class="card">
+	<article class="event-card surface">
 		<div class="body">
 			<div class="chip">
 				<span class="day">{startDay}</span>
@@ -76,8 +81,8 @@
 		z-index: 0;
 		background: radial-gradient(
 			circle 110px at calc(30px + 56px) 50%,
-			oklch(0.686 0.135 233 / 0.95) 0%,
-			oklch(0.686 0.135 233 / 0.3) 60%,
+			color-mix(in oklch, var(--primary) 95%, transparent) 0%,
+			color-mix(in oklch, var(--primary) 30%, transparent) 60%,
 			transparent 100%
 		);
 		filter: blur(18px);
@@ -96,10 +101,10 @@
 		}
 	}
 
-	.card {
+	.event-card {
 		position: relative;
 		z-index: 1;
-		border-radius: 0.75rem;
+		border-radius: var(--radius-xl);
 		overflow: hidden;
 		display: flex;
 		flex-direction: column;
@@ -107,7 +112,7 @@
 	}
 
 	/* Opaque base blocks the glow from showing through the card */
-	.card::before {
+	.event-card::before {
 		content: '';
 		position: absolute;
 		inset: 0;
@@ -117,12 +122,12 @@
 	}
 
 	/* Subtle glass highlight on top */
-	.card::after {
+	.event-card::after {
 		content: '';
 		position: absolute;
 		inset: 0;
 		border-radius: inherit;
-		background: rgb(255 255 255 / 0.07);
+		background: oklch(1 0 0 / 0.07);
 		z-index: 0;
 	}
 
@@ -141,7 +146,7 @@
 		align-items: center;
 		justify-content: center;
 		background: var(--primary);
-		border-radius: 0.5rem;
+		border-radius: var(--radius-md);
 		padding: 0.75rem 1rem;
 		flex-shrink: 0;
 		transition: filter 0.35s ease;
@@ -214,5 +219,12 @@
 		bottom: 0.625rem;
 		right: 0.625rem;
 		z-index: 2;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.glow,
+		.chip {
+			transition: none;
+		}
 	}
 </style>

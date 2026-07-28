@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
+	import SegmentedTabs from '$lib/components/layout/SegmentedTabs.svelte';
 	import RatingsTable from './RatingsTable.svelte';
 	import RankingsUnavailable from './RankingsUnavailable.svelte';
 	import { getRatings } from '../../../routes/rankings/data.remote';
@@ -40,18 +40,17 @@
 
 		<div class="flex flex-wrap items-center gap-2">
 			<span class="text-sm font-medium">Minimum matches</span>
-			<div class="flex gap-2 rounded-lg border bg-muted/40 p-1.5" data-testid="ratings-threshold">
-				{#each THRESHOLDS as threshold (threshold.value)}
-					<Button
-						size="sm"
-						variant={threshold.value === minMatchCount ? 'default' : 'ghost'}
-						href={hrefFor(threshold.value)}
-						data-testid="ratings-threshold-{threshold.value}"
-					>
-						{threshold.label}
-					</Button>
-				{/each}
-			</div>
+			<SegmentedTabs
+				tabs={THRESHOLDS.map((threshold) => ({
+					label: threshold.label,
+					href: hrefFor(threshold.value),
+					match: [String(threshold.value)],
+					testid: `ratings-threshold-${threshold.value}`
+				}))}
+				current={String(minMatchCount)}
+				label="Minimum matches"
+				data-testid="ratings-threshold"
+			/>
 			<!-- The API caps a response at 500 rows, and every threshold under
 			     100+ matches more players than that. Say so rather than
 			     reporting the truncated count as the total. -->

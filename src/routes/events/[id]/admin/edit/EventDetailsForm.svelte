@@ -9,6 +9,7 @@
 	import Turnstile, { captchaEnabled } from '$lib/components/Turnstile.svelte';
 	import { parseDate } from '@internationalized/date';
 	import type { DateValue } from '@internationalized/date';
+	import { updateEvent } from '../event-details.remote';
 
 	interface EventDetails {
 		name: string;
@@ -25,11 +26,10 @@
 
 	interface Props {
 		event: EventDetails;
-		updateEventForm: Record<string, unknown>;
 		onCancel: () => void;
 	}
 
-	let { event, updateEventForm, onCancel }: Props = $props();
+	let { event, onCancel }: Props = $props();
 
 	let token = $state('');
 
@@ -48,7 +48,7 @@
 	});
 </script>
 
-<form {...updateEventForm} class="max-w-2xl">
+<form {...updateEvent} class="max-w-2xl">
 	<Field.Group>
 		<Field.Field>
 			<Field.Label for="event-name">Event name</Field.Label>
@@ -101,8 +101,12 @@
 		<Turnstile bind:token />
 		<input type="hidden" name="turnstileToken" value={token} />
 		<Field.Field orientation="horizontal">
-			<Button type="submit" disabled={captchaEnabled && !token} data-testid="save-details">
-				Save changes
+			<Button
+				type="submit"
+				disabled={(captchaEnabled && !token) || updateEvent.pending > 0}
+				data-testid="save-details"
+			>
+				{updateEvent.pending > 0 ? 'Saving…' : 'Save changes'}
 			</Button>
 			<Button type="button" variant="outline" onclick={onCancel} data-testid="cancel-details">
 				Cancel

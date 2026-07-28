@@ -12,17 +12,17 @@ A SvelteKit rebuild of the FPA (Freestyle Players Association) events platform, 
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Framework | SvelteKit 2 + Svelte 5 (runes syntax) |
-| Database | PostgreSQL via Drizzle ORM |
-| Auth | Better Auth 1.4 |
-| UI Components | shadcn-svelte (Bits UI based) — source files in `src/lib/components/ui/` |
-| Styling | Tailwind CSS v4 |
-| Rich Text | Tiptap 3 |
-| Form Validation | Valibot |
-| IDs | ULID |
-| Image Storage | Cloudflare R2 (to be integrated) |
+| Layer           | Technology                                                               |
+| --------------- | ------------------------------------------------------------------------ |
+| Framework       | SvelteKit 2 + Svelte 5 (runes syntax)                                    |
+| Database        | PostgreSQL via Drizzle ORM                                               |
+| Auth            | Better Auth 1.4                                                          |
+| UI Components   | shadcn-svelte (Bits UI based) — source files in `src/lib/components/ui/` |
+| Styling         | Tailwind CSS v4                                                          |
+| Rich Text       | Tiptap 3                                                                 |
+| Form Validation | Valibot                                                                  |
+| IDs             | ULID                                                                     |
+| Image Storage   | Cloudflare R2 (to be integrated)                                         |
 
 ---
 
@@ -98,19 +98,24 @@ File: `src/lib/server/db/schema.ts`
 ### Current Tables
 
 **`user`** — Better Auth managed
+
 - `id` text PK, `name` text, `email` text unique, `emailVerified` bool, `image` text, `createdAt`, `updatedAt`
 
 **`events`**
+
 - `id` text PK (ULID), `userId` FK→user, `name`, `startDate`, `endDate`, `location`, `description`, `picture` (nullable), `pictureWidth` int (nullable), `pictureHeight` int (nullable), `createdAt`, `updatedAt`
 
 **`event_user`** (pivot)
+
 - `id` int PK (auto), `eventId` FK→events (cascade delete), `userId` FK→user (cascade delete), `status` text (`attending` | `organizing`), `createdAt`, `updatedAt`
 - Indexes on (userId, status, eventId), (eventId, userId, updatedAt), (eventId, status, updatedAt)
 
 **`event_magic_links`**
+
 - `id` text PK (ULID), `eventId` FK→events (cascade delete), `expiresAt` timestamp, `createdAt`, `updatedAt`
 
 **`schedules`**
+
 - `id` text PK (ULID), `eventId` FK→events (cascade delete), `name`, `startDate`, `endDate`, `description` (nullable), `location` (nullable), `longitude` real (nullable), `latitude` real (nullable), `createdAt`, `updatedAt`
 
 **`session`, `account`, `verification`** — Better Auth internal tables
@@ -118,9 +123,11 @@ File: `src/lib/server/db/schema.ts`
 ### Tables To Add (Phase 3)
 
 **`players`**
+
 - `id` text PK (ULID), `userId` FK→user nullable, `name`, `surname`, `email` (nullable), `yearOfBirth` int (nullable), `gender` text (nullable), `country` (nullable), `city` (nullable), `freestylingSince` int (nullable), `firstCompetition` int (nullable), `memberNumber` text unique (nullable), `notes` text (nullable), `createdAt`, `updatedAt`
 
 **`active_years`**
+
 - `id` text PK (ULID), `playerId` FK→players (cascade), `year` int, `membershipType` text (`standard` | `platinum` | `juniors` | `firstTimer` | `group`), `createdAt`, `updatedAt`
 
 ---
@@ -130,23 +137,25 @@ File: `src/lib/server/db/schema.ts`
 Server-side: `event.locals.user` and `event.locals.session` are set by `hooks.server.ts` on every request via Better Auth.
 
 Protecting a route:
+
 ```ts
 // in +page.server.ts
 import { redirect } from '@sveltejs/kit';
 
 export const load = async ({ locals }) => {
-  if (!locals.user) redirect(302, '/sign-in');
-  return { user: locals.user };
+	if (!locals.user) redirect(302, '/sign-in');
+	return { user: locals.user };
 };
 ```
 
 Checking the user in a form action:
+
 ```ts
 export const actions = {
-  myAction: async ({ locals, request }) => {
-    if (!locals.user) redirect(302, '/sign-in');
-    // ...
-  }
+	myAction: async ({ locals, request }) => {
+		if (!locals.user) redirect(302, '/sign-in');
+		// ...
+	}
 };
 ```
 
@@ -163,22 +172,23 @@ For more complex pages, data fetching logic is extracted to `data.remote.ts` fil
 Validation uses Valibot schemas.
 
 Example pattern:
+
 ```ts
 // +page.server.ts
 export const load = async ({ params, locals }) => {
-  const event = await db.query.events.findFirst({
-    where: eq(events.id, params.id)
-  });
-  if (!event) error(404);
-  return { event };
+	const event = await db.query.events.findFirst({
+		where: eq(events.id, params.id)
+	});
+	if (!event) error(404);
+	return { event };
 };
 
 export const actions = {
-  update: async ({ request, locals, params }) => {
-    if (!locals.user) redirect(302, '/sign-in');
-    const data = await request.formData();
-    // validate + write to db
-  }
+	update: async ({ request, locals, params }) => {
+		if (!locals.user) redirect(302, '/sign-in');
+		const data = await request.formData();
+		// validate + write to db
+	}
 };
 ```
 
@@ -191,6 +201,7 @@ export const actions = {
 Single dark theme — no light/dark toggle. Colors are defined as CSS custom properties in `src/routes/layout.css` using oklch color space.
 
 Key variables:
+
 - `--background` — darkest blue (page background)
 - `--card` — slightly lighter blue (card surfaces)
 - `--sidebar` — same as card (sidebar background)
@@ -207,6 +218,7 @@ Key variables:
 ### shadcn Components Available
 
 `src/lib/components/ui/`:
+
 - `button/` — variants: default, destructive, outline, secondary, ghost, link; sizes: sm, default, lg, icon
 - `card/` — Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, CardAction
 - `field/` — Field, FieldLabel, FieldDescription, FieldError, FieldContent, FieldGroup, FieldSet
@@ -237,18 +249,18 @@ Buttons already have: shadow lift on hover, glow effect, press-down on active. F
 
 ## Design Decisions Log
 
-| Decision | Choice | Reason |
-|---|---|---|
-| Theme | Dark only, no toggle | Consistent brand experience |
-| Primary color | Cyan blue (`oklch(0.686 0.135 233)`) | Matches FPA logo blue |
-| Component workflow | Style on `/design` page first, then use in features | Single source of truth |
-| IDs | ULID | URL-safe, sortable, matches Laravel app (preserves IDs on migration) |
-| Auth | Better Auth | Full-featured, Drizzle adapter, bcrypt compatible with Laravel |
-| Image storage | Cloudflare R2 | Already used by Laravel app, can point at same bucket |
-| Judging system | Dropped | Was never finished in Laravel, no one uses it |
-| Divisions | Dropped | Tied to judging system |
-| Geocoding | Deferred | Fields stay in schema, no UI or API for now |
-| Dark/light toggle | Removed | App commits to single dark theme |
+| Decision           | Choice                                              | Reason                                                               |
+| ------------------ | --------------------------------------------------- | -------------------------------------------------------------------- |
+| Theme              | Dark only, no toggle                                | Consistent brand experience                                          |
+| Primary color      | Cyan blue (`oklch(0.686 0.135 233)`)                | Matches FPA logo blue                                                |
+| Component workflow | Style on `/design` page first, then use in features | Single source of truth                                               |
+| IDs                | ULID                                                | URL-safe, sortable, matches Laravel app (preserves IDs on migration) |
+| Auth               | Better Auth                                         | Full-featured, Drizzle adapter, bcrypt compatible with Laravel       |
+| Image storage      | Cloudflare R2                                       | Already used by Laravel app, can point at same bucket                |
+| Judging system     | Dropped                                             | Was never finished in Laravel, no one uses it                        |
+| Divisions          | Dropped                                             | Tied to judging system                                               |
+| Geocoding          | Deferred                                            | Fields stay in schema, no UI or API for now                          |
+| Dark/light toggle  | Removed                                             | App commits to single dark theme                                     |
 
 ---
 
@@ -257,17 +269,20 @@ Buttons already have: shadow lift on hover, glow effect, press-down on active. F
 ### In Scope
 
 **Phase 1 — Events (current focus)**
+
 - RSVP toggle (attending / not going) on event detail page
 - `/attending` page — upcoming events with countdown + past attended events
 - Event image upload to Cloudflare R2
 - Event delete (creator or admin only)
 
 **Phase 2 — Admin Role**
+
 - `role` column on `user` table (`admin` | `user`)
 - Admin layout guard for `/admin/*` routes
 - Admins can edit/delete any event
 
 **Phase 3 — Players & Membership**
+
 - `players` and `active_years` tables
 - `/admin/members` — searchable, paginated member list
 - `/admin/members/create` and `/admin/members/[id]` — member CRUD

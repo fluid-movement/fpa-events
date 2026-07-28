@@ -40,9 +40,9 @@
 </script>
 
 <div class="flex min-h-[60vh] items-center justify-center">
-	<Card.Root class="w-full max-w-sm bg-card/80 backdrop-blur-sm">
+	<Card.Root class="surface-glass w-full max-w-sm">
 		<Card.Header>
-			<Card.Title class="text-2xl">Create Account</Card.Title>
+			<Card.Title class="text-xl md:text-2xl">Create account</Card.Title>
 			<Card.Description>Enter your details to get started</Card.Description>
 		</Card.Header>
 		<Card.Content>
@@ -57,7 +57,13 @@
 					</p>
 				</div>
 			{:else}
-				<form class="grid gap-4" onsubmit={(e) => { e.preventDefault(); handleSignUp(); }}>
+				<form
+					class="grid gap-4"
+					onsubmit={(e) => {
+						e.preventDefault();
+						handleSignUp();
+					}}
+				>
 					<div class="grid grid-cols-2 gap-3">
 						<div class="grid gap-2">
 							<Label for="first-name">First name</Label>
@@ -70,7 +76,13 @@
 					</div>
 					<div class="grid gap-2">
 						<Label for="email">Email</Label>
-						<Input id="email" type="email" placeholder="you@example.com" required bind:value={email} />
+						<Input
+							id="email"
+							type="email"
+							placeholder="you@example.com"
+							required
+							bind:value={email}
+						/>
 					</div>
 					<div class="grid gap-2">
 						<Label for="password">Password</Label>
@@ -81,7 +93,7 @@
 					{/if}
 					<Turnstile bind:this={turnstile} bind:token />
 					<Button type="submit" class="w-full" disabled={loading || (captchaEnabled && !token)}>
-						{loading ? 'Creating account…' : 'Create Account'}
+						{loading ? 'Creating account…' : 'Create account'}
 					</Button>
 				</form>
 				<p class="mt-4 text-center text-sm text-muted-foreground">

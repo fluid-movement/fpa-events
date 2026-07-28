@@ -1,5 +1,5 @@
 <script lang="ts">
-	import AttendeeList from '$lib/components/event-admin/AttendeeList.svelte';
+	import AttendeeList from './AttendeeList.svelte';
 	import type { PageProps } from './$types';
 
 	// Attendees come from the layout load — the Invites tab and the tab-label count

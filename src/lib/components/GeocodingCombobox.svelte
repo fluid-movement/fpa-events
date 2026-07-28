@@ -143,7 +143,10 @@
 				<li id="geocoding-option-{i}" role="option" aria-selected={i === activeIndex}>
 					<button
 						type="button"
-						class="w-full px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none {i === activeIndex ? 'bg-accent text-accent-foreground' : ''}"
+						class="w-full px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none {i ===
+						activeIndex
+							? 'bg-accent text-accent-foreground'
+							: ''}"
 						onclick={() => selectSuggestion(suggestion)}
 					>
 						{suggestion.displayName}

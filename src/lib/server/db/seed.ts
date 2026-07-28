@@ -27,7 +27,12 @@ const ADMIN_EMAIL = 'zaharias.andre@googlemail.com';
 // "and N others" path is exercised locally.
 const users = [
 	{ id: id(), name: 'Andre Zaharias', email: ADMIN_EMAIL, role: 'admin' as const },
-	{ id: id(), name: 'Juliana Vasquez', email: 'juliana.vasquez@example.com', role: 'user' as const },
+	{
+		id: id(),
+		name: 'Juliana Vasquez',
+		email: 'juliana.vasquez@example.com',
+		role: 'user' as const
+	},
 	{
 		id: id(),
 		name: 'Marcus Hellström',
@@ -96,7 +101,10 @@ function locationKey(city: string, country: string) {
 // Events (reference locations by city/country key, resolved to ID after insert)
 // ---------------------------------------------------------------------------
 
-type EventSeed = Omit<typeof schema.events.$inferInsert, 'userId' | 'eventLocationId' | 'createdAt' | 'updatedAt'> & {
+type EventSeed = Omit<
+	typeof schema.events.$inferInsert,
+	'userId' | 'eventLocationId' | 'createdAt' | 'updatedAt'
+> & {
 	locationCity: string;
 	locationCountry: string;
 };
@@ -464,9 +472,7 @@ async function main() {
 	await db.delete(schema.events);
 	await db.delete(schema.eventLocations);
 	// Preserve any real user accounts by only deleting example.com seed users and the admin
-	await db.delete(schema.user).where(
-		sql`email LIKE '%@example.com' OR email = ${ADMIN_EMAIL}`
-	);
+	await db.delete(schema.user).where(sql`email LIKE '%@example.com' OR email = ${ADMIN_EMAIL}`);
 
 	console.log('👤 Seeding users...');
 
@@ -753,8 +759,8 @@ async function main() {
 
 	console.log(
 		`✅ Done! Seeded ${insertedUsers.length} users, ${insertedLocations.length} locations, ` +
-		`${insertedEvents.length} events, ${insertedScheduleLocations.length} schedule locations, ` +
-		`${schedules.length} schedule items, ${organizingCount} organizers, ${attendingCount} attendees.`
+			`${insertedEvents.length} events, ${insertedScheduleLocations.length} schedule locations, ` +
+			`${schedules.length} schedule items, ${organizingCount} organizers, ${attendingCount} attendees.`
 	);
 
 	await client.end();

@@ -13,14 +13,14 @@
 </script>
 
 {#if $session.data?.user}
-	<div class="flex flex-col gap-2">
+	<div class="flex flex-col gap-2" data-testid="sidebar-auth" data-state="signed-in">
 		<div class="flex items-center gap-2 px-1">
-			<div class="bg-primary/10 rounded-full p-1.5">
+			<div class="rounded-full bg-primary/10 p-1.5">
 				<UserIcon class="size-4 text-primary" />
 			</div>
 			<div class="min-w-0">
-				<p class="text-sm font-medium truncate">{$session.data.user.name}</p>
-				<p class="text-xs text-muted-foreground truncate">{$session.data.user.email}</p>
+				<p class="truncate text-sm font-medium">{$session.data.user.name}</p>
+				<p class="truncate text-xs text-muted-foreground">{$session.data.user.email}</p>
 			</div>
 		</div>
 		<Button
@@ -33,17 +33,17 @@
 			}}
 		>
 			<LogOutIcon class="size-4" />
-			Sign Out
+			Sign out
 		</Button>
 	</div>
 {:else}
-	<div class="flex flex-col gap-2">
+	<div class="flex flex-col gap-2" data-testid="sidebar-auth" data-state="signed-out">
 		<Button href={resolve('/sign-in')} class="w-full" onclick={onNavigate}>
 			<LogInIcon class="size-4" />
-			Sign In
+			Sign in
 		</Button>
 		<Button href={resolve('/sign-up')} variant="outline" class="w-full" onclick={onNavigate}>
-			Create Account
+			Create account
 		</Button>
 	</div>
 {/if}

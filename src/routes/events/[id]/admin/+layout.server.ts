@@ -50,6 +50,8 @@ export const load = (async ({ params, locals }) => {
 	]);
 
 	return {
+		// Drives the mobile top bar (see $lib/config/pageTitle).
+		title: event.name,
 		event,
 		isOwner,
 		attendees,

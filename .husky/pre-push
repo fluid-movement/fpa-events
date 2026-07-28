@@ -1,0 +1,11 @@
+# Slow gate (~2-4 min). This is the last thing that runs before code reaches
+# Coolify, which auto-deploys every push to main.
+#
+# Build first: a build failure is the most likely cause of a broken deploy, and
+# it fails fastest.
+#
+# Bypass with `git push --no-verify` when you genuinely need to.
+
+npm run build
+npm run db:migrate:test
+npm run test:integration

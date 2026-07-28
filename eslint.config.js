@@ -44,8 +44,19 @@ export default defineConfig(
 		rules: { 'svelte/no-at-html-tags': 'off' }
 	},
 	{
-		// shadcn UI primitives accept arbitrary hrefs from callers — resolve() is the caller's responsibility.
-		files: ['src/lib/components/ui/**/*.svelte'],
+		// shadcn UI primitives and the shared layout components accept hrefs that
+		// callers (or route config such as sidebarMenu.ts) have already resolved —
+		// resolve() is overloaded per route and can't be applied to a Pathname union
+		// at render time. Passing it through is the caller's responsibility.
+		files: [
+			'src/lib/components/ui/**/*.svelte',
+			'src/lib/components/layout/**/*.svelte',
+			// Both render hrefs their callers already resolved.
+			'src/lib/components/AppSidebar.svelte',
+			// `*` stands in for the [id] segment — square brackets are a character
+			// class in a glob, so the literal route-param path would never match.
+			'src/routes/events/*/admin/SetupChecklist.svelte'
+		],
 		rules: { 'svelte/no-navigation-without-resolve': 'off' }
 	}
 );

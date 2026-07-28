@@ -1,7 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { sql, closeDb } from './helpers/db';
+import { sql } from './helpers/db';
+import { installErrorGuard } from './helpers/console';
 
-	test.describe('sign-up email verification flow', () => {
+installErrorGuard(test);
+
+test.describe('sign-up email verification flow', () => {
 	test.describe.configure({ mode: 'serial' });
 	const email = 'verify-flow-test@playwright.local';
 	const password = 'test-pw-verify-123';
@@ -22,7 +25,7 @@ import { sql, closeDb } from './helpers/db';
 		await page.getByLabel('Last name').fill('Test');
 		await page.getByLabel('Email').fill(email);
 		await page.getByLabel('Password').fill(password);
-		await page.getByRole('button', { name: 'Create Account' }).click();
+		await page.getByRole('button', { name: 'Create account' }).click();
 
 		await expect(page.getByText(/verification email/i)).toBeVisible();
 	});
@@ -36,7 +39,7 @@ import { sql, closeDb } from './helpers/db';
 		await page.getByLabel('Last name').fill('Test');
 		await page.getByLabel('Email').fill(email);
 		await page.getByLabel('Password').fill(password);
-		await page.getByRole('button', { name: 'Create Account' }).click();
+		await page.getByRole('button', { name: 'Create account' }).click();
 		await page.waitForLoadState('networkidle');
 
 		await expect(page.getByText(/verification email/i)).toBeVisible();
@@ -48,7 +51,7 @@ import { sql, closeDb } from './helpers/db';
 
 		await page.getByLabel('Email').fill(email);
 		await page.getByLabel('Password').fill(password);
-		await page.getByRole('button', { name: 'Sign In' }).click();
+		await page.getByRole('button', { name: 'Sign in' }).click();
 		await page.waitForTimeout(2000);
 
 		await expect(page.getByText(/verify/i)).toBeVisible();
@@ -63,7 +66,7 @@ import { sql, closeDb } from './helpers/db';
 
 		await page.getByLabel('Email').fill(email);
 		await page.getByLabel('Password').fill(password);
-		await page.getByRole('button', { name: 'Sign In' }).click();
+		await page.getByRole('button', { name: 'Sign in' }).click();
 
 		await page.waitForURL(/\/dashboard/, { timeout: 15000 });
 		await expect(page).toHaveURL(/\/dashboard/);
@@ -94,7 +97,7 @@ test.describe('resend verification flow', () => {
 		await page.getByLabel('Last name').fill('Test');
 		await page.getByLabel('Email').fill(email);
 		await page.getByLabel('Password').fill(password);
-		await page.getByRole('button', { name: 'Create Account' }).click();
+		await page.getByRole('button', { name: 'Create account' }).click();
 		await expect(page.getByText(/verification email/i)).toBeVisible();
 
 		// Navigate to sign-in page
@@ -103,7 +106,7 @@ test.describe('resend verification flow', () => {
 		// Attempt sign-in with unverified email
 		await page.getByLabel('Email').fill(email);
 		await page.getByLabel('Password').fill(password);
-		await page.getByRole('button', { name: 'Sign In' }).click();
+		await page.getByRole('button', { name: 'Sign in' }).click();
 		await page.waitForLoadState('networkidle');
 
 		// Check that a resend verification button is visible
@@ -120,7 +123,6 @@ test.describe('resend verification flow', () => {
 test.describe('forgot-password flow', () => {
 	test.describe.configure({ mode: 'serial' });
 	const email = 'forgot-pw-test@playwright.local';
-	const password = 'test-pw-forgot-123';
 	const newPassword = 'new-pw-forgot-456';
 
 	test.beforeAll(async () => {
@@ -143,7 +145,7 @@ test.describe('forgot-password flow', () => {
 		await page.waitForLoadState('networkidle');
 
 		await page.getByLabel('Email').fill(email);
-		await page.getByRole('button', { name: 'Send Reset Link' }).click();
+		await page.getByRole('button', { name: 'Send reset link' }).click();
 		await page.waitForLoadState('networkidle');
 
 		await expect(page.getByText(/check your inbox|sent/i)).toBeVisible();
@@ -157,7 +159,7 @@ test.describe('forgot-password flow', () => {
 		await page.waitForLoadState('networkidle');
 
 		await page.getByLabel('Email').fill(email);
-		await page.getByRole('button', { name: 'Send Reset Link' }).click();
+		await page.getByRole('button', { name: 'Send reset link' }).click();
 		await page.waitForLoadState('networkidle');
 
 		// Extract the verification token from the table
@@ -177,7 +179,7 @@ test.describe('forgot-password flow', () => {
 
 		await page.getByLabel('New Password').fill(newPassword);
 		await page.getByLabel('Confirm Password').fill(newPassword);
-		await page.getByRole('button', { name: 'Reset Password' }).click();
+		await page.getByRole('button', { name: 'Reset password' }).click();
 		await page.waitForLoadState('networkidle');
 
 		await expect(page).toHaveURL(/\/sign-in/);
@@ -185,7 +187,7 @@ test.describe('forgot-password flow', () => {
 		// Sign in with the new password
 		await page.getByLabel('Email').fill(email);
 		await page.getByLabel('Password').fill(newPassword);
-		await page.getByRole('button', { name: 'Sign In' }).click();
+		await page.getByRole('button', { name: 'Sign in' }).click();
 		await page.waitForLoadState('networkidle');
 
 		await expect(page).toHaveURL(/\/dashboard/);

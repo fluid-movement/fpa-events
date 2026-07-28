@@ -1,12 +1,20 @@
-<script lang="ts">
+<script
+	lang="ts"
+	generics="AddInput extends RemoteFormInput, UpdateInput extends RemoteFormInput, DeleteInput extends RemoteFormInput"
+>
 	import { tick } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 	import { Button } from '$lib/components/ui/button';
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import ScheduleItemCard from './ScheduleItemCard.svelte';
+	import ConfirmDialog from '$lib/components/layout/ConfirmDialog.svelte';
+	import EmptyState from '$lib/components/layout/EmptyState.svelte';
+	import TrashIcon from '@lucide/svelte/icons/trash-2';
+	import CalendarClockIcon from '@lucide/svelte/icons/calendar-clock';
 	import ScheduleItemForm from './ScheduleItemForm.svelte';
 	import type { ScheduleItem, EventLocation } from '$lib/types/event';
 	import { toISODate } from '$lib/utils/dates';
+	import type { RemoteForm, RemoteFormInput } from '@sveltejs/kit';
 
 	interface Props {
 		schedules: ScheduleItem[];
@@ -14,9 +22,9 @@
 		editable?: boolean;
 		eventDays?: string[];
 		locations?: EventLocation[];
-		addScheduleForm?: Record<string, unknown>;
-		updateScheduleForm?: Record<string, unknown>;
-		deleteScheduleForm?: Record<string, unknown>;
+		addScheduleForm?: RemoteForm<AddInput, unknown>;
+		updateScheduleForm?: RemoteForm<UpdateInput, unknown>;
+		deleteScheduleForm?: RemoteForm<DeleteInput, unknown>;
 	}
 
 	let {
@@ -35,7 +43,16 @@
 	let deletingId = $state<string | null>(null);
 	let deleteFormEl = $state<HTMLFormElement | null>(null);
 
+	let pending = $state<ScheduleItem | null>(null);
+	let confirmOpen = $state(false);
+
+	function askDelete(item: ScheduleItem) {
+		pending = item;
+		confirmOpen = true;
+	}
+
 	async function handleDelete(id: string) {
+		confirmOpen = false;
 		deletingId = id;
 		await tick();
 		deleteFormEl?.requestSubmit();
@@ -90,7 +107,14 @@
 
 <div class="space-y-8">
 	{#if groupedSchedules.length === 0 && (!editable || addingForDay === null)}
-		<p class="py-8 text-center text-muted-foreground">No schedule items yet.</p>
+		<EmptyState
+			icon={CalendarClockIcon}
+			title="No schedule items yet"
+			description={editable
+				? 'Add activities so attendees know what happens when.'
+				: 'The organizers have not published a schedule yet.'}
+			size="compact"
+		/>
 	{/if}
 
 	{#each groupedSchedules as [dayKey, items] (dayKey)}
@@ -115,7 +139,7 @@
 						<ScheduleItemCard
 							item={itemWithResolvedLocation(item)}
 							onEdit={editable ? () => (editingId = item.id) : undefined}
-							onDelete={editable && deleteScheduleForm ? () => handleDelete(item.id) : undefined}
+							onDelete={editable && deleteScheduleForm ? () => askDelete(item) : undefined}
 						/>
 					{/if}
 				{/each}
@@ -169,3 +193,16 @@
 		{/if}
 	{/if}
 </div>
+
+<ConfirmDialog
+	bind:open={confirmOpen}
+	title="Delete this schedule item?"
+	description="“{pending?.name ?? ''}” will be removed from the schedule. This cannot be undone."
+	confirmLabel="Delete item"
+	testIds={{ confirm: 'confirm-delete-schedule-item' }}
+	onconfirm={() => pending && handleDelete(pending.id)}
+>
+	{#snippet icon()}
+		<TrashIcon />
+	{/snippet}
+</ConfirmDialog>

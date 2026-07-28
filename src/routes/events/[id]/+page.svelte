@@ -10,14 +10,17 @@
 	import { formatDateRange } from '$lib/utils/dates';
 	import { attendeeSummary, firstName } from '$lib/utils/attendees';
 	import * as Dialog from '$lib/components/ui/dialog';
+	import PageShell from '$lib/components/layout/PageShell.svelte';
+	import PageHeader from '$lib/components/layout/PageHeader.svelte';
+	import EmptyState from '$lib/components/layout/EmptyState.svelte';
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
 	import MapPinIcon from '@lucide/svelte/icons/map-pin';
 	import HeartIcon from '@lucide/svelte/icons/heart';
 	import PencilIcon from '@lucide/svelte/icons/pencil';
-	import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
 	import StarIcon from '@lucide/svelte/icons/star';
 	import UserIcon from '@lucide/svelte/icons/user';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
+	import TriangleAlertIcon from '@lucide/svelte/icons/triangle-alert';
 
 	let { data }: PageProps = $props();
 	const event = $derived(data.event);
@@ -44,72 +47,89 @@
 	const isPast = $derived(new Date(event.startDate) < new Date());
 
 	const attendeePeekLabel = $derived(
-		attendeeSummary(attendeePeek.map((a) => firstName(a.name)), optimisticCount, isPast)
+		attendeeSummary(
+			attendeePeek.map((a) => firstName(a.name)),
+			optimisticCount,
+			isPast
+		)
 	);
 
 	// Attendees who opted out of being named are still counted in the total.
 	const hiddenAttendeeCount = $derived(Math.max(0, optimisticCount - allAttendees.length));
 </script>
 
+<!-- No `pending` snippet: `event`/`schedules`/etc. are all resolved by the SSR
+     load in +page.server.ts, so nothing inside this boundary suspends — a
+     pending skeleton would never render. Same tradeoff as the boundary-less
+     rankings page (src/routes/rankings/+page.svelte:80-91). `failed` still
+     earns its keep: it catches a runtime error thrown while rendering the
+     `{#if event}` branch instead of an unhandled crash. -->
 <svelte:boundary>
+	{#snippet failed(error, reset)}
+		<PageShell width="content">
+			<EmptyState
+				icon={TriangleAlertIcon}
+				title="Something went wrong"
+				description={error instanceof Error ? error.message : 'An unexpected error occurred.'}
+			>
+				{#snippet action()}
+					<Button onclick={reset} variant="outline">Try again</Button>
+				{/snippet}
+			</EmptyState>
+		</PageShell>
+	{/snippet}
 	{#if event}
-		<div class="max-w-4xl mx-auto">
-			<div class="mb-3">
-				<Button href={resolve('/events')} variant="ghost" size="sm">
-					<ArrowLeftIcon class="size-4" />
-					All Events
-				</Button>
-			</div>
-
+		<PageShell width="content">
 			<!-- Cover image hero -->
 			{#if event.picture}
-				<div class="relative w-full mb-6 rounded-xl overflow-hidden">
+				<div class="relative mb-6 w-full overflow-hidden rounded-xl">
 					<img
 						src={event.picture}
 						alt={event.name}
 						width={event.pictureWidth ?? undefined}
 						height={event.pictureHeight ?? undefined}
-						class="w-full object-cover max-h-80"
+						class="max-h-56 w-full object-cover md:max-h-80"
 					/>
 					<!-- Gradient overlay for readability -->
-					<div class="absolute inset-0 bg-linear-to-t from-background/60 via-transparent to-transparent"></div>
+					<div
+						class="absolute inset-0 bg-linear-to-t from-background/60 via-transparent to-transparent"
+					></div>
 				</div>
 			{/if}
 
-			<!-- Header: title + meta -->
-			<div class="mb-6">
-				<!-- Title + manage controls -->
-				<div class="flex items-start justify-between gap-4 mb-4">
-					<h1 class="text-3xl font-bold leading-tight">{event.name}</h1>
-					{#if canManage}
-						<div class="flex gap-2 shrink-0">
-							<Button
-								href={resolve(`/events/${event.id}/admin`)}
-								variant="outline"
-								size="sm"
-								data-testid="manage-event-link"
-							>
-								<PencilIcon class="size-4" />
-								Manage event
-							</Button>
-						</div>
-					{/if}
-				</div>
-
-				<!-- Logistics: date + location -->
-				<div class="flex flex-col gap-1.5 mb-5">
-					<p class="flex items-center gap-2 text-muted-foreground">
+			<PageHeader
+				title={event.name}
+				back={{ href: resolve('/events'), label: 'All events' }}
+				class="pb-4"
+			>
+				{#snippet meta()}
+					<span class="flex items-center gap-2">
 						<CalendarIcon class="size-4 shrink-0" />
 						{dateRange}
-					</p>
-					<p class="flex items-center gap-2 text-muted-foreground">
+					</span>
+					<span class="flex items-center gap-2">
 						<MapPinIcon class="size-4 shrink-0" />
 						{event.location}
-					</p>
-				</div>
+					</span>
+				{/snippet}
+				{#snippet actions()}
+					{#if canManage}
+						<Button
+							href={resolve(`/events/${event.id}/admin`)}
+							variant="outline"
+							size="sm"
+							data-testid="manage-event-link"
+						>
+							<PencilIcon />
+							Manage event
+						</Button>
+					{/if}
+				{/snippet}
+			</PageHeader>
 
+			<div class="mb-6">
 				<!-- RSVP + attendee peek -->
-				<div class="flex flex-col gap-2">
+				<div class="flex flex-col items-start gap-2">
 					{#if data.userStatus === 'organizing'}
 						<div class="flex items-center gap-2">
 							<Badge variant="secondary" data-testid="organizing-badge">
@@ -120,44 +140,43 @@
 					{:else if !isPast}
 						{#if userId}
 							<form {...toggleRsvp}>
-								<button
+								<!-- Attending is the settled state, so it steps back to outline and
+								     lets the filled heart carry the signal; Attend stays the CTA. -->
+								<Button
 									type="submit"
+									variant={attending ? 'outline' : 'default'}
 									data-testid="rsvp-button"
+									class={attending ? 'text-primary' : ''}
 									onclick={() => {
 										attending = !attending;
 										optimisticCount += attending ? 1 : -1;
 									}}
-									class="flex items-center gap-2 text-sm rounded-md px-3 py-2 border transition-colors {attending
-										? 'bg-primary/15 border-primary/40 text-primary hover:bg-primary/20'
-										: 'border-border text-muted-foreground hover:text-foreground hover:border-foreground/30'}"
 								>
-									<HeartIcon class="size-4 shrink-0 {attending ? 'fill-primary' : ''}" />
+									<HeartIcon class={attending ? 'fill-primary' : ''} />
 									{#if attending}
 										Attending · {optimisticCount}
 									{:else}
 										Attend · {optimisticCount}
 									{/if}
-								</button>
+								</Button>
 							</form>
 						{:else}
-							<a
-								href={resolve('/sign-in')}
-								data-testid="rsvp-sign-in-link"
-								class="flex items-center gap-2 text-sm rounded-md px-3 py-2 border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors w-fit"
-							>
-								<HeartIcon class="size-4 shrink-0" />
+							<Button href={resolve('/sign-in')} data-testid="rsvp-sign-in-link">
+								<HeartIcon />
 								Attend · {optimisticCount}
-							</a>
+							</Button>
 						{/if}
 					{/if}
 					{#if attendeePeekLabel}
-						<button
-							class="flex items-center gap-1 text-xs text-muted-foreground pl-0.5 text-left underline underline-offset-2 cursor-pointer"
+						<Button
+							variant="link"
+							size="sm"
+							class="h-auto px-0 text-xs text-muted-foreground hover:text-foreground"
 							onclick={() => (showAttendeesModal = true)}
 						>
 							{attendeePeekLabel}
 							<ChevronRightIcon class="size-3 shrink-0" />
-						</button>
+						</Button>
 					{/if}
 				</div>
 			</div>
@@ -167,13 +186,17 @@
 					<Dialog.Header>
 						<Dialog.Title>{isPast ? 'Who attended' : 'Attendees'}</Dialog.Title>
 					</Dialog.Header>
-					<ul class="flex flex-col gap-3 py-2 max-h-96 overflow-y-auto">
+					<ul class="flex max-h-96 flex-col gap-3 overflow-y-auto py-2">
 						{#each allAttendees as attendee, i (i)}
 							<li class="flex items-center gap-3">
 								{#if attendee.image}
-									<img src={attendee.image} alt={attendee.name} class="size-8 rounded-full object-cover shrink-0" />
+									<img
+										src={attendee.image}
+										alt={attendee.name}
+										class="size-8 shrink-0 rounded-full object-cover"
+									/>
 								{:else}
-									<div class="bg-primary/10 rounded-full p-1.5 shrink-0">
+									<div class="shrink-0 rounded-full bg-primary/10 p-1.5">
 										<UserIcon class="size-4 text-primary" />
 									</div>
 								{/if}
@@ -182,7 +205,7 @@
 						{/each}
 						{#if hiddenAttendeeCount > 0}
 							<li class="flex items-center gap-3" data-testid="hidden-attendee-count">
-								<div class="bg-muted rounded-full p-1.5 shrink-0">
+								<div class="shrink-0 rounded-full bg-muted p-1.5">
 									<UserIcon class="size-4 text-muted-foreground" />
 								</div>
 								<span class="text-sm text-muted-foreground">
@@ -199,34 +222,41 @@
 			<div class="border-t pt-6">
 				{#if schedules.length > 0}
 					<Tabs.Root value="description">
-						<Tabs.List>
+						<Tabs.List class="mb-4">
 							<Tabs.Trigger value="description">Description</Tabs.Trigger>
 							<Tabs.Trigger value="schedule">Schedule</Tabs.Trigger>
 						</Tabs.List>
 						<Tabs.Content value="description">
-							{#if event.description}
-								<RichContent content={event.description} class="text-base text-foreground/90" />
-							{:else}
-								<p class="text-muted-foreground">No description provided.</p>
-							{/if}
+							{@render description()}
 						</Tabs.Content>
 						<Tabs.Content value="schedule">
 							<ScheduleList {schedules} />
 						</Tabs.Content>
 					</Tabs.Root>
 				{:else}
-					{#if event.description}
-						<RichContent content={event.description} class="text-base text-foreground/90" />
-					{:else}
-						<p class="text-muted-foreground">No description provided.</p>
-					{/if}
+					{@render description()}
 				{/if}
 			</div>
-		</div>
+		</PageShell>
 	{:else}
-		<div class="text-center py-16 text-muted-foreground">
-			<p class="text-lg">Event not found.</p>
-			<Button href={resolve('/events')} variant="link">Back to Events</Button>
-		</div>
+		<PageShell width="content">
+			<EmptyState
+				icon={CalendarIcon}
+				title="Event not found"
+				description="It may have been removed, or the link might be wrong."
+			>
+				{#snippet action()}
+					<Button href={resolve('/events')} variant="outline">Back to events</Button>
+				{/snippet}
+			</EmptyState>
+		</PageShell>
 	{/if}
 </svelte:boundary>
+
+{#snippet description()}
+	{#if event.description}
+		<RichContent content={event.description} class="text-base text-foreground/90" />
+	{:else}
+		<p class="text-muted-foreground">No description provided.</p>
+	{/if}
+{/snippet}

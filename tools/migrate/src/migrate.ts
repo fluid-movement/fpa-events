@@ -306,9 +306,7 @@ async function migrateSchedules(
 	report.count('schedules', rows.length, rows.length);
 	report.count('schedule_locations', venues, venues);
 	if (nameOnly > 0) {
-		report.note(
-			`${nameOnly} venue(s) had no coordinates — migrated as name-only locations.`
-		);
+		report.note(`${nameOnly} venue(s) had no coordinates — migrated as name-only locations.`);
 	}
 }
 

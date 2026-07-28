@@ -1,5 +1,14 @@
 import { relations, sql } from 'drizzle-orm';
-import { pgTable, text, integer, index, real, boolean, timestamp, type AnyPgColumn } from 'drizzle-orm/pg-core';
+import {
+	pgTable,
+	text,
+	integer,
+	index,
+	real,
+	boolean,
+	timestamp,
+	type AnyPgColumn
+} from 'drizzle-orm/pg-core';
 
 export const user = pgTable('user', {
 	id: text('id').primaryKey(),
@@ -7,7 +16,9 @@ export const user = pgTable('user', {
 	email: text('email').notNull().unique(),
 	emailVerified: boolean('email_verified').default(false).notNull(),
 	image: text('image'),
-	role: text('role', { enum: ['user', 'admin'] }).default('user').notNull(),
+	role: text('role', { enum: ['user', 'admin'] })
+		.default('user')
+		.notNull(),
 	calendarToken: text('calendar_token').unique(),
 	// Whether this user's name may be shown publicly in event attendee lists.
 	// Opting out still counts them towards the attendee total.
@@ -32,7 +43,9 @@ export const events = pgTable(
 		startDate: timestamp('start_date', { mode: 'date' }).notNull(),
 		endDate: timestamp('end_date', { mode: 'date' }).notNull(),
 		location: text('location').notNull(),
-		eventLocationId: integer('event_location_id').references((): AnyPgColumn => eventLocations.id, { onDelete: 'set null' }),
+		eventLocationId: integer('event_location_id').references((): AnyPgColumn => eventLocations.id, {
+			onDelete: 'set null'
+		}),
 		description: text('description').notNull(),
 		picture: text('picture'),
 		pictureWidth: integer('picture_width'),
@@ -132,7 +145,9 @@ export const schedules = pgTable('schedules', {
 	startDate: timestamp('start_date', { mode: 'date' }).notNull(),
 	endDate: timestamp('end_date', { mode: 'date' }).notNull(),
 	description: text('description'),
-	locationId: integer('location_id').references(() => scheduleLocations.id, { onDelete: 'set null' }),
+	locationId: integer('location_id').references(() => scheduleLocations.id, {
+		onDelete: 'set null'
+	}),
 	createdAt: timestamp('created_at', { mode: 'date' })
 		.notNull()
 		.default(sql`now()`),

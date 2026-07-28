@@ -5,10 +5,10 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Switch } from '$lib/components/ui/switch';
 	import { SvelteDate } from 'svelte/reactivity';
-	import LocationsList from '$lib/components/event-admin/LocationsList.svelte';
+	import LocationsList from './LocationsList.svelte';
 	import ScheduleList from '$lib/components/schedule/ScheduleList.svelte';
 	import VenueLocationPicker from '$lib/components/VenueLocationPicker.svelte';
-	import { listEventLocations, createEventLocation, deleteEventLocation } from './locations.remote';
+	import { listEventLocations, createEventLocation } from './locations.remote';
 	import { addSchedule, updateSchedule, deleteSchedule } from './schedule.remote';
 	import { getEvent } from '../event-details.remote';
 	import { toISODate } from '$lib/utils/dates';
@@ -51,7 +51,6 @@
 		locations={locations ?? []}
 		onAddClick={() => (showVenuePicker = true)}
 		eventId={event.id}
-		deleteAction={deleteEventLocation}
 	/>
 </div>
 
@@ -116,7 +115,13 @@
 				<Button variant="outline" type="button" onclick={() => (showVenuePicker = false)}>
 					Cancel
 				</Button>
-				<Button type="submit" data-testid="save-location">Save Location</Button>
+				<Button
+					type="submit"
+					data-testid="save-location"
+					disabled={createEventLocation.pending > 0}
+				>
+					{createEventLocation.pending > 0 ? 'Saving…' : 'Save Location'}
+				</Button>
 			</Dialog.Footer>
 		</form>
 	</Dialog.Content>

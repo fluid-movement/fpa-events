@@ -13,6 +13,7 @@ We want to migrate all users, the only problem i see here is if passwords will n
 ## Events
 
 We want to migrate all events, with all the associations that we also have:
+
 - user
 - schedule (in the old app we did not have geolocation, so this needs a good strategy)
 - pictures (we use cloudflare R2 for the old site too, so that shouldnt be a problem, we want to copy pictures across to the "new" R2 bucket, so the "old" one stays as is)

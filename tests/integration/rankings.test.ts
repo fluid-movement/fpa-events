@@ -1,4 +1,7 @@
 import { test, expect } from '@playwright/test';
+import { installErrorGuard } from './helpers/console';
+
+installErrorGuard(test);
 
 /**
  * Rankings page.
@@ -110,15 +113,13 @@ test.describe('/rankings', () => {
 		await page.goto('/rankings?tab=ratings');
 		await page.waitForLoadState('networkidle');
 
-		await expect(page.getByTestId('ratings-threshold-50')).toHaveAttribute('data-slot', 'button');
-		const all = page.getByTestId('ratings-threshold-0');
-		const fifty = page.getByTestId('ratings-threshold-50');
-
-		// The active threshold is the solid one; compare their classes.
-		const allClass = (await all.getAttribute('class')) ?? '';
-		const fiftyClass = (await fifty.getAttribute('class')) ?? '';
-		expect(fiftyClass).not.toBe(allClass);
-		expect(fiftyClass).toContain('bg-primary');
+		// Selection is carried by aria-current rather than a class: the segmented
+		// control marks the active option with a sliding indicator, not a fill.
+		await expect(page.getByTestId('ratings-threshold-50')).toHaveAttribute('aria-current', 'page');
+		await expect(page.getByTestId('ratings-threshold-0')).not.toHaveAttribute(
+			'aria-current',
+			'page'
+		);
 	});
 
 	test('changing the ratings threshold updates the URL and the list', async ({ page }) => {

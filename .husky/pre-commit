@@ -1,0 +1,9 @@
+# Fast gate (~20s). Formatting and lint are scoped to staged files; svelte-check
+# and Vitest are whole-project by nature.
+#
+# `npm run lint` is deliberately NOT used here — it runs `prettier --check .`
+# across the whole repo, which would fail on files this commit never touched.
+
+npx lint-staged
+npm run check
+npm run test

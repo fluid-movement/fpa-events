@@ -1,1 +1,1 @@
-<img src="/fpa-logo-dark.png" alt="FPA Logo"/>
+<img src="/fpa-logo-dark.png" alt="FPA Logo" />

@@ -47,9 +47,7 @@ export const load = async ({ locals }: ServerLoadEvent) => {
 		db
 			.select()
 			.from(events)
-			.where(
-				or(eq(events.userId, locals.user.id), inArray(events.id, coOrganizingEventIds))
-			)
+			.where(or(eq(events.userId, locals.user.id), inArray(events.id, coOrganizingEventIds)))
 			.orderBy(asc(events.startDate))
 	]);
 

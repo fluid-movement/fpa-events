@@ -1,5 +1,6 @@
 import { test, expect, type BrowserContext, type Page } from '@playwright/test';
 import { TEST_USER } from './helpers/constants';
+import { installErrorGuard } from './helpers/console';
 import {
 	getTestUserId,
 	createTestUser,
@@ -14,6 +15,8 @@ import {
 	getLocationCoords,
 	closeDb
 } from './helpers/db';
+
+installErrorGuard(test);
 
 async function signIn(page: Page, context: BrowserContext) {
 	await context.clearCookies();
@@ -119,7 +122,10 @@ test.describe('event manage area', () => {
 
 		await page.getByTestId('edit-details').click();
 		await expect(page).toHaveURL(`/events/${ownEventId}/admin/edit`);
-		await expect(page.getByTestId('event-name-input')).toBeVisible();
+		// Pre-filled, not blank: the name field is bound through the remote form,
+		// which must not clobber the value it was rendered with.
+		const storedName = await getEventName(ownEventId);
+		await expect(page.getByTestId('event-name-input')).toHaveValue(storedName ?? '');
 		await expect(page.getByTestId('event-details-view')).not.toBeVisible();
 	});
 
@@ -331,11 +337,13 @@ test.describe('deleting an event', () => {
 		expect(await eventExists(eventId)).toBe(false);
 	});
 
-	test('the name to copy is shown in a disabled input', async ({ page, context }) => {
+	test('the name to copy is shown in a readonly input', async ({ page, context }) => {
 		await openDeleteDialog(page, context);
 
+		// Readonly rather than disabled: the name stays selectable so it can still
+		// be copied by hand when the clipboard API is unavailable.
 		const nameField = page.getByLabel('Event name to copy');
-		await expect(nameField).toBeDisabled();
+		await expect(nameField).toHaveAttribute('readonly', '');
 		await expect(nameField).toHaveValue(EVENT_NAME);
 		await expect(page.getByTestId('copy-event-name')).toBeVisible();
 	});

@@ -58,21 +58,36 @@
 </script>
 
 <div class="flex min-h-[60vh] items-center justify-center">
-	<Card.Root class="w-full max-w-sm bg-card/80 backdrop-blur-sm">
+	<Card.Root class="surface-glass w-full max-w-sm">
 		<Card.Header>
-			<Card.Title class="text-2xl">Sign In</Card.Title>
+			<Card.Title class="text-xl md:text-2xl">Sign in</Card.Title>
 			<Card.Description>Enter your email and password to continue</Card.Description>
 		</Card.Header>
 		<Card.Content>
-			<form class="grid gap-4" onsubmit={(e) => { e.preventDefault(); handleSignIn(); }}>
+			<form
+				class="grid gap-4"
+				onsubmit={(e) => {
+					e.preventDefault();
+					handleSignIn();
+				}}
+			>
 				<div class="grid gap-2">
 					<Label for="email">Email</Label>
-					<Input id="email" type="email" placeholder="you@example.com" required bind:value={email} />
+					<Input
+						id="email"
+						type="email"
+						placeholder="you@example.com"
+						required
+						bind:value={email}
+					/>
 				</div>
 				<div class="grid gap-2">
 					<div class="flex items-center justify-between">
 						<Label for="password">Password</Label>
-						<a href={resolve('/forget-password')} class="text-xs text-muted-foreground hover:underline">
+						<a
+							href={resolve('/forget-password')}
+							class="text-xs text-muted-foreground hover:underline"
+						>
 							Forgot password?
 						</a>
 					</div>
@@ -86,20 +101,20 @@
 						<Button
 							type="button"
 							variant="outline"
-							class="w-full text-sm"
+							class="w-full"
 							disabled={captchaEnabled && !token}
 							onclick={resendVerification}
 						>
 							Resend verification email
 						</Button>
 						{#if resent}
-							<p class="text-sm text-muted-foreground text-center">Verification email sent!</p>
+							<p class="text-center text-sm text-muted-foreground">Verification email sent!</p>
 						{/if}
 					</div>
 				{/if}
 				<Turnstile bind:this={turnstile} bind:token />
 				<Button type="submit" class="w-full" disabled={loading || (captchaEnabled && !token)}>
-					{loading ? 'Signing in…' : 'Sign In'}
+					{loading ? 'Signing in…' : 'Sign in'}
 				</Button>
 			</form>
 			<p class="mt-4 text-center text-sm text-muted-foreground">

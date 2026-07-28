@@ -26,10 +26,7 @@ export const load = (async ({ params, locals }) => {
 
 	if (existing) {
 		if (existing.status !== 'organizing') {
-			await db
-				.update(eventUser)
-				.set({ status: 'organizing' })
-				.where(eq(eventUser.id, existing.id));
+			await db.update(eventUser).set({ status: 'organizing' }).where(eq(eventUser.id, existing.id));
 		}
 	} else {
 		await db.insert(eventUser).values({

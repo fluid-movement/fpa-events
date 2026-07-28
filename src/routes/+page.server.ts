@@ -26,10 +26,7 @@ export const load = (async () => {
 				attendeeCount: count(eventUser.id)
 			})
 			.from(events)
-			.leftJoin(
-				eventUser,
-				and(eq(eventUser.eventId, events.id), eq(eventUser.status, 'attending'))
-			)
+			.leftJoin(eventUser, and(eq(eventUser.eventId, events.id), eq(eventUser.status, 'attending')))
 			.where(gte(events.startDate, now))
 			.groupBy(events.id)
 			.orderBy(asc(events.startDate))
