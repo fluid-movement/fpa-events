@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
-	import ConfirmDialog from '$lib/components/layout/ConfirmDialog.svelte';
+	import ConfirmSubmit from '$lib/components/layout/ConfirmSubmit.svelte';
 	import TrashIcon from '@lucide/svelte/icons/trash-2';
 	import { deleteEvent } from './delete-event.remote';
 
@@ -12,7 +12,6 @@
 	let { eventId, eventName }: Props = $props();
 
 	let open = $state(false);
-	let formEl: HTMLFormElement | undefined = $state();
 </script>
 
 <!-- Kept low-key: discoverable at the end of the tab, but not competing with the
@@ -38,15 +37,11 @@
 	</Button>
 </div>
 
-<!-- Submitted by the dialog. The form deliberately has no `onsubmit` of its own:
-     overriding it would replace the remote function's handler and fall back to a
-     native submit. -->
-<form bind:this={formEl} {...deleteEvent} class="hidden">
-	<input type="hidden" name="eventId" value={eventId} />
-</form>
-
-<ConfirmDialog
+<ConfirmSubmit
 	bind:open
+	form={deleteEvent}
+	fields={{ eventId }}
+	closeOnConfirm={false}
 	title="Delete this event?"
 	description="This permanently deletes the event along with its schedule, locations, attendee list and invite links. This cannot be undone."
 	confirmPhrase={eventName}
@@ -59,9 +54,8 @@
 		cancel: 'cancel-delete',
 		phraseCopy: 'copy-event-name'
 	}}
-	onconfirm={() => formEl?.requestSubmit()}
 >
 	{#snippet icon()}
 		<TrashIcon />
 	{/snippet}
-</ConfirmDialog>
+</ConfirmSubmit>

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { attendeeSummary, firstName } from './attendees';
+import { attendeeSummary, coOrganizers, firstName } from './attendees';
 
 describe('firstName', () => {
 	it('takes the first word', () => {
@@ -77,5 +77,26 @@ describe('attendeeSummary', () => {
 		it('when everyone opted out', () => {
 			expect(attendeeSummary([], 3, true)).toBe('3 people attended');
 		});
+	});
+});
+
+describe('coOrganizers', () => {
+	const OWNER = 'owner-1';
+	const rows = [
+		{ id: 1, status: 'organizing', userId: OWNER },
+		{ id: 2, status: 'organizing', userId: 'invited-1' },
+		{ id: 3, status: 'attending', userId: 'guest-1' }
+	];
+
+	it('excludes the creator, who is always an organizer but never an invitee', () => {
+		expect(coOrganizers(rows, OWNER).map((r) => r.id)).toEqual([2]);
+	});
+
+	it('excludes attendees', () => {
+		expect(coOrganizers(rows, OWNER).some((r) => r.status === 'attending')).toBe(false);
+	});
+
+	it('returns nothing when the only organizer is the creator', () => {
+		expect(coOrganizers([rows[0], rows[2]], OWNER)).toEqual([]);
 	});
 });

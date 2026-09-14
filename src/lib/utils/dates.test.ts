@@ -1,5 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { daysUntil, countdownLabel, formatDateRange } from './dates';
+import {
+	countdownLabel,
+	dateChipParts,
+	daysBetween,
+	daysUntil,
+	formatCompactDateRange,
+	formatDateRange,
+	formatFullDateRange,
+	formatShortDateRange
+} from './dates';
 
 describe('daysUntil', () => {
 	beforeEach(() => {
@@ -69,5 +78,88 @@ describe('formatDateRange', () => {
 		const start = new Date('2026-08-30');
 		const end = new Date('2026-09-02');
 		expect(formatDateRange(start, end)).toBe('August 30 - September 2, 2026');
+	});
+});
+
+describe('formatFullDateRange', () => {
+	it('collapses a single-day event to one date', () => {
+		const d = new Date('2026-08-14T12:00:00');
+		expect(formatFullDateRange(d, d)).toBe('August 14, 2026');
+	});
+
+	it('spells out both ends of a multi-day range', () => {
+		expect(formatFullDateRange('2026-08-14T12:00:00', '2026-08-17T12:00:00')).toBe(
+			'August 14, 2026 – August 17, 2026'
+		);
+	});
+});
+
+describe('formatShortDateRange', () => {
+	it('abbreviates the month and keeps the year', () => {
+		expect(formatShortDateRange('2026-08-14T12:00:00', '2026-09-02T12:00:00')).toBe(
+			'Aug 14, 2026 – Sep 2, 2026'
+		);
+	});
+
+	it('collapses a single-day event', () => {
+		const d = '2026-08-14T12:00:00';
+		expect(formatShortDateRange(d, d)).toBe('Aug 14, 2026');
+	});
+});
+
+describe('formatCompactDateRange', () => {
+	it('drops the year entirely', () => {
+		const d = '2026-08-14T12:00:00';
+		expect(formatCompactDateRange(d, d)).toBe('Aug 14');
+	});
+
+	it('repeats only the day number within one month', () => {
+		expect(formatCompactDateRange('2026-08-14T12:00:00', '2026-08-17T12:00:00')).toBe(
+			'Aug 14 – 17'
+		);
+	});
+
+	it('repeats the month across a month boundary', () => {
+		expect(formatCompactDateRange('2026-08-30T12:00:00', '2026-09-02T12:00:00')).toBe(
+			'Aug 30 – Sep 2'
+		);
+	});
+
+	it('does not treat the same day in different years as one month', () => {
+		expect(formatCompactDateRange('2025-08-14T12:00:00', '2026-08-17T12:00:00')).toBe(
+			'Aug 14 – Aug 17'
+		);
+	});
+});
+
+describe('dateChipParts', () => {
+	it('zero-pads the day and abbreviates the month', () => {
+		expect(dateChipParts('2026-08-05T12:00:00')).toEqual({ day: '05', month: 'Aug' });
+	});
+});
+
+describe('daysBetween', () => {
+	it('includes both ends', () => {
+		expect(daysBetween('2026-08-14T12:00:00', '2026-08-17T12:00:00')).toEqual([
+			'2026-08-14',
+			'2026-08-15',
+			'2026-08-16',
+			'2026-08-17'
+		]);
+	});
+
+	it('returns a single day for a one-day event', () => {
+		const d = '2026-08-14T12:00:00';
+		expect(daysBetween(d, d)).toEqual(['2026-08-14']);
+	});
+
+	it('does not mutate a Date it was handed', () => {
+		const start = new Date('2026-08-14T12:00:00');
+		daysBetween(start, '2026-08-17T12:00:00');
+		expect(start.getDate()).toBe(14);
+	});
+
+	it('returns nothing when the end precedes the start', () => {
+		expect(daysBetween('2026-08-17T12:00:00', '2026-08-14T12:00:00')).toEqual([]);
 	});
 });

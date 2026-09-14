@@ -33,17 +33,21 @@
 		userId === event.userId || userRole === 'admin' || data.userStatus === 'organizing'
 	);
 
-	let attending = $state(false);
-	let optimisticCount = $state(0);
 	let showAttendeesModal = $state(false);
 	const allAttendees = $derived(data.allAttendees);
+
+	// The RSVP button answers the tap before the round-trip finishes, so these
+	// two shadow the loaded values. The effect is the reset: when the form's
+	// revalidation lands, the server's numbers take over again.
+	let attending = $state(false);
+	let optimisticCount = $state(0);
 
 	$effect(() => {
 		attending = data.userStatus === 'attending';
 		optimisticCount = data.attendeeCount;
 	});
 
-	const dateRange = $derived(formatDateRange(new Date(event.startDate), new Date(event.endDate)));
+	const dateRange = $derived(formatDateRange(event.startDate, event.endDate));
 	const isPast = $derived(new Date(event.startDate) < new Date());
 
 	const attendeePeekLabel = $derived(
@@ -187,7 +191,7 @@
 						<Dialog.Title>{isPast ? 'Who attended' : 'Attendees'}</Dialog.Title>
 					</Dialog.Header>
 					<ul class="flex max-h-96 flex-col gap-3 overflow-y-auto py-2">
-						{#each allAttendees as attendee, i (i)}
+						{#each allAttendees as attendee (attendee.id)}
 							<li class="flex items-center gap-3">
 								{#if attendee.image}
 									<img

@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import type { Event } from '$lib/types/event';
+	import type { Event, EventUserStatus } from '$lib/types/event';
 	import { Badge } from '$lib/components/ui/badge';
+	import { dateChipParts, formatCompactDateRange } from '$lib/utils/dates';
 	import MapPinIcon from '@lucide/svelte/icons/map-pin';
 	import UsersIcon from '@lucide/svelte/icons/users';
 
@@ -9,26 +10,10 @@
 		event,
 		attendeeCount,
 		userStatus
-	}: { event: Event; attendeeCount?: number; userStatus?: 'attending' | 'organizing' | null } =
-		$props();
+	}: { event: Event; attendeeCount?: number; userStatus?: EventUserStatus | null } = $props();
 
-	const start = $derived(new Date(event.startDate));
-	const end = $derived(new Date(event.endDate));
-	const sameDay = $derived(start.toDateString() === end.toDateString());
-	const sameMonth = $derived(
-		start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()
-	);
-
-	const startDay = $derived(String(start.getDate()).padStart(2, '0'));
-	const startMonth = $derived(start.toLocaleDateString('en-US', { month: 'short' }));
-
-	const dateRange = $derived(
-		sameDay
-			? start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-			: sameMonth
-				? `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${end.getDate()}`
-				: `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-	);
+	const chip = $derived(dateChipParts(event.startDate));
+	const dateRange = $derived(formatCompactDateRange(event.startDate, event.endDate));
 </script>
 
 <a href={resolve(`/events/${event.id}`)} class="card-link">
@@ -36,8 +21,8 @@
 	<article class="event-card surface">
 		<div class="body">
 			<div class="chip">
-				<span class="day">{startDay}</span>
-				<span class="month">{startMonth}</span>
+				<span class="day">{chip.day}</span>
+				<span class="month">{chip.month}</span>
 			</div>
 			<div class="info">
 				<h2>{event.name}</h2>

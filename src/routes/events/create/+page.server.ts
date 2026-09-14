@@ -1,8 +1,6 @@
-import { resolve } from '$app/paths';
-import { redirect, type ServerLoadEvent } from '@sveltejs/kit';
+import { requireSignedIn } from '$lib/server/authz';
+import type { PageServerLoad } from './$types';
 
-export const load = async ({ locals }: ServerLoadEvent) => {
-	if (!locals.user) {
-		redirect(307, resolve('/sign-in'));
-	}
-};
+export const load = (({ locals }) => {
+	requireSignedIn(locals);
+}) satisfies PageServerLoad;

@@ -22,6 +22,39 @@ This is a private repository without branch protection enabled. Commits go direc
 
 **No `use:enhance`** — remote functions handle progressive enhancement automatically via `{...formAction}` spread on `<form>` elements.
 
+**Reach for the shared helpers before writing a new one.** The cleanup pass that
+introduced these found the same code in three to five places each time; adding a
+sixth copy is the thing to avoid.
+
+- **Auth guards** — `$lib/server/authz`: `requireSignedIn(locals)` in a `load`,
+  `requireSignedInRequest()` in a remote function (302 vs 307 is deliberate),
+  `requireEventManager(id)` / `requireEventOwner(id)` for event permissions.
+- **Event queries** — `$lib/server/utils/events`: `listEventsWithAttendeeCount`,
+  `withUserStatus`, `attendingEvents`, `organizingEvents`, `eventUserCounts`.
+  Never count attendees one event at a time.
+- **Dates** — `$lib/utils/dates` owns every format the app renders. Add a named
+  function there rather than a local `toLocaleDateString` in a component.
+- **HTML** — `$lib/utils/html`: `sanitizeRichText` on the way in,
+  `escapeHtml` for the one place that builds markup by hand (Leaflet popups),
+  `stripHtml` for excerpts.
+- **Destructive actions** — `<ConfirmSubmit>` (`$lib/components/layout`) pairs a
+  confirmation dialog with a hidden remote form. Don't hand-roll the
+  `requestSubmit()` dance.
+- **Signed-out pages** — `<AuthCard>` + `<AuthForm>`.
+- **Leaflet** — `$lib/leaflet`: `loadLeaflet()`, `addOsmTiles()`,
+  `enableTwoFingerPan()`. Never import `leaflet` statically; it touches `window`.
+
+**Prefer `untrack` to an `$effect` when seeding state from a prop.** Mirroring
+props into `$state` with an effect is the pattern Svelte warns about. If the
+component is rebuilt whenever the prop changes — which is the usual case here —
+seed it once with `untrack(() => prop)` and say so in a comment. Reserve the
+effect for state that genuinely has to resync, such as the optimistic RSVP count
+on `events/[id]`.
+
+**Plain `Map`/`Date`, not `SvelteMap`/`SvelteDate`, for local computation.** The
+reactive variants only earn their keep when something mutates them after they're
+built and the UI must follow.
+
 **Submit feedback uses `formAction.pending > 0`** — remote-function-backed forms disable their submit button and swap its label (e.g. "Save changes" → "Saving…") by reading `.pending` off the `form()` result. Forms with no remote function behind them (the auth pages calling `better-auth` client methods directly) use a local `loading` `$state` boolean for the same disable/label-swap instead — both are legitimate; pick whichever's available and never invent a third pattern.
 
 ## Testing

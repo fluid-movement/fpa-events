@@ -157,11 +157,6 @@ export const schedules = pgTable('schedules', {
 });
 
 // Relations
-export const usersRelations = relations(user, ({ many }) => ({
-	events: many(events),
-	eventUsers: many(eventUser)
-}));
-
 export const eventsRelations = relations(events, ({ one, many }) => ({
 	user: one(user, {
 		fields: [events.userId],
@@ -283,7 +278,11 @@ export const verification = pgTable(
 	(table) => [index('verification_identifier_idx').on(table.identifier)]
 );
 
+// Declared here rather than beside the app tables: `relations()` evaluates its
+// config eagerly, so `session` and `account` must already be defined.
 export const userRelations = relations(user, ({ many }) => ({
+	events: many(events),
+	eventUsers: many(eventUser),
 	sessions: many(session),
 	accounts: many(account)
 }));

@@ -3,6 +3,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import CopyIcon from '@lucide/svelte/icons/copy';
 	import CheckIcon from '@lucide/svelte/icons/check';
+	import { CopyToClipboard } from '$lib/hooks/copy-to-clipboard.svelte';
 	import { cn } from '$lib/utils';
 
 	let {
@@ -26,23 +27,8 @@
 		copyTitle?: string;
 	} = $props();
 
-	let copied = $state(false);
-	let timer: ReturnType<typeof setTimeout>;
-
-	async function copy() {
-		try {
-			await navigator.clipboard.writeText(value);
-			copied = true;
-			clearTimeout(timer);
-			timer = setTimeout(() => (copied = false), 2000);
-		} catch {
-			// Clipboard is blocked (insecure origin, denied permission) — the value
-			// is selectable in the field, so there's still a way through.
-			copied = false;
-		}
-	}
-
-	$effect(() => () => clearTimeout(timer));
+	const clipboard = new CopyToClipboard();
+	$effect(() => () => clipboard.dispose());
 </script>
 
 <div class={cn('space-y-2', className)}>
@@ -60,13 +46,19 @@
 			class="surface-sunken h-11 min-w-0 flex-1 truncate rounded-md px-3 font-mono text-xs text-muted-foreground outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 md:h-9"
 			onfocus={(e) => e.currentTarget.select()}
 		/>
-		<Button variant="outline" size="icon" onclick={copy} title={copyTitle} data-testid={copyTestId}>
-			{#if copied}
+		<Button
+			variant="outline"
+			size="icon"
+			onclick={() => clipboard.write(value)}
+			title={copyTitle}
+			data-testid={copyTestId}
+		>
+			{#if clipboard.copied}
 				<CheckIcon class="text-success" />
 			{:else}
 				<CopyIcon />
 			{/if}
-			<span class="sr-only">{copied ? 'Copied' : 'Copy'}</span>
+			<span class="sr-only">{clipboard.copied ? 'Copied' : 'Copy'}</span>
 		</Button>
 	</div>
 	{#if description}

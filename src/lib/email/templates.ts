@@ -21,30 +21,50 @@ ${body}
 </html>`;
 }
 
-export function resetPasswordTemplate(url: string) {
+/**
+ * Both transactional emails are the same shape: a line of copy, a button, and
+ * the raw URL underneath for clients that strip the link.
+ */
+function actionTemplate({
+	title,
+	intro,
+	action,
+	url
+}: {
+	title: string;
+	intro: string;
+	action: string;
+	url: string;
+}) {
 	return baseTemplate(
-		'Reset your password',
+		title,
 		`<p style="margin:0 0 16px;color:#52525b;font-size:14px;line-height:1.5">
-Click the button below to reset your password. This link expires in 1 hour.
+${intro}
 </p>
 <table role="presentation" style="margin:0 auto 16px"><tr><td style="background:#18181b;border-radius:6px;padding:12px 24px">
-<a href="${url}" style="color:#fff;text-decoration:none;font-size:14px;font-weight:600;display:inline-block">Reset Password</a>
+<a href="${url}" style="color:#fff;text-decoration:none;font-size:14px;font-weight:600;display:inline-block">${action}</a>
 </td></tr></table>
 <p style="margin:0;color:#52525b;font-size:13px;word-break:break-all">${url}</p>`
 	);
 }
 
+export function resetPasswordTemplate(url: string) {
+	return actionTemplate({
+		title: 'Reset your password',
+		intro: 'Click the button below to reset your password. This link expires in 1 hour.',
+		action: 'Reset Password',
+		url
+	});
+}
+
 export function verificationTemplate(url: string) {
-	return baseTemplate(
-		'Verify your email',
-		`<p style="margin:0 0 16px;color:#52525b;font-size:14px;line-height:1.5">
-Thanks for signing up! Click the button below to activate your account. This link expires in 1 hour.
-</p>
-<table role="presentation" style="margin:0 auto 16px"><tr><td style="background:#18181b;border-radius:6px;padding:12px 24px">
-<a href="${url}" style="color:#fff;text-decoration:none;font-size:14px;font-weight:600;display:inline-block">Activate Account</a>
-</td></tr></table>
-<p style="margin:0;color:#52525b;font-size:13px;word-break:break-all">${url}</p>`
-	);
+	return actionTemplate({
+		title: 'Verify your email',
+		intro:
+			'Thanks for signing up! Click the button below to activate your account. This link expires in 1 hour.',
+		action: 'Activate Account',
+		url
+	});
 }
 
 export type EmailTemplateId = 'activate-account' | 'reset-password';
@@ -78,6 +98,8 @@ export const emailTemplates: EmailTemplate[] = [
 	}
 ];
 
-export function getTemplate(id: EmailTemplateId): EmailTemplate | undefined {
-	return emailTemplates.find((t) => t.id === id);
+export function getTemplate(id: EmailTemplateId): EmailTemplate {
+	const template = emailTemplates.find((t) => t.id === id);
+	if (!template) throw new Error(`Unknown email template: ${id}`);
+	return template;
 }

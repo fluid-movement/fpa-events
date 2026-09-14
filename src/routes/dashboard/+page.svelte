@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { client } from '$lib/auth-client';
-	import { formatDateRange } from '$lib/utils/dates';
+	import { dateChipParts, formatDateRange } from '$lib/utils/dates';
 	import { regenerateToken } from '$lib/api/calendar.remote';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
@@ -20,6 +20,9 @@
 	import ClipboardListIcon from '@lucide/svelte/icons/clipboard-list';
 	import ArrowRightIcon from '@lucide/svelte/icons/arrow-right';
 	import type { PageProps } from './$types';
+
+	/** Events listed inline before the card defers to the full Attending page. */
+	const DASHBOARD_EVENT_LIMIT = 4;
 
 	let { data }: PageProps = $props();
 
@@ -81,10 +84,8 @@
 						</EmptyState>
 					{:else}
 						<div class="grid grid-cols-1 gap-2">
-							{#each data.attending.upcoming.slice(0, 4) as event (event.id)}
-								{@const start = new Date(event.startDate)}
-								{@const startDay = String(start.getDate()).padStart(2, '0')}
-								{@const startMonth = start.toLocaleDateString('en-US', { month: 'short' })}
+							{#each data.attending.upcoming.slice(0, DASHBOARD_EVENT_LIMIT) as event (event.id)}
+								{@const chip = dateChipParts(event.startDate)}
 								<a
 									href={resolve(`/events/${event.id}`)}
 									class="surface-row flex items-center gap-3 rounded-lg p-3"
@@ -92,9 +93,9 @@
 									<div
 										class="flex shrink-0 flex-col items-center justify-center rounded-md bg-primary px-2.5 py-1.5 text-primary-foreground"
 									>
-										<span class="text-lg leading-none font-black">{startDay}</span>
+										<span class="text-lg leading-none font-black">{chip.day}</span>
 										<span class="text-[0.6rem] font-bold tracking-wide uppercase opacity-80">
-											{startMonth}
+											{chip.month}
 										</span>
 									</div>
 									<div class="min-w-0 flex-1">
@@ -107,7 +108,7 @@
 								</a>
 							{/each}
 						</div>
-						{#if data.attending.upcoming.length > 4}
+						{#if data.attending.upcoming.length > DASHBOARD_EVENT_LIMIT}
 							<div class="mt-4">
 								<Button href={resolve('/attending')} variant="ghost" size="sm">
 									View all {data.attending.upcoming.length} upcoming events

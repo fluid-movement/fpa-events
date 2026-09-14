@@ -1,15 +1,15 @@
 <script lang="ts">
 	import type { EventsByMonth } from '$lib/server/utils/events';
+	import type { EventListItem } from '$lib/types/event';
 	import EventCalendarCard from './EventCalendarCard.svelte';
 	import DividerLabel from './layout/DividerLabel.svelte';
 	import EmptyState from './layout/EmptyState.svelte';
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
 
-	interface Props {
-		eventsByMonth: EventsByMonth;
-	}
-
-	let { eventsByMonth }: Props = $props();
+	// Typed as `EventListItem` rather than the bare `Event` the grouping helper
+	// defaults to: both callers decorate their rows, and the looser type forced
+	// this component to feel for the extra fields with `in` checks and casts.
+	let { eventsByMonth }: { eventsByMonth: EventsByMonth<EventListItem> } = $props();
 </script>
 
 {#if eventsByMonth.length === 0}
@@ -31,12 +31,8 @@
 				{#each events as event (event.id)}
 					<EventCalendarCard
 						{event}
-						attendeeCount={'attendeeCount' in event
-							? (event as { attendeeCount: number }).attendeeCount
-							: undefined}
-						userStatus={'userStatus' in event
-							? (event as { userStatus: 'attending' | 'organizing' | null }).userStatus
-							: undefined}
+						attendeeCount={event.attendeeCount}
+						userStatus={event.userStatus}
 					/>
 				{/each}
 			</div>

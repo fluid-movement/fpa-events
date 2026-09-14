@@ -101,16 +101,30 @@ BETTER_AUTH_URL=http://localhost:5173
 fpa-events/
 ├── src/
 │   ├── lib/
-│   │   ├── server/
-│   │   │   └── db/
-│   │   │       ├── schema.ts      # Database schema
-│   │   │       ├── index.ts       # DB connection
-│   │   │       └── migrations/    # Auto-generated migrations
-│   │   ├── components/            # Reusable UI components
-│   │   └── server/                # Server-only code
-│   ├── routes/                    # SvelteKit routes
+│   │   ├── api/                   # Remote functions shared by several routes
+│   │   ├── components/
+│   │   │   ├── layout/            # The shared page kit — PageShell, Section,
+│   │   │   │                      #   DataList, ConfirmSubmit, EmptyState …
+│   │   │   ├── rankings/          # Leaderboard tables and panels
+│   │   │   ├── schedule/          # Schedule list, cards and item form
+│   │   │   └── ui/                # Vendored shadcn-svelte primitives
+│   │   ├── config/                # Navigation and page-title tables
+│   │   ├── hooks/                 # Rune-based helpers (.svelte.ts)
+│   │   ├── server/                # Server-only code — never imported by the browser
+│   │   │   ├── db/
+│   │   │   │   ├── schema.ts      # Database schema
+│   │   │   │   ├── index.ts       # DB connection
+│   │   │   │   ├── seed.ts        # Development seed data
+│   │   │   │   └── migrations/    # Auto-generated migrations
+│   │   │   ├── authz.ts           # Session and event-permission guards
+│   │   │   ├── fpa-api/           # Client for the external rankings service
+│   │   │   └── utils/             # Shared queries (events, calendar tokens)
+│   │   ├── types/                 # Shapes shared between server and browser
+│   │   └── utils/                 # Pure helpers — dates, html, collections
+│   ├── routes/                    # SvelteKit routes; *.remote.ts sits with its route
 │   ├── app.d.ts                   # TypeScript definitions
 │   └── hooks.server.ts            # Server initialization
+├── tests/integration/             # Playwright specs
 ├── docs/                          # Documentation
 └── drizzle.config.ts              # Drizzle Kit configuration
 ```

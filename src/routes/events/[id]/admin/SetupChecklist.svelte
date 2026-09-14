@@ -9,6 +9,7 @@
 
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
+	import { CopyToClipboard } from '$lib/hooks/copy-to-clipboard.svelte';
 	import CheckCircle2Icon from '@lucide/svelte/icons/check-circle-2';
 	import CircleIcon from '@lucide/svelte/icons/circle';
 	import CopyIcon from '@lucide/svelte/icons/copy';
@@ -45,12 +46,8 @@
 		dismissed = true;
 	}
 
-	let copied = $state(false);
-	async function copyPublicUrl() {
-		await navigator.clipboard.writeText(publicUrl);
-		copied = true;
-		setTimeout(() => (copied = false), 2000);
-	}
+	const clipboard = new CopyToClipboard();
+	$effect(() => () => clipboard.dispose());
 </script>
 
 {#if visible}
@@ -103,9 +100,9 @@
 					<CircleIcon class="size-4 shrink-0 text-muted-foreground" />
 					Share the public page
 				</span>
-				<Button variant="outline" size="xs" onclick={copyPublicUrl}>
+				<Button variant="outline" size="xs" onclick={() => clipboard.write(publicUrl)}>
 					<CopyIcon class="size-3.5" />
-					{copied ? 'Copied' : 'Copy link'}
+					{clipboard.copied ? 'Copied' : 'Copy link'}
 				</Button>
 			</li>
 		</ul>

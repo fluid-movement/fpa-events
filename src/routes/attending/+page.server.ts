@@ -1,48 +1,15 @@
-import { db } from '$lib/server/db';
-import { events, eventUser } from '$lib/server/db/schema';
-import { resolve } from '$app/paths';
-import { redirect, type ServerLoadEvent } from '@sveltejs/kit';
-import { eq, and, asc, desc, lte, gt } from 'drizzle-orm';
+import { requireSignedIn } from '$lib/server/authz';
+import { attendingEvents } from '$lib/server/utils/events';
 import { ensureCalendarToken } from '$lib/server/utils/calendar';
+import type { PageServerLoad } from './$types';
 
-export const load = async ({ locals }: ServerLoadEvent) => {
-	if (!locals.user) {
-		redirect(307, resolve('/sign-in'));
-	}
+export const load = (async ({ locals }) => {
+	const signedIn = requireSignedIn(locals);
 
-	const now = new Date();
-
-	const [upcoming, past, calendarToken] = await Promise.all([
-		db
-			.select({ event: events })
-			.from(eventUser)
-			.innerJoin(events, eq(eventUser.eventId, events.id))
-			.where(
-				and(
-					eq(eventUser.userId, locals.user.id),
-					eq(eventUser.status, 'attending'),
-					gt(events.startDate, now)
-				)
-			)
-			.orderBy(asc(events.startDate)),
-		db
-			.select({ event: events })
-			.from(eventUser)
-			.innerJoin(events, eq(eventUser.eventId, events.id))
-			.where(
-				and(
-					eq(eventUser.userId, locals.user.id),
-					eq(eventUser.status, 'attending'),
-					lte(events.startDate, now)
-				)
-			)
-			.orderBy(desc(events.startDate)),
-		ensureCalendarToken(locals.user.id)
+	const [attending, calendarToken] = await Promise.all([
+		attendingEvents(signedIn.id),
+		ensureCalendarToken(signedIn.id)
 	]);
 
-	return {
-		upcoming: upcoming.map((r) => r.event),
-		past: past.map((r) => r.event),
-		calendarToken
-	};
-};
+	return { ...attending, calendarToken };
+}) satisfies PageServerLoad;

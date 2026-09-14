@@ -14,6 +14,7 @@
 	import { getEvent } from './event-details.remote';
 	import { listEventLocations } from './schedule/locations.remote';
 	import { formatDateRange } from '$lib/utils/dates';
+	import { coOrganizers } from '$lib/utils/attendees';
 	import type { LayoutProps } from './$types';
 
 	let { data, children }: LayoutProps = $props();
@@ -32,9 +33,7 @@
 
 	// Sourced from `getEvent` rather than the layout load so that saving on the
 	// edit form updates the header immediately.
-	const dateRange = $derived(
-		formatDateRange(new Date(details.startDate), new Date(details.endDate))
-	);
+	const dateRange = $derived(formatDateRange(details.startDate, details.endDate));
 	const eventStatus = $derived.by(() => {
 		const now = Date.now();
 		const start = new Date(details.startDate).getTime();
@@ -44,9 +43,7 @@
 		return 'Happening now';
 	});
 
-	const organizers = $derived(
-		attendees.filter((a) => a.status === 'organizing' && a.userId !== event.userId)
-	);
+	const organizers = $derived(coOrganizers(attendees, event.userId));
 
 	// Exact matching, not `startsWith` — /admin is a prefix of every child route,
 	// so a prefix test would light up Details on every tab.

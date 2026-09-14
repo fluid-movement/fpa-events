@@ -8,23 +8,25 @@ import { requireEventManager } from '$lib/server/authz';
 
 const schema = v.object({ eventId: v.string() });
 
-export const generateLink = form(schema, async (data) => {
-	await requireEventManager(data.eventId);
-	const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
-	await db.insert(eventMagicLinks).values({
+/** How long a co-organizer invite stays usable. */
+const LINK_TTL_MS = 48 * 60 * 60 * 1000;
+
+function issueLink(eventId: string) {
+	return db.insert(eventMagicLinks).values({
 		id: ulid().toLowerCase(),
-		eventId: data.eventId,
-		expiresAt
+		eventId,
+		expiresAt: new Date(Date.now() + LINK_TTL_MS)
 	});
+}
+
+export const generateLink = form(schema, async ({ eventId }) => {
+	await requireEventManager(eventId);
+	await issueLink(eventId);
 });
 
-export const regenerateLink = form(schema, async (data) => {
-	await requireEventManager(data.eventId);
-	await db.delete(eventMagicLinks).where(eq(eventMagicLinks.eventId, data.eventId));
-	const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
-	await db.insert(eventMagicLinks).values({
-		id: ulid().toLowerCase(),
-		eventId: data.eventId,
-		expiresAt
-	});
+export const regenerateLink = form(schema, async ({ eventId }) => {
+	await requireEventManager(eventId);
+	// One live link per event: the old one stops working the moment this runs.
+	await db.delete(eventMagicLinks).where(eq(eventMagicLinks.eventId, eventId));
+	await issueLink(eventId);
 });

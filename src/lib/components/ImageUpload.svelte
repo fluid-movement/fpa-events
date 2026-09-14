@@ -7,63 +7,75 @@
 
 	let { currentUrl = null, currentWidth = null, currentHeight = null }: Props = $props();
 
-	// Only track the newly uploaded values — derive display values from these + props
-	let uploadedUrl = $state('');
-	let uploadedWidth = $state(0);
-	let uploadedHeight = $state(0);
+	type Upload = { url: string; width: number; height: number };
+
+	// Only the newly uploaded values are state; what to display is derived from
+	// those plus the props, so there is one source of truth for each.
+	let upload = $state<Upload | null>(null);
 	let localPreview = $state('');
 	let uploading = $state(false);
 	let uploadError = $state('');
 
 	const previewUrl = $derived(localPreview || currentUrl || '');
-	const pictureUrl = $derived(uploadedUrl || currentUrl || '');
-	const pictureWidth = $derived(uploadedUrl ? uploadedWidth : (currentWidth ?? 0));
-	const pictureHeight = $derived(uploadedUrl ? uploadedHeight : (currentHeight ?? 0));
+	const pictureUrl = $derived(upload?.url ?? currentUrl ?? '');
+	const pictureWidth = $derived(upload?.width ?? currentWidth ?? 0);
+	const pictureHeight = $derived(upload?.height ?? currentHeight ?? 0);
 
-	function getDimensions(file: File): Promise<{ width: number; height: number }> {
+	/** Natural dimensions, so the form can store them and reserve layout space. */
+	function readDimensions(file: File): Promise<{ width: number; height: number }> {
 		return new Promise((resolve, reject) => {
-			const url = URL.createObjectURL(file);
+			const objectUrl = URL.createObjectURL(file);
 			const img = new Image();
+			const done = () => URL.revokeObjectURL(objectUrl);
+
 			img.onload = () => {
 				resolve({ width: img.naturalWidth, height: img.naturalHeight });
-				URL.revokeObjectURL(url);
+				done();
 			};
-			img.onerror = () => reject(new Error('Invalid image'));
-			img.src = url;
+			img.onerror = () => {
+				reject(new Error('Invalid image'));
+				done();
+			};
+			img.src = objectUrl;
 		});
 	}
 
+	function setPreview(objectUrl: string) {
+		if (localPreview) URL.revokeObjectURL(localPreview);
+		localPreview = objectUrl;
+	}
+
 	async function handleFileChange(e: Event) {
-		const file = (e.target as HTMLInputElement).files?.[0];
+		const file = (e.currentTarget as HTMLInputElement).files?.[0];
 		if (!file) return;
 
 		uploadError = '';
 		uploading = true;
-		localPreview = URL.createObjectURL(file);
+		setPreview(URL.createObjectURL(file));
 
 		try {
-			const dims = await getDimensions(file);
+			const dimensions = await readDimensions(file);
 
-			const fd = new FormData();
-			fd.append('file', file);
-			const res = await fetch('/api/events/upload-image', { method: 'POST', body: fd });
+			const body = new FormData();
+			body.append('file', file);
+			const res = await fetch('/api/events/upload-image', { method: 'POST', body });
 
-			if (!res.ok) {
-				const body = await res.json();
-				throw new Error(body.error ?? 'Upload failed');
-			}
+			const payload = (await res.json()) as { url?: string; error?: string };
+			if (!res.ok || !payload.url) throw new Error(payload.error ?? 'Upload failed');
 
-			const data = await res.json();
-			uploadedUrl = data.url;
-			uploadedWidth = dims.width;
-			uploadedHeight = dims.height;
+			upload = { url: payload.url, ...dimensions };
 		} catch (err) {
 			uploadError = err instanceof Error ? err.message : 'Upload failed';
-			localPreview = '';
+			setPreview('');
 		} finally {
 			uploading = false;
 		}
 	}
+
+	// The preview is a blob URL owned by this component; release it on teardown.
+	$effect(() => () => {
+		if (localPreview) URL.revokeObjectURL(localPreview);
+	});
 </script>
 
 <div class="flex flex-col gap-3">
