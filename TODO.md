@@ -27,6 +27,22 @@ stack trace pointed at minified bundle chunks rather than source.
 
 - make event date picker look better, better UX
 
+## Cleanup pass — 2026-09
+
+A whole-project DRY and consistency sweep. No UI or UX changes; the shared pieces it
+introduced are listed under "Reach for the shared helpers" in `AGENTS.md`. Two things
+it deliberately left alone, in case either looks like an oversight later:
+
+- **"N attending" is counted two different ways.** The public browse pages count only
+  `event_user` rows with `status = 'attending'`; the dashboard and organizing pages count
+  every row, organizers included. Both behaviours are preserved (see `eventUserCounts`
+  in `src/lib/server/utils/events.ts`) because unifying them changes numbers people see.
+  Worth a decision at some point.
+- **The optimistic RSVP `$effect` on `events/[id]`.** It mirrors loaded data into local
+  state, which is normally the anti-pattern — here it is the reset that hands control
+  back to the server after a revalidation, and the alternatives (a `{#key}` block) cost
+  focus on the button.
+
 ## Design language — remaining phases
 
 Parked 2026-07-26. Phases 1–3 of the "Lit Glass" redesign are done: design tokens,
@@ -79,10 +95,12 @@ a single canary for "hydration ran and `/api/auth/*` is reachable". Keep these p
       `EventCalendarCard`'s `.glow`/`.chip` hover transitions and for `.surface-row`
       (extended the existing reduced-motion block in `layout.css`).
 
-Follow-up found but out of scope for this pass: `src/routes/settings/profile/+page.svelte`
-uses a classic `+page.server.ts` form action (native form, full-page reload, no submit
-feedback) instead of a remote function — the only one in the app, violating AGENTS.md's
-"always use remote functions" rule. Worth converting in a future pass.
+- [x] **Convert the last form action to a remote function.**
+      `src/routes/settings/profile` was the only `+page.server.ts` `actions` left in the
+      app, violating AGENTS.md's "always use remote functions" rule. It now posts through
+      `settings/profile/data.remote.ts`, which forwards to Better Auth's
+      `/api/auth/update-user` with the request's own `fetch` so the session cookie rides
+      along. Done as part of the 2026-09 cleanup pass.
 
 ### Phase 5 — event hero layouts
 

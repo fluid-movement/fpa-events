@@ -1,10 +1,9 @@
 import * as v from 'valibot';
-import { form, query, getRequestEvent } from '$app/server';
-import { redirect } from '@sveltejs/kit';
-import { resolve } from '$app/paths';
+import { form, query } from '$app/server';
 import { db } from '$lib/server/db';
 import { user } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
+import { requireSignedInRequest } from '$lib/server/authz';
 
 /**
  * Read straight from the database rather than `locals.user`: Better Auth builds
@@ -13,13 +12,12 @@ import { eq } from 'drizzle-orm';
  * separately in `hooks.server.ts`).
  */
 export const getPrivacySettings = query(async () => {
-	const { locals } = getRequestEvent();
-	if (!locals.user) redirect(302, resolve('/sign-in'));
+	const signedIn = requireSignedInRequest();
 
 	const [row] = await db
 		.select({ showAttendance: user.showAttendance })
 		.from(user)
-		.where(eq(user.id, locals.user.id))
+		.where(eq(user.id, signedIn.id))
 		.limit(1);
 
 	return { showAttendance: row?.showAttendance ?? true };
@@ -30,13 +28,12 @@ export const setShowAttendance = form(
 	// nothing when off, making "switched off" indistinguishable from "absent".
 	v.object({ showAttendance: v.picklist(['true', 'false']) }),
 	async (data) => {
-		const { locals } = getRequestEvent();
-		if (!locals.user) redirect(302, resolve('/sign-in'));
+		const signedIn = requireSignedInRequest();
 
 		await db
 			.update(user)
 			.set({ showAttendance: data.showAttendance === 'true' })
-			.where(eq(user.id, locals.user.id));
+			.where(eq(user.id, signedIn.id));
 
 		await getPrivacySettings().refresh();
 	}

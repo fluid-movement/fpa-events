@@ -1,34 +1,23 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import DataList, { type DataColumn } from '$lib/components/layout/DataList.svelte';
-	import EmptyState from '$lib/components/layout/EmptyState.svelte';
-	import SearchXIcon from '@lucide/svelte/icons/search-x';
-	import PlayerSearch from './PlayerSearch.svelte';
-	import { PlayerList, rankTint } from '$lib/rankings/playerList.svelte';
+	import { type DataColumn } from '$lib/components/layout/DataList.svelte';
+	import PlayerLeaderboard from './PlayerLeaderboard.svelte';
+	import { rankTint } from '$lib/rankings/playerList.svelte';
 	import type { RatingRow } from '$lib/rankings/types';
 
-	interface Props {
-		rows: RatingRow[];
-	}
-
-	let { rows }: Props = $props();
-
-	const list = new PlayerList(() => rows);
+	let { rows }: { rows: RatingRow[] } = $props();
 
 	// Ratings carry many decimals upstream; a whole number is the useful precision.
 	const formatRating = (rating: number) => Math.round(rating).toLocaleString();
 
-	function formatPeakDate(date: string | null): string {
-		if (!date) return '';
-		const parsed = new Date(date);
-		if (Number.isNaN(parsed.getTime())) return '';
-		return parsed.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
-	}
-
+	/** "1842 (Mar 2025)", or just the number when the date is missing or unparseable. */
 	function peak(row: RatingRow): string {
 		if (row.peakRating === null) return '—';
-		const when = formatPeakDate(row.peakRatingDate);
-		return when ? `${formatRating(row.peakRating)} (${when})` : formatRating(row.peakRating);
+
+		const rating = formatRating(row.peakRating);
+		const date = row.peakRatingDate ? new Date(row.peakRatingDate) : null;
+		if (!date || Number.isNaN(date.getTime())) return rating;
+
+		return `${rating} (${date.toLocaleDateString(undefined, { year: 'numeric', month: 'short' })})`;
 	}
 
 	const columns: DataColumn<RatingRow>[] = [
@@ -68,46 +57,10 @@
 	];
 </script>
 
-{#if rows.length === 0}
-	<EmptyState
-		title="No players meet this match-count threshold"
-		description="Try lowering it."
-		size="compact"
-	/>
-{:else}
-	<PlayerSearch
-		bind:value={list.search}
-		resultCount={list.filtered.length}
-		testId="ratings-search"
-	/>
-
-	{#if list.filtered.length === 0}
-		<div data-testid="ratings-no-matches">
-			<EmptyState
-				icon={SearchXIcon}
-				title="No players match “{list.search}”"
-				description="Try a shorter search, or check the spelling."
-				size="compact"
-			/>
-		</div>
-	{:else}
-		<DataList
-			rows={list.visible}
-			{columns}
-			getKey={(r) => r.playerId}
-			data-testid="ratings-table"
-		/>
-
-		{#if list.hiddenCount > 0 && !list.showAll}
-			<div class="mt-4 text-center">
-				<Button
-					variant="outline"
-					data-testid="ratings-show-all"
-					onclick={() => (list.showAll = true)}
-				>
-					Show all {rows.length} players
-				</Button>
-			</div>
-		{/if}
-	{/if}
-{/if}
+<PlayerLeaderboard
+	{rows}
+	{columns}
+	testIdPrefix="ratings"
+	emptyTitle="No players meet this match-count threshold"
+	emptyDescription="Try lowering it."
+/>

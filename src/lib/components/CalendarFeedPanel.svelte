@@ -2,34 +2,20 @@
 	import { browser } from '$app/environment';
 	import { Button } from '$lib/components/ui/button';
 	import CopyField from '$lib/components/layout/CopyField.svelte';
-	import ConfirmDialog from '$lib/components/layout/ConfirmDialog.svelte';
+	import ConfirmSubmit from '$lib/components/layout/ConfirmSubmit.svelte';
 	import CalendarPlusIcon from '@lucide/svelte/icons/calendar-plus';
 	import { regenerateToken } from '$lib/api/calendar.remote';
 
-	let {
-		token,
-		class: className
-	}: {
-		token: string;
-		class?: string;
-	} = $props();
+	let { token, class: className }: { token: string; class?: string } = $props();
 
 	let confirmOpen = $state(false);
-	let regenerating = $state(false);
-	let formEl: HTMLFormElement | undefined = $state();
-
-	// Clears the spinner once the call hands back a new token.
-	$effect(() => {
-		if (regenerateToken.result?.calendarToken) regenerating = false;
-	});
 
 	// Built in the browser because they need the current origin.
-	const feedUrl = $derived(
-		browser ? `${window.location.origin}/api/calendar/${token}/feed.ics` : ''
-	);
+	const feedPath = $derived(`/api/calendar/${token}/feed.ics`);
+	const feedUrl = $derived(browser ? `${window.location.origin}${feedPath}` : '');
 	const googleCalendarUrl = $derived(
 		browser
-			? `https://www.google.com/calendar/render?cid=webcal://${window.location.host}/api/calendar/${token}/feed.ics`
+			? `https://www.google.com/calendar/render?cid=webcal://${window.location.host}${feedPath}`
 			: ''
 	);
 </script>
@@ -41,7 +27,7 @@
 			subscriptions. The feed updates automatically.
 		</p>
 
-		{#if browser && feedUrl}
+		{#if feedUrl}
 			<CopyField value={feedUrl} data-testid="calendar-feed-url" copyTestId="calendar-feed-copy" />
 
 			<Button
@@ -66,26 +52,13 @@
 		</div>
 	</div>
 
-	<!-- Submitted by the dialog: the remote form needs a real submit event, and
-	     the dialog's confirm button lives inside the alert-dialog portal. -->
-	<form
-		bind:this={formEl}
-		{...regenerateToken}
-		class="hidden"
-		onsubmit={() => {
-			regenerating = true;
-			confirmOpen = false;
-		}}
-	></form>
-
-	<ConfirmDialog
+	<ConfirmSubmit
 		bind:open={confirmOpen}
+		form={regenerateToken}
 		title="Regenerate calendar link?"
 		description="The current link stops working immediately. Any calendar app already subscribed to it will need the new one."
 		confirmLabel="Yes, regenerate"
 		pendingLabel="Regenerating…"
-		pending={regenerating}
 		testIds={{ confirm: 'confirm-regenerate-calendar' }}
-		onconfirm={() => formEl?.requestSubmit()}
 	/>
 </div>

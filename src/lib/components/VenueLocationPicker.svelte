@@ -1,32 +1,39 @@
 <script lang="ts">
 	import 'leaflet/dist/leaflet.css';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import type { GeocodingResult } from '$lib/geocoding';
-	import type { Map, Marker } from 'leaflet';
+	import type { Map as LeafletMap, Marker } from 'leaflet';
+	import { addOsmTiles, loadLeaflet } from '$lib/leaflet';
 	import GeocodingCombobox from './GeocodingCombobox.svelte';
 
+	/** Central London — a neutral starting view when the event has no position. */
+	const FALLBACK_POSITION = { lat: 51.505, lng: -0.09 };
+
 	type Props = {
+		/** Starting values only; the fields below are the source of truth after mount. */
 		name?: string;
+		address?: string;
 		lat?: number;
 		lng?: number;
-		address?: string;
 	};
 
 	let {
-		name = $bindable(''),
-		lat = $bindable(51.505),
-		lng = $bindable(-0.09),
-		address = $bindable('')
+		name = '',
+		address = '',
+		lat = FALLBACK_POSITION.lat,
+		lng = FALLBACK_POSITION.lng
 	}: Props = $props();
 
-	let nameValue = $state(name ?? '');
-	let addressValue = $state(address ?? '');
-	let latValue = $state(lat ?? 51.505);
-	let lngValue = $state(lng ?? -0.09);
+	// Seeded once. The inputs and the map pin own these from mount onwards, so
+	// tracking the props would undo whatever the organizer just did.
+	let nameValue = $state(untrack(() => name));
+	let addressValue = $state(untrack(() => address));
+	let latValue = $state(untrack(() => lat));
+	let lngValue = $state(untrack(() => lng));
 
 	let mapContainer: HTMLDivElement | null = $state(null);
-	let mapInstance: Map | null = null;
-	let markerInstance: Marker | null = null;
+	let map: LeafletMap | null = $state(null);
+	let marker: Marker | null = $state(null);
 
 	function handleSelect(result: GeocodingResult) {
 		addressValue = result.displayName;
@@ -35,59 +42,39 @@
 		lngValue = result.lng;
 	}
 
-	function handleClear() {
-		addressValue = '';
-	}
-
+	// Follow the coordinates wherever they come from — a search hit or a pin drag.
 	$effect(() => {
-		const currentLat = latValue;
-		const currentLng = lngValue;
-		if (!mapInstance || !markerInstance) return;
-		markerInstance.setLatLng([currentLat, currentLng]);
-		mapInstance.setView([currentLat, currentLng], mapInstance.getZoom());
+		const position: [number, number] = [latValue, lngValue];
+		if (!map || !marker) return;
+		marker.setLatLng(position);
+		map.setView(position, map.getZoom());
 	});
 
 	onMount(() => {
 		let destroyed = false;
 
-		import('leaflet').then((L) => {
+		loadLeaflet().then((L) => {
 			if (destroyed || !mapContainer) return;
 
-			// Fix broken default icon paths in Vite/bundler environments
-			// @ts-expect-error - _getIconUrl is a private Leaflet property not in the types
-			delete L.Icon.Default.prototype._getIconUrl;
-			L.Icon.Default.mergeOptions({
-				iconUrl: new URL('leaflet/dist/images/marker-icon.png', import.meta.url).href,
-				iconRetinaUrl: new URL('leaflet/dist/images/marker-icon-2x.png', import.meta.url).href,
-				shadowUrl: new URL('leaflet/dist/images/marker-shadow.png', import.meta.url).href
+			const instance = L.map(mapContainer).setView([latValue, lngValue], 13);
+			addOsmTiles(L, instance);
+
+			const pin = L.marker([latValue, lngValue], { draggable: true }).addTo(instance);
+			pin.on('dragend', () => {
+				const position = pin.getLatLng();
+				latValue = position.lat;
+				lngValue = position.lng;
 			});
 
-			const map = L.map(mapContainer).setView([latValue, lngValue], 13);
-
-			L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-				attribution:
-					'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-			}).addTo(map);
-
-			const marker = L.marker([latValue, lngValue], { draggable: true }).addTo(map);
-
-			marker.on('dragend', () => {
-				const pos = marker.getLatLng();
-				latValue = pos.lat;
-				lngValue = pos.lng;
-			});
-
-			mapInstance = map;
-			markerInstance = marker;
+			map = instance;
+			marker = pin;
 		});
 
 		return () => {
 			destroyed = true;
-			if (mapInstance) {
-				mapInstance.remove();
-				mapInstance = null;
-				markerInstance = null;
-			}
+			map?.remove();
+			map = null;
+			marker = null;
 		};
 	});
 </script>
@@ -97,11 +84,12 @@
 	<div class="flex flex-col gap-1">
 		<label for="venue-search" class="text-sm font-medium text-foreground">Search address</label>
 		<GeocodingCombobox
+			id="venue-search"
 			value={addressValue}
 			placeholder="Search for a venue or address..."
 			inputClass="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
 			onSelect={handleSelect}
-			onClear={handleClear}
+			onClear={() => (addressValue = '')}
 		/>
 	</div>
 

@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { Editor } from '@tiptap/core';
+	import { Editor, type ChainedCommands } from '@tiptap/core';
 	import StarterKit from '@tiptap/starter-kit';
+	import { cn } from '$lib/utils';
 
 	let {
 		name,
@@ -9,93 +10,113 @@
 		placeholder = 'Write something...'
 	}: { name: string; value?: string; placeholder?: string } = $props();
 
+	type ToolbarItem =
+		| { separator: true }
+		| {
+				separator?: false;
+				label: string;
+				title: string;
+				/** Extra classes that make the button preview its own effect. */
+				class?: string;
+				run: (chain: ChainedCommands) => ChainedCommands;
+				/** Node or mark name, plus attributes, that lights the button up. */
+				active: [name: string, attributes?: Record<string, unknown>];
+		  };
+
+	const TOOLBAR: ToolbarItem[] = [
+		{
+			label: 'B',
+			title: 'Bold',
+			class: 'font-bold',
+			run: (c) => c.toggleBold(),
+			active: ['bold']
+		},
+		{
+			label: 'I',
+			title: 'Italic',
+			class: 'italic',
+			run: (c) => c.toggleItalic(),
+			active: ['italic']
+		},
+		{ separator: true },
+		{
+			label: 'H2',
+			title: 'Heading 2',
+			class: 'font-semibold',
+			run: (c) => c.toggleHeading({ level: 2 }),
+			active: ['heading', { level: 2 }]
+		},
+		{
+			label: 'H3',
+			title: 'Heading 3',
+			class: 'font-semibold',
+			run: (c) => c.toggleHeading({ level: 3 }),
+			active: ['heading', { level: 3 }]
+		},
+		{ separator: true },
+		{
+			label: '• List',
+			title: 'Bullet list',
+			run: (c) => c.toggleBulletList(),
+			active: ['bulletList']
+		},
+		{
+			label: '1. List',
+			title: 'Ordered list',
+			run: (c) => c.toggleOrderedList(),
+			active: ['orderedList']
+		}
+	];
+
 	let element = $state<HTMLElement>();
-	let editorState = $state<{ editor: Editor | null }>({ editor: null });
-	const htmlContent = $derived(editorState.editor?.getHTML() ?? value);
+	// Re-wrapped on every transaction because the Editor instance itself is not
+	// reactive — replacing the holder is what re-runs the `isActive` checks below.
+	let holder = $state<{ editor: Editor | null }>({ editor: null });
+
+	const editor = $derived(holder.editor);
+	const htmlContent = $derived(editor?.getHTML() ?? value);
 
 	onMount(() => {
-		editorState.editor = new Editor({
-			element,
-			extensions: [StarterKit],
-			content: value,
-			onTransaction: ({ editor }) => {
-				editorState = { editor };
-			}
-		});
+		holder = {
+			editor: new Editor({
+				element,
+				extensions: [StarterKit],
+				content: value,
+				onTransaction: ({ editor }) => (holder = { editor })
+			})
+		};
 	});
 
-	onDestroy(() => editorState.editor?.destroy());
-
-	function btn(action: () => void) {
-		return (e: Event) => {
-			e.preventDefault();
-			action();
-		};
-	}
+	onDestroy(() => holder.editor?.destroy());
 </script>
 
 <div class="rounded-md border">
-	<!-- Toolbar -->
 	<div class="flex flex-wrap gap-1 rounded-t-md border-b bg-muted/40 p-2">
-		<button
-			type="button"
-			onclick={btn(() => editorState.editor?.chain().focus().toggleBold().run())}
-			class="rounded px-2 py-1 text-sm font-bold transition-colors hover:bg-accent"
-			class:bg-accent={editorState.editor?.isActive('bold')}
-			title="Bold"
-		>
-			B
-		</button>
-		<button
-			type="button"
-			onclick={btn(() => editorState.editor?.chain().focus().toggleItalic().run())}
-			class="rounded px-2 py-1 text-sm italic transition-colors hover:bg-accent"
-			class:bg-accent={editorState.editor?.isActive('italic')}
-			title="Italic"
-		>
-			I
-		</button>
-		<div class="my-1 w-px bg-border"></div>
-		<button
-			type="button"
-			onclick={btn(() => editorState.editor?.chain().focus().toggleHeading({ level: 2 }).run())}
-			class="rounded px-2 py-1 text-sm font-semibold transition-colors hover:bg-accent"
-			class:bg-accent={editorState.editor?.isActive('heading', { level: 2 })}
-			title="Heading 2"
-		>
-			H2
-		</button>
-		<button
-			type="button"
-			onclick={btn(() => editorState.editor?.chain().focus().toggleHeading({ level: 3 }).run())}
-			class="rounded px-2 py-1 text-sm font-semibold transition-colors hover:bg-accent"
-			class:bg-accent={editorState.editor?.isActive('heading', { level: 3 })}
-			title="Heading 3"
-		>
-			H3
-		</button>
-		<div class="my-1 w-px bg-border"></div>
-		<button
-			type="button"
-			onclick={btn(() => editorState.editor?.chain().focus().toggleBulletList().run())}
-			class="rounded px-2 py-1 text-sm transition-colors hover:bg-accent"
-			class:bg-accent={editorState.editor?.isActive('bulletList')}
-			title="Bullet list"
-		>
-			• List
-		</button>
-		<button
-			type="button"
-			onclick={btn(() => editorState.editor?.chain().focus().toggleOrderedList().run())}
-			class="rounded px-2 py-1 text-sm transition-colors hover:bg-accent"
-			class:bg-accent={editorState.editor?.isActive('orderedList')}
-			title="Ordered list"
-		>
-			1. List
-		</button>
+		{#each TOOLBAR as item, i (i)}
+			{#if item.separator}
+				<div class="my-1 w-px bg-border"></div>
+			{:else}
+				<button
+					type="button"
+					title={item.title}
+					class={cn(
+						'rounded px-2 py-1 text-sm transition-colors hover:bg-accent',
+						item.class,
+						editor?.isActive(item.active[0], item.active[1]) && 'bg-accent'
+					)}
+					onclick={(e) => {
+						// Keep focus in the editor: a default-submitting button would blur
+						// it and lose the selection the command applies to.
+						e.preventDefault();
+						if (editor) item.run(editor.chain().focus()).run();
+					}}
+				>
+					{item.label}
+				</button>
+			{/if}
+		{/each}
 	</div>
 
-	<!-- Editor content area -->
 	<div
 		bind:this={element}
 		class="rich-text min-h-32 px-3 py-2 outline-none"

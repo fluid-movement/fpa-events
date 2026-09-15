@@ -18,7 +18,7 @@
 
 	let { event }: Props = $props();
 
-	const dateRange = $derived(formatDateRange(new Date(event.startDate), new Date(event.endDate)));
+	const dateRange = $derived(formatDateRange(event.startDate, event.endDate));
 </script>
 
 <!-- Dense two-column rows on desktop; on mobile the label sits directly above its

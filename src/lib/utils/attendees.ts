@@ -43,3 +43,14 @@ export function attendeeSummary(
 export function firstName(fullName: string): string {
 	return fullName.split(' ')[0];
 }
+
+/**
+ * Co-organizers of an event: everyone holding an `organizing` seat other than
+ * the creator, who is always one but is never listed as an invitee.
+ */
+export function coOrganizers<T extends { status?: string; userId?: string }>(
+	attendees: T[],
+	ownerId: string
+): T[] {
+	return attendees.filter((a) => a.status === 'organizing' && a.userId !== ownerId);
+}

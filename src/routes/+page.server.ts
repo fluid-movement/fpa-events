@@ -1,36 +1,18 @@
 import { db } from '$lib/server/db';
-import { events, eventUser, eventLocations } from '$lib/server/db/schema';
+import { events, eventLocations } from '$lib/server/db/schema';
+import { listEventsWithAttendeeCount } from '$lib/server/utils/events';
+import { asc, gte, count, eq, sql } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
-import { asc, gte, count, eq, and, sql } from 'drizzle-orm';
+
+/** Events shown in the "coming up" grid, on top of the highlighted next one. */
+const UPCOMING_LIMIT = 5;
 
 export const load = (async () => {
 	const now = new Date();
 	const yearStart = new Date(now.getFullYear(), 0, 1);
 
-	const [upcoming, statsRows, mapRows] = await Promise.all([
-		db
-			.select({
-				id: events.id,
-				name: events.name,
-				startDate: events.startDate,
-				endDate: events.endDate,
-				location: events.location,
-				eventLocationId: events.eventLocationId,
-				description: events.description,
-				picture: events.picture,
-				pictureWidth: events.pictureWidth,
-				pictureHeight: events.pictureHeight,
-				userId: events.userId,
-				createdAt: events.createdAt,
-				updatedAt: events.updatedAt,
-				attendeeCount: count(eventUser.id)
-			})
-			.from(events)
-			.leftJoin(eventUser, and(eq(eventUser.eventId, events.id), eq(eventUser.status, 'attending')))
-			.where(gte(events.startDate, now))
-			.groupBy(events.id)
-			.orderBy(asc(events.startDate))
-			.limit(6),
+	const [upcoming, statsRows, mapEvents] = await Promise.all([
+		listEventsWithAttendeeCount(gte(events.startDate, now)).limit(UPCOMING_LIMIT + 1),
 		db
 			.select({
 				eventsThisYear: count(),
@@ -59,9 +41,9 @@ export const load = (async () => {
 
 	return {
 		nextEvent: nextEvent ?? null,
-		upcomingEvents: moreEvents.slice(0, 5),
+		upcomingEvents: moreEvents,
 		eventsThisYear: statsRows[0]?.eventsThisYear ?? 0,
 		countries: statsRows[0]?.countries ?? 0,
-		mapEvents: mapRows
+		mapEvents
 	};
 }) satisfies PageServerLoad;

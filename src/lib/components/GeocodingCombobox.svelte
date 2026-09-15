@@ -1,9 +1,13 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { autocomplete, type GeocodingResult } from '$lib/geocoding';
 	import { Input } from '$lib/components/ui/input';
 
 	type Props = {
+		/** Initial text. Not reactive — after mount the field is the source of truth. */
 		value?: string;
+		/** Id for the input, so a caller's own <label> can point at it. */
+		id?: string;
 		placeholder?: string;
 		inputClass?: string;
 		onSelect: (result: GeocodingResult) => void;
@@ -13,6 +17,7 @@
 
 	let {
 		value = '',
+		id,
 		placeholder = 'Search...',
 		inputClass = '',
 		onSelect,
@@ -20,8 +25,9 @@
 		getDisplayValue
 	}: Props = $props();
 
-	// Seed query from prop on mount only; after that it's driven by user input
-	let query = $state((() => value)());
+	// Deliberately a one-time seed: once mounted the field owns its own text, and
+	// re-syncing from the prop would fight the user mid-type.
+	let query = $state(untrack(() => value));
 	let suggestions = $state<GeocodingResult[]>([]);
 	let isOpen = $state(false);
 	let activeIndex = $state(-1);
@@ -120,6 +126,7 @@
 		aria-owns="geocoding-listbox"
 	>
 		<Input
+			{id}
 			type="text"
 			value={query}
 			oninput={handleInput}

@@ -1,4 +1,5 @@
 <script lang="ts" generics="FormInput extends RemoteFormInput">
+	import { untrack } from 'svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import * as Field from '$lib/components/ui/field';
@@ -32,10 +33,29 @@
 		onSuccess
 	}: Props = $props();
 
-	let selectedDay = $state<string | null>(null);
-	let startTime = $state('');
-	let endTime = $state('');
-	let locationId = $state('');
+	const editing = $derived(mode === 'edit' ? item : undefined);
+	const timeOf = (date: Date | string) => new Date(date).toTimeString().slice(0, 5);
+
+	/**
+	 * Seeded once rather than mirrored from the props with an `$effect`: a form
+	 * instance belongs to exactly one item (or one "add" slot) and is torn down
+	 * and rebuilt when that changes, so re-syncing would only ever undo typing.
+	 */
+	const initial = untrack(() =>
+		mode === 'edit' && item
+			? {
+					day: toISODate(new Date(item.startDate)),
+					startTime: timeOf(item.startDate),
+					endTime: timeOf(item.endDate),
+					locationId: item.locationId ? String(item.locationId) : ''
+				}
+			: { day: initialDay ?? null, startTime: '', endTime: '', locationId: '' }
+	);
+
+	let selectedDay = $state<string | null>(initial.day);
+	let startTime = $state(initial.startTime);
+	let endTime = $state(initial.endTime);
+	let locationId = $state(initial.locationId);
 	let dayError = $state(false);
 
 	function formatDayButton(isoDate: string) {
@@ -49,20 +69,6 @@
 	const selectedLocationName = $derived(
 		locations.find((l) => String(l.id) === locationId)?.name ?? 'No location'
 	);
-
-	$effect(() => {
-		if (mode === 'edit' && item) {
-			selectedDay = toISODate(new Date(item.startDate));
-			startTime = new Date(item.startDate).toTimeString().slice(0, 5);
-			endTime = new Date(item.endDate).toTimeString().slice(0, 5);
-			locationId = item.locationId ? String(item.locationId) : '';
-		} else if (mode === 'add') {
-			selectedDay = initialDay ?? null;
-			startTime = '';
-			endTime = '';
-			locationId = '';
-		}
-	});
 </script>
 
 <form
@@ -92,7 +98,7 @@
 			<Input
 				id="schedule-name"
 				name="name"
-				value={mode === 'edit' ? item?.name : undefined}
+				value={editing?.name}
 				required
 				placeholder="Activity name"
 			/>

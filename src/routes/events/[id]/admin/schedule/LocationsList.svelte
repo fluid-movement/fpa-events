@@ -1,8 +1,7 @@
 <script lang="ts">
-	import { tick } from 'svelte';
 	import { Button } from '$lib/components/ui/button';
 	import Section from '$lib/components/layout/Section.svelte';
-	import ConfirmDialog from '$lib/components/layout/ConfirmDialog.svelte';
+	import ConfirmSubmit from '$lib/components/layout/ConfirmSubmit.svelte';
 	import EmptyState from '$lib/components/layout/EmptyState.svelte';
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import MapPinIcon from '@lucide/svelte/icons/map-pin';
@@ -18,9 +17,6 @@
 
 	let { locations, onAddClick, eventId }: Props = $props();
 
-	let deletingId = $state<number | null>(null);
-	let deleteFormEl = $state<HTMLFormElement | null>(null);
-
 	// Deleting a location detaches it from any schedule item using it, so it gets
 	// a confirmation like every other destructive action in the app.
 	let pending = $state<EventLocation | null>(null);
@@ -30,26 +26,7 @@
 		pending = loc;
 		confirmOpen = true;
 	}
-
-	async function confirmDelete() {
-		if (!pending) return;
-		deletingId = pending.id;
-		confirmOpen = false;
-		await tick();
-		deleteFormEl?.requestSubmit();
-	}
 </script>
-
-<!-- Single delete form — one instance of deleteEventLocation ever in the DOM -->
-<form
-	{...deleteEventLocation}
-	bind:this={deleteFormEl}
-	class="hidden"
-	onsubmit={() => (deletingId = null)}
->
-	<input type="hidden" name="id" value={deletingId ?? ''} />
-	<input type="hidden" name="eventId" value={eventId} />
-</form>
 
 <Section title="Locations">
 	{#snippet action()}
@@ -92,16 +69,17 @@
 	{/if}
 </Section>
 
-<ConfirmDialog
+<ConfirmSubmit
 	bind:open={confirmOpen}
+	form={deleteEventLocation}
+	fields={{ id: pending?.id, eventId }}
 	title="Delete this location?"
 	description="“{pending?.name ??
 		''}” will be removed, and any schedule item using it will fall back to no location."
 	confirmLabel="Delete location"
 	testIds={{ confirm: 'confirm-delete-location' }}
-	onconfirm={confirmDelete}
 >
 	{#snippet icon()}
 		<TrashIcon />
 	{/snippet}
-</ConfirmDialog>
+</ConfirmSubmit>

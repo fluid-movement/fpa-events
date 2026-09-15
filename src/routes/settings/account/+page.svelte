@@ -1,11 +1,10 @@
 <script lang="ts">
-	import { deleteAccount } from './data.remote.ts';
 	import { Button } from '$lib/components/ui/button';
-	import ConfirmDialog from '$lib/components/layout/ConfirmDialog.svelte';
+	import ConfirmSubmit from '$lib/components/layout/ConfirmSubmit.svelte';
 	import TrashIcon from '@lucide/svelte/icons/trash-2';
+	import { deleteAccount } from './data.remote';
 
 	let open = $state(false);
-	let formEl: HTMLFormElement | undefined = $state();
 </script>
 
 <div class="space-y-6">
@@ -17,10 +16,6 @@
 				cannot be undone.
 			</p>
 		</div>
-
-		<!-- Submitted by the dialog; no `onsubmit` of its own so the remote
-		     function's handler stays in place. -->
-		<form bind:this={formEl} {...deleteAccount} class="hidden"></form>
 
 		<Button
 			variant="outline"
@@ -34,15 +29,16 @@
 	</div>
 </div>
 
-<ConfirmDialog
+<ConfirmSubmit
 	bind:open
+	form={deleteAccount}
+	closeOnConfirm={false}
 	title="Delete your account?"
 	description="This permanently deletes your account, the events you created, and your RSVPs. It cannot be undone."
 	confirmLabel="Delete account"
 	testIds={{ content: 'delete-account-dialog', confirm: 'confirm-delete-account' }}
-	onconfirm={() => formEl?.requestSubmit()}
 >
 	{#snippet icon()}
 		<TrashIcon />
 	{/snippet}
-</ConfirmDialog>
+</ConfirmSubmit>

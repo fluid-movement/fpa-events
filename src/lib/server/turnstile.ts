@@ -30,3 +30,10 @@ export async function verifyTurnstile(token: string | undefined): Promise<boolea
 		return false;
 	}
 }
+
+/** `verifyTurnstile`, but for call sites that just want to abort on failure. */
+export async function requireTurnstile(token: string | undefined): Promise<void> {
+	if (!(await verifyTurnstile(token))) {
+		throw new Error('Captcha verification failed');
+	}
+}

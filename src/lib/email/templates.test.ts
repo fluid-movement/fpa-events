@@ -18,23 +18,23 @@ describe('emailTemplates registry', () => {
 	});
 
 	it('activate-account template contains the Activate Account button label', () => {
-		const html = getTemplate('activate-account')!.render();
+		const html = getTemplate('activate-account').render();
 		expect(html).toContain('Activate Account');
 	});
 
 	it('reset-password template contains the Reset Password button label', () => {
-		const html = getTemplate('reset-password')!.render();
+		const html = getTemplate('reset-password').render();
 
 		expect(html).toContain('Reset Password');
 	});
 
-	it('getTemplate returns undefined for unknown ids', () => {
-		expect(getTemplate('nope' as never)).toBeUndefined();
+	it('getTemplate throws on an unknown id', () => {
+		expect(() => getTemplate('nope' as never)).toThrow(/Unknown email template/);
 	});
 
 	it('render uses a custom URL when provided', () => {
 		const customUrl = 'https://custom.example.com/token';
-		const html = getTemplate('reset-password')!.render(customUrl);
+		const html = getTemplate('reset-password').render(customUrl);
 		expect(html).toContain(customUrl);
 	});
 

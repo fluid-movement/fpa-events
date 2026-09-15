@@ -3,7 +3,7 @@ import { events, schedules, eventUser, user, eventMagicLinks } from '$lib/server
 import { count, eq } from 'drizzle-orm';
 import { error, redirect } from '@sveltejs/kit';
 import { resolve } from '$app/paths';
-import { canManageEvent, isEventManager } from '$lib/server/authz';
+import { canManageEvent, isEventManager, requireSignedIn } from '$lib/server/authz';
 import type { LayoutServerLoad } from './$types';
 
 /**
@@ -14,21 +14,18 @@ import type { LayoutServerLoad } from './$types';
  * the venue picker — belongs to the child routes.
  */
 export const load = (async ({ params, locals }) => {
-	if (!locals.user) {
-		redirect(307, resolve('/sign-in'));
-	}
-
-	if (!params.id) error(404, 'Not found');
+	// Not `user`: that name belongs to the schema table imported above.
+	const signedIn = requireSignedIn(locals);
 
 	const [event] = await db.select().from(events).where(eq(events.id, params.id));
 	if (!event) error(404, 'Not found');
 
-	if (!(await canManageEvent(event, locals.user.id, locals.role))) {
+	if (!(await canManageEvent(event, signedIn.id, locals.role))) {
 		redirect(307, resolve(`/events/${params.id}`));
 	}
 
 	// Co-organizers manage everything except destroying the event.
-	const isOwner = isEventManager(event, locals.user.id, locals.role);
+	const isOwner = isEventManager(event, signedIn.id, locals.role);
 
 	const [attendees, magicLinks, scheduleCounts] = await Promise.all([
 		// Shared: the Attendees tab lists these, Invites derives co-organizers from

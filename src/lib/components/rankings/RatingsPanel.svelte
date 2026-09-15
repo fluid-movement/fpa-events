@@ -2,7 +2,7 @@
 	import SegmentedTabs from '$lib/components/layout/SegmentedTabs.svelte';
 	import RatingsTable from './RatingsTable.svelte';
 	import RankingsUnavailable from './RankingsUnavailable.svelte';
-	import { getRatings } from '../../../routes/rankings/data.remote';
+	import { getRatings } from '$lib/api/rankings.remote';
 
 	interface Props {
 		minMatchCount: number;

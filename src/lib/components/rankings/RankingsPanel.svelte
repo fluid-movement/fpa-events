@@ -2,7 +2,7 @@
 	import SegmentedTabs from '$lib/components/layout/SegmentedTabs.svelte';
 	import RankingsTable from './RankingsTable.svelte';
 	import RankingsUnavailable from './RankingsUnavailable.svelte';
-	import { getSeries, getRankings } from '../../../routes/rankings/data.remote';
+	import { getSeries, getRankings } from '$lib/api/rankings.remote';
 
 	interface Props {
 		/** Series from the URL. Validated server-side; falls back to the default. */

@@ -1,4 +1,6 @@
 import { getRequestEvent } from '$app/server';
+import { redirect } from '@sveltejs/kit';
+import { resolve } from '$app/paths';
 import { db } from '$lib/server/db';
 import { events, eventUser } from '$lib/server/db/schema';
 import { and, eq } from 'drizzle-orm';
@@ -16,6 +18,25 @@ export function requireUser(): { user: SessionUser; role: 'user' | 'admin' } {
 	const { locals } = getRequestEvent();
 	if (!locals.user) throw new Error('Unauthorized');
 	return { user: locals.user, role: locals.role ?? 'user' };
+}
+
+/**
+ * Require a signed-in user inside a `load` function, sending anyone else to the
+ * sign-in page. 307 keeps the method, which is what a GET navigation wants.
+ */
+export function requireSignedIn(locals: App.Locals): SessionUser {
+	if (!locals.user) redirect(307, resolve('/sign-in'));
+	return locals.user;
+}
+
+/**
+ * The same guard for a remote function. 302 rather than 307 on purpose: a form
+ * POST must land on the sign-in page as a GET, not be replayed against it.
+ */
+export function requireSignedInRequest(): SessionUser {
+	const { locals } = getRequestEvent();
+	if (!locals.user) redirect(302, resolve('/sign-in'));
+	return locals.user;
 }
 
 /**
@@ -63,28 +84,38 @@ export async function canManageEvent(
 }
 
 /**
- * Require that the current user may manage the given event (owner, site admin, or
- * co-organizer). Loads and returns the event row.
+ * Load the event and check the current user against it.
  *
- * Throws `Error('Unauthorized')` (not logged in), `Error('Event not found')` (no such
- * event), or `Error('Forbidden')` (logged in but not a manager).
+ * Throws `Error('Unauthorized')` (not logged in), `Error('Event not found')` (no
+ * such event), or `Error('Forbidden')` (logged in but not permitted).
  */
-export async function requireEventManager(eventId: string) {
+async function requireEventAccess(
+	eventId: string,
+	allow: (
+		event: typeof events.$inferSelect,
+		userId: string,
+		role: 'user' | 'admin'
+	) => boolean | Promise<boolean>
+) {
 	const { user, role } = requireUser();
 	const [event] = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
 	if (!event) throw new Error('Event not found');
-	if (!(await canManageEvent(event, user.id, role))) throw new Error('Forbidden');
+	if (!(await allow(event, user.id, role))) throw new Error('Forbidden');
 	return event;
+}
+
+/**
+ * Require that the current user may manage the given event (owner, site admin, or
+ * co-organizer). Loads and returns the event row.
+ */
+export function requireEventManager(eventId: string) {
+	return requireEventAccess(eventId, canManageEvent);
 }
 
 /**
  * Require that the current user owns the given event (creator or site admin).
  * Use for destructive actions that co-organizers must not perform.
  */
-export async function requireEventOwner(eventId: string) {
-	const { user, role } = requireUser();
-	const [event] = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
-	if (!event) throw new Error('Event not found');
-	if (!isEventManager(event, user.id, role)) throw new Error('Forbidden');
-	return event;
+export function requireEventOwner(eventId: string) {
+	return requireEventAccess(eventId, isEventManager);
 }

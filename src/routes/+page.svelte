@@ -11,16 +11,11 @@
 	import ArrowRightIcon from '@lucide/svelte/icons/arrow-right';
 	import GlobeIcon from '@lucide/svelte/icons/globe';
 	import EventsMap from '$lib/components/EventsMap.svelte';
+	import { formatFullDateRange } from '$lib/utils/dates';
+	import { stripHtml } from '$lib/utils/html';
 
 	let { data }: PageProps = $props();
 	const event = $derived(data.nextEvent);
-
-	function formatDateRange(start: Date, end: Date) {
-		const opts: Intl.DateTimeFormatOptions = { month: 'long', day: 'numeric', year: 'numeric' };
-		const startStr = start.toLocaleDateString('en-US', opts);
-		const endStr = end.toLocaleDateString('en-US', opts);
-		return start.toDateString() === end.toDateString() ? startStr : `${startStr} – ${endStr}`;
-	}
 </script>
 
 <PageShell class="space-y-10 py-2 md:space-y-12 md:py-6">
@@ -83,7 +78,7 @@
 					<Card.Description class="mt-1 flex flex-col gap-1">
 						<span class="flex items-center gap-1.5">
 							<CalendarIcon class="size-3.5" />
-							{formatDateRange(new Date(event.startDate), new Date(event.endDate))}
+							{formatFullDateRange(event.startDate, event.endDate)}
 						</span>
 						<span class="flex items-center gap-1.5">
 							<MapPinIcon class="size-3.5" />
@@ -93,7 +88,7 @@
 				</Card.Header>
 				{#if event.description}
 					<Card.Content>
-						<p class="line-clamp-3 text-sm">{event.description.replace(/<[^>]*>/g, ' ').trim()}</p>
+						<p class="line-clamp-3 text-sm">{stripHtml(event.description)}</p>
 					</Card.Content>
 				{/if}
 				<Card.Footer>

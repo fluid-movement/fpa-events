@@ -1,96 +1,75 @@
 import { env } from '$env/dynamic/private';
 import Mailgun from 'mailgun.js';
-import {
-	APP_NAME,
-	verificationTemplate,
-	resetPasswordTemplate,
-	getTemplate,
-	type EmailTemplateId
-} from '$lib/email/templates';
+import { getTemplate, type EmailTemplateId } from '$lib/email/templates';
 
-let _mgClient: ReturnType<InstanceType<typeof Mailgun>['client']> | null = null;
+type Message = { to: string; subject: string; html: string };
+
+let client: ReturnType<InstanceType<typeof Mailgun>['client']> | null = null;
 
 function getClient() {
-	if (!_mgClient && env.MAILGUN_API_KEY) {
-		const mailgun = new Mailgun(FormData);
-		_mgClient = mailgun.client({
+	if (!client && env.MAILGUN_API_KEY) {
+		client = new Mailgun(FormData).client({
 			username: 'api',
 			key: env.MAILGUN_API_KEY,
 			url: 'https://api.eu.mailgun.net'
 		});
 	}
-	return _mgClient;
+	return client;
 }
 
-export function sendDev({ to, subject, html }: { to: string; subject: string; html: string }) {
+/** Dev/test fallback: print the message, and the link in it, to the console. */
+function logToConsole({ to, subject, html }: Message) {
+	const url = html.match(/https?:\/\/[^\s"'>]+/)?.[0];
+
 	console.log(`\n── Email ──────────────────────────────────`);
 	console.log(`  To:      ${to}`);
 	console.log(`  Subject: ${subject}`);
-
-	const urlMatch = html.match(/https?:\/\/[^\s"'>]+/);
-	if (urlMatch) {
-		console.log(`  URL:     ${urlMatch[0]}`);
-	}
-
+	if (url) console.log(`  URL:     ${url}`);
 	console.log(`──────────────────────────────────────────\n`);
 }
 
-export async function sendMailgun({
-	to,
-	subject,
-	html
-}: {
-	to: string;
-	subject: string;
-	html: string;
-}) {
-	if (env.MAILGUN_API_KEY) {
-		const client = getClient();
-		if (!client) return;
-		try {
-			await client.messages.create(env.MAILGUN_DOMAIN!, {
-				from: env.MAILGUN_FROM_EMAIL || `noreply@${env.MAILGUN_DOMAIN}`,
-				to,
-				subject,
-				html
-			});
-			console.log(`[email] Sent "${subject}" to ${to}`);
-		} catch (err) {
-			console.error(`[email] Failed to send "${subject}" to ${to}:`, err);
-		}
-	} else {
-		sendDev({ to, subject, html });
+/**
+ * Send a message, or log it when Mailgun is not configured — which is how local
+ * dev and the integration suite read verification links without real delivery.
+ *
+ * Never throws: a failed send must not take down the sign-up or reset flow that
+ * triggered it.
+ */
+export async function sendEmail(message: Message): Promise<void> {
+	const mailgun = getClient();
+	if (!mailgun) {
+		logToConsole(message);
+		return;
+	}
+
+	try {
+		await mailgun.messages.create(env.MAILGUN_DOMAIN!, {
+			from: env.MAILGUN_FROM_EMAIL || `noreply@${env.MAILGUN_DOMAIN}`,
+			...message
+		});
+		console.log(`[email] Sent "${message.subject}" to ${message.to}`);
+	} catch (err) {
+		console.error(`[email] Failed to send "${message.subject}" to ${message.to}:`, err);
 	}
 }
 
-export async function sendEmail({
-	to,
-	subject,
-	html
-}: {
-	to: string;
-	subject: string;
-	html: string;
-}) {
-	await sendMailgun({ to, subject, html });
+/** Send one of the registered templates, rendered with a live URL. */
+function sendTemplate(id: EmailTemplateId, to: string, url: string) {
+	const template = getTemplate(id);
+	// Fire-and-forget: Better Auth awaits its callbacks, and a slow Mailgun call
+	// would otherwise stall the sign-up response.
+	void sendEmail({ to, subject: template.subject, html: template.render(url) });
 }
 
 export function sendPasswordResetEmail({ user, url }: { user: { email: string }; url: string }) {
-	void sendEmail({
-		to: user.email,
-		subject: `Reset your ${APP_NAME} password`,
-		html: resetPasswordTemplate(url)
-	});
+	sendTemplate('reset-password', user.email, url);
 }
 
 export function sendVerificationEmail({ user, url }: { user: { email: string }; url: string }) {
-	void sendEmail({
-		to: user.email,
-		subject: `Verify your ${APP_NAME} account`,
-		html: verificationTemplate(url)
-	});
+	sendTemplate('activate-account', user.email, url);
 }
 
+/** Backs the dev-only email preview page. */
 export async function sendTestEmail({
 	to,
 	templateId
@@ -98,8 +77,6 @@ export async function sendTestEmail({
 	to: string;
 	templateId: EmailTemplateId;
 }) {
-	const tpl = getTemplate(templateId);
-	if (!tpl) throw new Error('Unknown template');
-	await sendEmail({ to, subject: `[TEST] ${tpl.subject}`, html: tpl.render() });
-	return { ok: true };
+	const template = getTemplate(templateId);
+	await sendEmail({ to, subject: `[TEST] ${template.subject}`, html: template.render() });
 }
