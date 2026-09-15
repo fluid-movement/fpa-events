@@ -101,6 +101,32 @@ Git hooks are the only thing between a commit and a Coolify production deploy �
 - **pre-commit** (~20s): `lint-staged` (Prettier + ESLint on staged files only), then `npm run check`, then `npm run test`. Note `npm run lint` is deliberately _not_ used — it runs `prettier --check .` over the whole repo and would fail on files the commit never touched.
 - **pre-push** (~2-4 min): `npm run build`, then `npm run db:migrate:test`, then `npm run test:integration`. The build runs first because a build failure is the likeliest cause of a broken deploy and it fails fastest.
 
+**The deploy runs an older Node than your machine.** Coolify builds with
+nixpacks at `NIXPACKS_NODE_VERSION=22`, which pins only the major and currently
+resolves to **Node 22.19.0 / npm 10.9.3** — behind the 22.22.x most dev machines
+are on. A dependency whose `engines.node` floor lands between the two will still
+install (npm just warns), but it will not _run_ in the container.
+
+This is why `.npmrc` no longer sets `engine-strict=true`: with it on, that
+warning became a fatal `EBADENGINE` and aborted `npm install`, which is what
+broke the 2026-09-15 deploy when `lint-staged` raised its floor to `>=22.22.1`.
+lint-staged and husky are git-hook tooling that never executes in the container,
+so failing the build on their Node floor bought nothing.
+
+To check the whole tree against the build's Node before pushing something
+dependency-shaped:
+
+```
+node -e "const s=require('semver'),l=require('./package-lock.json');
+for(const[p,v]of Object.entries(l.packages))
+  if(v.engines?.node&&!s.satisfies('22.19.0',v.engines.node))
+    console.log(p,v.version,v.engines.node)"
+```
+
+Pin `NIXPACKS_NODE_VERSION` to an exact version (or to `24`) in Coolify if you
+want the build on a current Node — after that, `engine-strict` could safely come
+back.
+
 **Integration tests use their own database.** One-time setup:
 
 ```
