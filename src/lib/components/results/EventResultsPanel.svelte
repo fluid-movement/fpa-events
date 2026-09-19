@@ -1,11 +1,11 @@
 <script lang="ts">
-	import PageHeader from '$lib/components/layout/PageHeader.svelte';
-	import SegmentedTabs from '$lib/components/layout/SegmentedTabs.svelte';
-	import ServiceUnavailable from '$lib/components/layout/ServiceUnavailable.svelte';
-	import EmptyState from '$lib/components/layout/EmptyState.svelte';
+	import PageHeader from '#lib/components/layout/PageHeader.svelte';
+	import SegmentedTabs from '#lib/components/layout/SegmentedTabs.svelte';
+	import ServiceUnavailable from '#lib/components/layout/ServiceUnavailable.svelte';
+	import EmptyState from '#lib/components/layout/EmptyState.svelte';
 	import DivisionResults from './DivisionResults.svelte';
-	import { getEventResults } from '$lib/api/results.remote';
-	import { formatApiDateRange } from '$lib/utils/dates';
+	import { getEventResults } from '#lib/api/results.remote';
+	import { formatApiDateRange } from '#lib/utils/dates';
 
 	let {
 		eventId,

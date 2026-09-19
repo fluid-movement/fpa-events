@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { Button } from '$lib/components/ui/button';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import EmptyState from '$lib/components/layout/EmptyState.svelte';
+	import { Button } from '#lib/components/ui/button';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import EmptyState from '#lib/components/layout/EmptyState.svelte';
 	import LinkOffIcon from '@lucide/svelte/icons/link-2-off';
 	import type { PageProps } from './$types';
 

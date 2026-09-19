@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import * as Field from '$lib/components/ui/field';
-	import FormStatus from '$lib/components/layout/FormStatus.svelte';
+	import { Button } from '#lib/components/ui/button';
+	import { Input } from '#lib/components/ui/input';
+	import * as Field from '#lib/components/ui/field';
+	import FormStatus from '#lib/components/layout/FormStatus.svelte';
 	import { updateProfile } from './data.remote';
 	import type { PageProps } from './$types';
 

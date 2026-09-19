@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { env } from '$env/dynamic/private';
+import { FPA_API_URL, setEnv } from '../../../test/mocks/app-env-private';
 import { fpaApiGet, FpaApiError } from './client';
 
-// The mocked env sets FPA_API_URL to https://fpa-api.test (see mocks/env-dynamic-private.ts).
-const ORIGINAL_URL = env.FPA_API_URL;
+// The mocked env sets FPA_API_URL to https://fpa-api.test (see mocks/app-env-private.ts).
+const ORIGINAL_URL = FPA_API_URL;
 
 afterEach(() => {
-	env.FPA_API_URL = ORIGINAL_URL;
+	setEnv({ FPA_API_URL: ORIGINAL_URL });
 	vi.restoreAllMocks();
 });
 
@@ -24,7 +24,7 @@ describe('fpaApiGet', () => {
 	});
 
 	it('does not produce a double slash when the base URL has a trailing slash', async () => {
-		env.FPA_API_URL = 'https://fpa-api.test/';
+		setEnv({ FPA_API_URL: 'https://fpa-api.test/' });
 		const fetchSpy = vi
 			.spyOn(globalThis, 'fetch')
 			.mockResolvedValue(new Response(JSON.stringify({})));
@@ -35,8 +35,8 @@ describe('fpaApiGet', () => {
 	});
 
 	it('throws a typed error when the API is not configured', async () => {
-		// Empty is how an unset var arrives from $env/dynamic/private.
-		env.FPA_API_URL = '';
+		// Empty is how a blank var arrives from $app/env/private.
+		setEnv({ FPA_API_URL: '' });
 		const fetchSpy = vi.spyOn(globalThis, 'fetch');
 
 		await expect(fpaApiGet('/rankings')).rejects.toThrow(FpaApiError);

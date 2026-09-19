@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { Button } from '$lib/components/ui/button';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import EmptyState from '$lib/components/layout/EmptyState.svelte';
+	import { Button } from '#lib/components/ui/button';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import EmptyState from '#lib/components/layout/EmptyState.svelte';
 	import TriangleAlertIcon from '@lucide/svelte/icons/triangle-alert';
 	import MapPinOffIcon from '@lucide/svelte/icons/map-pin-off';
 </script>

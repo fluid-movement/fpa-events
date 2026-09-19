@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import EventLocationInput from '$lib/components/EventLocationInput.svelte';
-	import * as Field from '$lib/components/ui/field';
-	import { RangeCalendar } from '$lib/components/ui/range-calendar/index.js';
-	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
-	import ImageUpload from '$lib/components/ImageUpload.svelte';
-	import Turnstile, { captchaEnabled } from '$lib/components/Turnstile.svelte';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import PageHeader from '$lib/components/layout/PageHeader.svelte';
+	import { Button } from '#lib/components/ui/button';
+	import { Input } from '#lib/components/ui/input';
+	import EventLocationInput from '#lib/components/EventLocationInput.svelte';
+	import * as Field from '#lib/components/ui/field';
+	import { RangeCalendar } from '#lib/components/ui/range-calendar/index.js';
+	import RichTextEditor from '#lib/components/RichTextEditor.svelte';
+	import ImageUpload from '#lib/components/ImageUpload.svelte';
+	import Turnstile, { captchaEnabled } from '#lib/components/Turnstile.svelte';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import PageHeader from '#lib/components/layout/PageHeader.svelte';
 	import type { DateValue } from '@internationalized/date';
 
 	import { createEvent } from './data.remote';

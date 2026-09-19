@@ -3,10 +3,10 @@
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import type { Map as LeafletMap, Marker } from 'leaflet';
-	import { addOsmTiles, enableTwoFingerPan, isTouchDevice, loadLeaflet } from '$lib/leaflet';
-	import { groupBy } from '$lib/utils/collections';
-	import { escapeHtml } from '$lib/utils/html';
-	import { formatShortDateRange } from '$lib/utils/dates';
+	import { addOsmTiles, enableTwoFingerPan, isTouchDevice, loadLeaflet } from '#lib/leaflet';
+	import { groupBy } from '#lib/utils/collections';
+	import { escapeHtml } from '#lib/utils/html';
+	import { formatShortDateRange } from '#lib/utils/dates';
 
 	type MapEvent = {
 		id: string;
@@ -47,7 +47,7 @@
 					<p style="font-weight:600;margin:0 0 2px">${escapeHtml(ev.name)}</p>
 					<p style="${muted}">${formatShortDateRange(ev.startDate, ev.endDate)}</p>
 					${ev.location ? `<p style="${muted}">${escapeHtml(ev.location)}</p>` : ''}
-					<a href="${resolve(`/events/${ev.id}`)}" style="color:var(--primary);font-size:0.8rem;text-decoration:none;">View event →</a>
+					<a href="${resolve('/events/[id]', { id: ev.id })}" style="color:var(--primary);font-size:0.8rem;text-decoration:none;">View event →</a>
 				</div>`;
 		});
 

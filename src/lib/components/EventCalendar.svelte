@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { EventsByMonth } from '$lib/server/utils/events';
-	import type { EventListItem } from '$lib/types/event';
+	import type { EventsByMonth } from '#lib/server/utils/events';
+	import type { EventListItem } from '#lib/types/event';
 	import EventCalendarCard from './EventCalendarCard.svelte';
 	import DividerLabel from './layout/DividerLabel.svelte';
 	import EmptyState from './layout/EmptyState.svelte';

@@ -1,9 +1,9 @@
-import { db } from '$lib/server/db';
-import { events, schedules, eventUser, user, eventMagicLinks } from '$lib/server/db/schema';
+import { db } from '#lib/server/db';
+import { events, schedules, eventUser, user, eventMagicLinks } from '#lib/server/db/schema';
 import { count, eq } from 'drizzle-orm';
 import { error, redirect } from '@sveltejs/kit';
 import { resolve } from '$app/paths';
-import { canManageEvent, isEventManager, requireSignedIn } from '$lib/server/authz';
+import { canManageEvent, isEventManager, requireSignedIn } from '#lib/server/authz';
 import type { LayoutServerLoad } from './$types';
 
 /**
@@ -21,7 +21,7 @@ export const load = (async ({ params, locals }) => {
 	if (!event) error(404, 'Not found');
 
 	if (!(await canManageEvent(event, signedIn.id, locals.role))) {
-		redirect(307, resolve(`/events/${params.id}`));
+		redirect(307, resolve('/events/[id]', { id: params.id }));
 	}
 
 	// Co-organizers manage everything except destroying the event.
@@ -47,7 +47,7 @@ export const load = (async ({ params, locals }) => {
 	]);
 
 	return {
-		// Drives the mobile top bar (see $lib/config/pageTitle).
+		// Drives the mobile top bar (see #lib/config/pageTitle).
 		title: event.name,
 		event,
 		isOwner,

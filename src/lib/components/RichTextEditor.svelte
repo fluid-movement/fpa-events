@@ -2,7 +2,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { Editor, type ChainedCommands } from '@tiptap/core';
 	import StarterKit from '@tiptap/starter-kit';
-	import { cn } from '$lib/utils';
+	import { cn } from '#lib/utils';
 
 	let {
 		name,

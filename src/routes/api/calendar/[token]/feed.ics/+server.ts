@@ -1,8 +1,8 @@
-import { db } from '$lib/server/db';
-import { user, events, eventUser } from '$lib/server/db/schema';
+import { db } from '#lib/server/db';
+import { user, events, eventUser } from '#lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
 import ical, { ICalCalendarMethod } from 'ical-generator';
-import { eventPath } from '$lib/utils/urls';
+import { eventPath } from '#lib/utils/urls';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ params, url }) => {

@@ -1,5 +1,5 @@
-import { db } from '$lib/server/db';
-import { eventLocations } from '$lib/server/db/schema';
+import { db } from '#lib/server/db';
+import { eventLocations } from '#lib/server/db/schema';
 import { and, eq } from 'drizzle-orm';
 
 export async function findOrCreateEventLocation(

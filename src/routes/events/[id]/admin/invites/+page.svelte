@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { coOrganizers } from '$lib/utils/attendees';
+	import { coOrganizers } from '#lib/utils/attendees';
 	import InviteSection from './InviteSection.svelte';
 	import type { PageProps } from './$types';
 

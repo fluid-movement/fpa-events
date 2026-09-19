@@ -1,18 +1,18 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { client } from '$lib/auth-client';
-	import { dateChipParts, formatDateRange } from '$lib/utils/dates';
-	import { regenerateToken } from '$lib/api/calendar.remote';
-	import { Button } from '$lib/components/ui/button';
-	import { Badge } from '$lib/components/ui/badge';
-	import * as Card from '$lib/components/ui/card';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import { Separator } from '$lib/components/ui/separator';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import PageHeader from '$lib/components/layout/PageHeader.svelte';
-	import EmptyState from '$lib/components/layout/EmptyState.svelte';
-	import CountdownBadge from '$lib/components/CountdownBadge.svelte';
-	import CalendarFeedPanel from '$lib/components/CalendarFeedPanel.svelte';
+	import { client } from '#lib/auth-client';
+	import { dateChipParts, formatDateRange } from '#lib/utils/dates';
+	import { regenerateToken } from '#lib/api/calendar.remote';
+	import { Button } from '#lib/components/ui/button';
+	import { Badge } from '#lib/components/ui/badge';
+	import * as Card from '#lib/components/ui/card';
+	import * as Dialog from '#lib/components/ui/dialog';
+	import { Separator } from '#lib/components/ui/separator';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import PageHeader from '#lib/components/layout/PageHeader.svelte';
+	import EmptyState from '#lib/components/layout/EmptyState.svelte';
+	import CountdownBadge from '#lib/components/CountdownBadge.svelte';
+	import CalendarFeedPanel from '#lib/components/CalendarFeedPanel.svelte';
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
 	import MapPinIcon from '@lucide/svelte/icons/map-pin';
 	import UsersIcon from '@lucide/svelte/icons/users';
@@ -87,7 +87,7 @@
 							{#each data.attending.upcoming.slice(0, DASHBOARD_EVENT_LIMIT) as event (event.id)}
 								{@const chip = dateChipParts(event.startDate)}
 								<a
-									href={resolve(`/events/${event.id}`)}
+									href={resolve('/events/[id]', { id: event.id })}
 									class="surface-row flex items-center gap-3 rounded-lg p-3"
 								>
 									<div
@@ -163,10 +163,16 @@
 									</div>
 									<!-- sm, not xs: these are the primary actions on a phone. -->
 									<div class="flex gap-2 pt-0.5">
-										<Button href={resolve(`/events/${event.id}`)} variant="outline" size="sm">
+										<Button
+											href={resolve('/events/[id]', { id: event.id })}
+											variant="outline"
+											size="sm"
+										>
 											View
 										</Button>
-										<Button href={resolve(`/events/${event.id}/admin`)} size="sm">Manage</Button>
+										<Button href={resolve('/events/[id]/admin', { id: event.id })} size="sm"
+											>Manage</Button
+										>
 									</div>
 								</div>
 							{/each}

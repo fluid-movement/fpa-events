@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { client, signIn } from '$lib/auth-client';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
+	import { client, signIn } from '#lib/auth-client';
+	import { Button } from '#lib/components/ui/button';
+	import { Input } from '#lib/components/ui/input';
+	import { Label } from '#lib/components/ui/label';
 	import { resolve } from '$app/paths';
-	import AuthCard from '$lib/components/AuthCard.svelte';
-	import AuthForm from '$lib/components/AuthForm.svelte';
-	import Turnstile, { captchaEnabled } from '$lib/components/Turnstile.svelte';
+	import AuthCard from '#lib/components/AuthCard.svelte';
+	import AuthForm from '#lib/components/AuthForm.svelte';
+	import Turnstile, { captchaEnabled } from '#lib/components/Turnstile.svelte';
 
 	let email = $state('');
 	let password = $state('');

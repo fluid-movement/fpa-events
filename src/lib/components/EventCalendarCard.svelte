@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import type { Event, EventUserStatus } from '$lib/types/event';
-	import { Badge } from '$lib/components/ui/badge';
-	import { dateChipParts, formatCompactDateRange } from '$lib/utils/dates';
+	import type { Event, EventUserStatus } from '#lib/types/event';
+	import { Badge } from '#lib/components/ui/badge';
+	import { dateChipParts, formatCompactDateRange } from '#lib/utils/dates';
 	import MapPinIcon from '@lucide/svelte/icons/map-pin';
 	import UsersIcon from '@lucide/svelte/icons/users';
 
@@ -16,7 +16,7 @@
 	const dateRange = $derived(formatCompactDateRange(event.startDate, event.endDate));
 </script>
 
-<a href={resolve(`/events/${event.id}`)} class="card-link">
+<a href={resolve('/events/[id]', { id: event.id })} class="card-link">
 	<div class="glow"></div>
 	<article class="event-card surface">
 		<div class="body">

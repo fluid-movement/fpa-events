@@ -3,11 +3,11 @@ import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import GeocodingCombobox from './GeocodingCombobox.svelte';
 
-vi.mock('$lib/geocoding', () => ({
+vi.mock('#lib/geocoding', () => ({
 	autocomplete: vi.fn()
 }));
 
-import { autocomplete } from '$lib/geocoding';
+import { autocomplete } from '#lib/geocoding';
 
 const mockResults = [
 	{

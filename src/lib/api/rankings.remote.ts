@@ -1,10 +1,10 @@
 import * as v from 'valibot';
 import { query } from '$app/server';
-import { fpaApiGet, FpaApiError } from '$lib/server/fpa-api/client';
-import { loadRankingStandings } from '$lib/server/fpa-api/rankingIndex';
-import type { PlayerProfile, RatingStandings, SeriesRef } from '$lib/server/fpa-api/types';
-import { joinScoringResults } from '$lib/rankings/breakdown';
-import { collapsePlacements } from '$lib/results/career';
+import { fpaApiGet, FpaApiError } from '#lib/server/fpa-api/client';
+import { loadRankingStandings } from '#lib/server/fpa-api/rankingIndex';
+import type { PlayerProfile, RatingStandings, SeriesRef } from '#lib/server/fpa-api/types';
+import { joinScoringResults } from '#lib/rankings/breakdown';
+import { collapsePlacements } from '#lib/results/career';
 import {
 	DEFAULT_MIN_MATCH_COUNT,
 	DEFAULT_RANKING_SERIES,
@@ -14,7 +14,7 @@ import {
 	type RatingRow,
 	type ScoringResult,
 	type SeriesOption
-} from '$lib/rankings/types';
+} from '#lib/rankings/types';
 
 /**
  * Rankings data, fetched from fpa-api server-side.
@@ -23,13 +23,13 @@ import {
  * (~150 ms). Its data refreshes hourly, so a little staleness is expected and
  * harmless.
  *
- * The standings themselves are cached in `$lib/server/fpa-api/rankingIndex`
+ * The standings themselves are cached in `#lib/server/fpa-api/rankingIndex`
  * because expanding a row reads the same response again, and every expand on a
  * page would otherwise refetch all ~350 players.
  *
  * Two constraints shape this file:
  *  - SvelteKit requires every export from a `.remote.ts` file to be a remote
- *    function, so shared constants and types live in `$lib/rankings/types`.
+ *    function, so shared constants and types live in `#lib/rankings/types`.
  *  - Errors thrown here during SSR are NOT caught by `<svelte:boundary>`; the
  *    request 500s instead. Since fpa-api is an external service that can be
  *    down, every query returns an `ApiResult` rather than throwing.
@@ -170,7 +170,7 @@ export const getRatings = query(
  *  - the standings, for which results earned points and how many;
  *  - the player profile, for teammates and placings.
  *
- * `resultId` joins them — see `$lib/rankings/breakdown`.
+ * `resultId` joins them — see `#lib/rankings/breakdown`.
  */
 export const getScoringResults = query(
 	v.object({ playerId: v.string(), series: v.optional(v.string()) }),

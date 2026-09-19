@@ -2,15 +2,15 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import RankingsTable from './RankingsTable.svelte';
-import type { RankingRow } from '$lib/rankings/types';
+import type { RankingRow } from '#lib/rankings/types';
 
 // An expanded row mounts RankingBreakdown, which reaches for a remote function.
 // `$app/server` has no meaning outside a running SvelteKit server, so the module
 // is replaced wholesale — mocking it also stops its imports from loading. The
 // promise never settles, which parks the component in its pending branch; what
 // it renders once resolved is covered by the join's own tests in
-// `$lib/rankings/breakdown.test.ts` and end to end in `tests/integration`.
-vi.mock('$lib/api/rankings.remote', () => ({
+// `#lib/rankings/breakdown.test.ts` and end to end in `tests/integration`.
+vi.mock('#lib/api/rankings.remote', () => ({
 	getScoringResults: () => new Promise(() => {})
 }));
 

@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { emailTemplates } from '$lib/email/templates';
+	import { emailTemplates } from '#lib/email/templates';
 	import { sendTestEmailForm } from './data.remote';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
+	import { Button } from '#lib/components/ui/button';
+	import { Input } from '#lib/components/ui/input';
+	import { Label } from '#lib/components/ui/label';
 
 	let selectedId = $state<'activate-account' | 'reset-password'>('activate-account');
 	let showSource = $state(false);

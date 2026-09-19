@@ -1,10 +1,10 @@
 <script lang="ts">
-	import ServiceUnavailable from '$lib/components/layout/ServiceUnavailable.svelte';
-	import Pagination from '$lib/components/layout/Pagination.svelte';
+	import ServiceUnavailable from '#lib/components/layout/ServiceUnavailable.svelte';
+	import Pagination from '#lib/components/layout/Pagination.svelte';
 	import ResultsFilters from './ResultsFilters.svelte';
 	import ResultEventList from './ResultEventList.svelte';
-	import { getResultEvents } from '$lib/api/results.remote';
-	import { PAGE_SIZE } from '$lib/results/types';
+	import { getResultEvents } from '#lib/api/results.remote';
+	import { PAGE_SIZE } from '#lib/results/types';
 
 	let {
 		q,

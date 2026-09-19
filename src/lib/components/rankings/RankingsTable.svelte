@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { SvelteSet } from 'svelte/reactivity';
-	import { Button } from '$lib/components/ui/button';
-	import { type DataColumn } from '$lib/components/layout/DataList.svelte';
+	import { Button } from '#lib/components/ui/button';
+	import { type DataColumn } from '#lib/components/layout/DataList.svelte';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import PlayerLeaderboard from './PlayerLeaderboard.svelte';
 	import RankingBreakdown from './RankingBreakdown.svelte';
-	import { rankTint } from '$lib/rankings/playerList.svelte';
-	import { formatPoints } from '$lib/utils/numbers';
-	import type { RankingRow } from '$lib/rankings/types';
+	import { rankTint } from '#lib/rankings/playerList.svelte';
+	import { formatPoints } from '#lib/utils/numbers';
+	import type { RankingRow } from '#lib/rankings/types';
 
 	let {
 		rows,
@@ -37,7 +37,7 @@
 			header: 'Player',
 			value: (r) => r.fullName,
 			slot: 'primary',
-			href: (r) => resolve(`/players/${r.playerId}`)
+			href: (r) => resolve('/players/[playerId]', { playerId: r.playerId })
 		},
 		{
 			header: 'Points',

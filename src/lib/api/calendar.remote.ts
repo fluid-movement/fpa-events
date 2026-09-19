@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { form } from '$app/server';
-import { requireSignedInRequest } from '$lib/server/authz';
-import { regenerateCalendarToken } from '$lib/server/utils/calendar';
+import { requireSignedInRequest } from '#lib/server/authz';
+import { regenerateCalendarToken } from '#lib/server/utils/calendar';
 
 // Shared rather than route-local: the dashboard and the attending page both show
 // the same calendar-feed panel, and duplicating this gave them two endpoints that

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import RichContent from '$lib/components/RichContent.svelte';
-	import { formatDateRange } from '$lib/utils/dates';
+	import RichContent from '#lib/components/RichContent.svelte';
+	import { formatDateRange } from '#lib/utils/dates';
 
 	interface Props {
 		event: {

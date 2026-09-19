@@ -1,11 +1,11 @@
 <script lang="ts" generics="Row extends { playerId: string; fullName: string }">
 	import type { Snippet } from 'svelte';
-	import { Button } from '$lib/components/ui/button';
-	import DataList, { type DataColumn } from '$lib/components/layout/DataList.svelte';
-	import EmptyState from '$lib/components/layout/EmptyState.svelte';
+	import { Button } from '#lib/components/ui/button';
+	import DataList, { type DataColumn } from '#lib/components/layout/DataList.svelte';
+	import EmptyState from '#lib/components/layout/EmptyState.svelte';
 	import SearchXIcon from '@lucide/svelte/icons/search-x';
 	import PlayerSearch from './PlayerSearch.svelte';
-	import { PlayerList } from '$lib/rankings/playerList.svelte';
+	import { PlayerList } from '#lib/rankings/playerList.svelte';
 
 	let {
 		rows,

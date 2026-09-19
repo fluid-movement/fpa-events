@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import * as Sidebar from '$lib/components/ui/sidebar';
-	import { pageTitle } from '$lib/config/pageTitle';
+	import * as Sidebar from '#lib/components/ui/sidebar';
+	import { pageTitle } from '#lib/config/pageTitle';
 
 	const title = $derived(pageTitle(page.url.pathname, page.data));
 </script>

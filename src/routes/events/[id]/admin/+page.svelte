@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { Button } from '$lib/components/ui/button';
-	import Section from '$lib/components/layout/Section.svelte';
+	import { Button } from '#lib/components/ui/button';
+	import Section from '#lib/components/layout/Section.svelte';
 	import PencilIcon from '@lucide/svelte/icons/pencil';
 	import EventDetailsView from './EventDetailsView.svelte';
 	import DangerZone from './DangerZone.svelte';
@@ -18,7 +18,7 @@
 <Section title="Event details">
 	{#snippet action()}
 		<Button
-			href={resolve(`/events/${event.id}/admin/edit`)}
+			href={resolve('/events/[id]/admin/edit', { id: event.id })}
 			variant="outline"
 			size="sm"
 			data-testid="edit-details"

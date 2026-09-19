@@ -1,4 +1,4 @@
-import { env } from '$env/dynamic/private';
+import { TURNSTILE_SECRET_KEY } from '$app/env/private';
 
 const SITEVERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 
@@ -13,7 +13,7 @@ const SITEVERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverif
  * non-auth surfaces (e.g. the create-event remote function) that the plugin doesn't cover.
  */
 export async function verifyTurnstile(token: string | undefined): Promise<boolean> {
-	const secret = env.TURNSTILE_SECRET_KEY;
+	const secret = TURNSTILE_SECRET_KEY;
 	if (!secret) return true;
 	if (!token) return false;
 

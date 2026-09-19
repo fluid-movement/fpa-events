@@ -1,6 +1,6 @@
-import { db } from '$lib/server/db';
-import { events, schedules, eventLocations } from '$lib/server/db/schema';
-import { autocomplete } from '$lib/geocoding';
+import { db } from '#lib/server/db';
+import { events, schedules, eventLocations } from '#lib/server/db/schema';
+import { autocomplete } from '#lib/geocoding';
 import { eq } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';

@@ -1,9 +1,9 @@
 import * as v from 'valibot';
 import { form, query } from '$app/server';
-import { db } from '$lib/server/db';
-import { user } from '$lib/server/db/schema';
+import { db } from '#lib/server/db';
+import { user } from '#lib/server/db/schema';
 import { eq } from 'drizzle-orm';
-import { requireSignedInRequest } from '$lib/server/authz';
+import { requireSignedInRequest } from '#lib/server/authz';
 
 /**
  * Read straight from the database rather than `locals.user`: Better Auth builds

@@ -1,4 +1,4 @@
-import { env } from '$env/dynamic/private';
+import { FPA_API_URL } from '$app/env/private';
 
 /**
  * Thin server-side client for fpa-api.
@@ -30,7 +30,7 @@ const TIMEOUT_MS = 10_000;
  * `path` must start with `/` and already be URL-encoded where needed.
  */
 export async function fpaApiGet<T>(path: string): Promise<T> {
-	const baseUrl = env.FPA_API_URL?.replace(/\/+$/, '');
+	const baseUrl = FPA_API_URL?.replace(/\/+$/, '');
 	if (!baseUrl) {
 		throw new FpaApiError('FPA_API_URL is not configured');
 	}

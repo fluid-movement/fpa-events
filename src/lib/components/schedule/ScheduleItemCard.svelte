@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
+	import { Button } from '#lib/components/ui/button';
 	import MapPinIcon from '@lucide/svelte/icons/map-pin';
 	import ClockIcon from '@lucide/svelte/icons/clock';
 	import PencilIcon from '@lucide/svelte/icons/pencil';
 	import TrashIcon from '@lucide/svelte/icons/trash-2';
-	import RichContent from '$lib/components/RichContent.svelte';
-	import type { ScheduleItem } from '$lib/types/event';
-	import { formatTime } from '$lib/utils/dates';
+	import RichContent from '#lib/components/RichContent.svelte';
+	import type { ScheduleItem } from '#lib/types/event';
+	import { formatTime } from '#lib/utils/dates';
 
 	interface Props {
 		item: ScheduleItem;

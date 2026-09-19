@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { groupEventsByMonth } from './events';
-import type { Event } from '$lib/types/event';
+import type { Event } from '#lib/types/event';
 
 function makeEvent(overrides: Partial<Event> & { startDate: Date; endDate: Date }): Event {
 	return {

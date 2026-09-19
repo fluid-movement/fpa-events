@@ -2,12 +2,12 @@
 	import { page } from '$app/state';
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 	import { resolve } from '$app/paths';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import PageHeader from '$lib/components/layout/PageHeader.svelte';
-	import SegmentedTabs from '$lib/components/layout/SegmentedTabs.svelte';
-	import RankingsPanel from '$lib/components/rankings/RankingsPanel.svelte';
-	import RatingsPanel from '$lib/components/rankings/RatingsPanel.svelte';
-	import { DEFAULT_MIN_MATCH_COUNT } from '$lib/rankings/types';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import PageHeader from '#lib/components/layout/PageHeader.svelte';
+	import SegmentedTabs from '#lib/components/layout/SegmentedTabs.svelte';
+	import RankingsPanel from '#lib/components/rankings/RankingsPanel.svelte';
+	import RatingsPanel from '#lib/components/rankings/RatingsPanel.svelte';
+	import { DEFAULT_MIN_MATCH_COUNT } from '#lib/rankings/types';
 
 	const BASE = resolve('/rankings');
 
@@ -33,7 +33,12 @@
 		// SvelteURLSearchParams rather than the built-in: this reads `params`,
 		// which is reactive, and the lint rule that enforces it exists to stop
 		// exactly that dependency being lost.
-		const next = new SvelteURLSearchParams(params);
+		//
+		// `.toString()` because SvelteKit 3 made `page.url` immutable on a type
+		// level, so `searchParams` is a `ReadonlyURLSearchParams` and is no
+		// longer accepted by the constructor. It still reads `params`, so the
+		// reactive dependency is unchanged.
+		const next = new SvelteURLSearchParams(params.toString());
 		for (const [key, value] of Object.entries(overrides)) {
 			if (value === undefined) next.delete(key);
 			else next.set(key, value);

@@ -1,8 +1,8 @@
 <script lang="ts">
-	import SegmentedTabs from '$lib/components/layout/SegmentedTabs.svelte';
+	import SegmentedTabs from '#lib/components/layout/SegmentedTabs.svelte';
 	import RatingsTable from './RatingsTable.svelte';
-	import ServiceUnavailable from '$lib/components/layout/ServiceUnavailable.svelte';
-	import { getRatings } from '$lib/api/rankings.remote';
+	import ServiceUnavailable from '#lib/components/layout/ServiceUnavailable.svelte';
+	import { getRatings } from '#lib/api/rankings.remote';
 
 	interface Props {
 		minMatchCount: number;

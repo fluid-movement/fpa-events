@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { uploadImage } from '$lib/server/r2';
+import { uploadImage } from '#lib/server/r2';
 import type { RequestHandler } from './$types';
 
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB

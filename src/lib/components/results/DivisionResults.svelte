@@ -1,7 +1,7 @@
 <script lang="ts">
-	import EmptyState from '$lib/components/layout/EmptyState.svelte';
+	import EmptyState from '#lib/components/layout/EmptyState.svelte';
 	import PlacingRow from './PlacingRow.svelte';
-	import type { DivisionResult, Team } from '$lib/server/fpa-api/types';
+	import type { DivisionResult, Team } from '#lib/server/fpa-api/types';
 
 	let { result }: { result: DivisionResult } = $props();
 

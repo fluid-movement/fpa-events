@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { tick } from 'svelte';
-	import { Switch } from '$lib/components/ui/switch';
-	import { Label } from '$lib/components/ui/label';
-	import Section from '$lib/components/layout/Section.svelte';
+	import { Switch } from '#lib/components/ui/switch';
+	import { Label } from '#lib/components/ui/label';
+	import Section from '#lib/components/layout/Section.svelte';
 	import { getPrivacySettings, setShowAttendance } from './data.remote';
 
 	const settings = $derived(await getPrivacySettings());

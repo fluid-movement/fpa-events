@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { GeocodingResult } from '$lib/geocoding';
+	import type { GeocodingResult } from '#lib/geocoding';
 	import GeocodingCombobox from './GeocodingCombobox.svelte';
 
 	type Props = {

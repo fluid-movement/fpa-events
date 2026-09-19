@@ -1,10 +1,10 @@
 import * as v from 'valibot';
 import { form } from '$app/server';
-import { db } from '$lib/server/db';
-import { eventMagicLinks } from '$lib/server/db/schema';
+import { db } from '#lib/server/db';
+import { eventMagicLinks } from '#lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { ulid } from 'ulid';
-import { requireEventManager } from '$lib/server/authz';
+import { requireEventManager } from '#lib/server/authz';
 
 const schema = v.object({ eventId: v.string() });
 

@@ -2,11 +2,11 @@ import { redirect } from '@sveltejs/kit';
 import { form } from '$app/server';
 import { resolve } from '$app/paths';
 import { ulid } from 'ulid';
-import { db } from '$lib/server/db';
-import { events, eventUser } from '$lib/server/db/schema';
-import { eventFormSchema, parsePictureFields, resolveEventLocationId } from '$lib/server/eventForm';
-import { requireSignedInRequest } from '$lib/server/authz';
-import { requireTurnstile } from '$lib/server/turnstile';
+import { db } from '#lib/server/db';
+import { events, eventUser } from '#lib/server/db/schema';
+import { eventFormSchema, parsePictureFields, resolveEventLocationId } from '#lib/server/eventForm';
+import { requireSignedInRequest } from '#lib/server/authz';
+import { requireTurnstile } from '#lib/server/turnstile';
 
 const NO_PICTURE = { picture: null, pictureWidth: null, pictureHeight: null };
 
@@ -31,5 +31,5 @@ export const createEvent = form(eventFormSchema, async (data) => {
 
 	// Land the new organizer in the manage area, not the public page — it's where the
 	// remaining setup steps live.
-	redirect(303, resolve(`/events/${eventId}/admin`));
+	redirect(303, resolve('/events/[id]/admin', { id: eventId }));
 });

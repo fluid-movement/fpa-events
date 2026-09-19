@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import * as Field from '$lib/components/ui/field';
-	import { RangeCalendar } from '$lib/components/ui/range-calendar/index.js';
-	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
-	import ImageUpload from '$lib/components/ImageUpload.svelte';
-	import EventLocationInput from '$lib/components/EventLocationInput.svelte';
-	import Turnstile, { captchaEnabled } from '$lib/components/Turnstile.svelte';
+	import { Button } from '#lib/components/ui/button';
+	import { Input } from '#lib/components/ui/input';
+	import * as Field from '#lib/components/ui/field';
+	import { RangeCalendar } from '#lib/components/ui/range-calendar/index.js';
+	import RichTextEditor from '#lib/components/RichTextEditor.svelte';
+	import ImageUpload from '#lib/components/ImageUpload.svelte';
+	import EventLocationInput from '#lib/components/EventLocationInput.svelte';
+	import Turnstile, { captchaEnabled } from '#lib/components/Turnstile.svelte';
 	import { parseDate } from '@internationalized/date';
 	import type { DateValue } from '@internationalized/date';
 	import { updateEvent } from '../event-details.remote';

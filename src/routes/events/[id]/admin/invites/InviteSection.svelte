@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import Section from '$lib/components/layout/Section.svelte';
-	import CopyField from '$lib/components/layout/CopyField.svelte';
-	import DataList, { type DataColumn } from '$lib/components/layout/DataList.svelte';
+	import { Button } from '#lib/components/ui/button';
+	import Section from '#lib/components/layout/Section.svelte';
+	import CopyField from '#lib/components/layout/CopyField.svelte';
+	import DataList, { type DataColumn } from '#lib/components/layout/DataList.svelte';
 	import LinkIcon from '@lucide/svelte/icons/link';
-	import type { Attendee } from '$lib/types/event';
-	import { hoursUntil } from '$lib/utils/dates';
+	import type { Attendee } from '#lib/types/event';
+	import { hoursUntil } from '#lib/utils/dates';
 	import { generateLink, regenerateLink } from './magic-links.remote';
 
 	interface MagicLink {

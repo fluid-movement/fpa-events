@@ -1,5 +1,5 @@
-import { db } from '$lib/server/db';
-import { eventMagicLinks, eventUser } from '$lib/server/db/schema';
+import { db } from '#lib/server/db';
+import { eventMagicLinks, eventUser } from '#lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { error, redirect } from '@sveltejs/kit';
 import { resolve } from '$app/paths';
@@ -36,5 +36,5 @@ export const load = (async ({ params, locals }) => {
 		});
 	}
 
-	redirect(303, resolve(`/events/${link.eventId}`));
+	redirect(303, resolve('/events/[id]', { id: link.eventId }));
 }) satisfies PageServerLoad;

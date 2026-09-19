@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { signUp } from '$lib/auth-client';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
-	import AuthCard from '$lib/components/AuthCard.svelte';
-	import AuthForm from '$lib/components/AuthForm.svelte';
-	import Turnstile from '$lib/components/Turnstile.svelte';
+	import { signUp } from '#lib/auth-client';
+	import { Input } from '#lib/components/ui/input';
+	import { Label } from '#lib/components/ui/label';
+	import AuthCard from '#lib/components/AuthCard.svelte';
+	import AuthForm from '#lib/components/AuthForm.svelte';
+	import Turnstile from '#lib/components/Turnstile.svelte';
 
 	let firstName = $state('');
 	let lastName = $state('');

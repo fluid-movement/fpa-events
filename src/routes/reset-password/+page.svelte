@@ -2,11 +2,11 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { client } from '$lib/auth-client';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
-	import AuthCard from '$lib/components/AuthCard.svelte';
-	import AuthForm from '$lib/components/AuthForm.svelte';
+	import { client } from '#lib/auth-client';
+	import { Input } from '#lib/components/ui/input';
+	import { Label } from '#lib/components/ui/label';
+	import AuthCard from '#lib/components/AuthCard.svelte';
+	import AuthForm from '#lib/components/AuthForm.svelte';
 
 	let password = $state('');
 	let confirmPassword = $state('');

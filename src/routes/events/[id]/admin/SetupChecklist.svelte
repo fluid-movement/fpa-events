@@ -8,8 +8,8 @@
 </script>
 
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import { CopyToClipboard } from '$lib/hooks/copy-to-clipboard.svelte';
+	import { Button } from '#lib/components/ui/button';
+	import { CopyToClipboard } from '#lib/hooks/copy-to-clipboard.svelte';
 	import CheckCircle2Icon from '@lucide/svelte/icons/check-circle-2';
 	import CircleIcon from '@lucide/svelte/icons/circle';
 	import CopyIcon from '@lucide/svelte/icons/copy';

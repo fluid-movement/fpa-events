@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import { resolve } from '$app/paths';
-	import { getScoringResults } from '$lib/api/rankings.remote';
-	import { formatPoints } from '$lib/utils/numbers';
-	import { rankTint } from '$lib/rankings/playerList.svelte';
-	import { UNKNOWN_PLAYER_LABEL } from '$lib/results/types';
+	import { getScoringResults } from '#lib/api/rankings.remote';
+	import { formatPoints } from '#lib/utils/numbers';
+	import { rankTint } from '#lib/rankings/playerList.svelte';
+	import { UNKNOWN_PLAYER_LABEL } from '#lib/results/types';
 
 	let {
 		playerId,
@@ -27,7 +27,7 @@
 	const pending = untrack(() => getScoringResults({ playerId, series }));
 
 	const eventHref = (eventId: string, division: string) =>
-		`${resolve(`/results/${eventId}`)}?division=${encodeURIComponent(division)}`;
+		`${resolve('/results/[eventId]', { eventId: eventId })}?division=${encodeURIComponent(division)}`;
 
 	const partners = (teammates: Array<{ fullName: string; unknown: boolean }>) =>
 		teammates.map((t) => (t.unknown ? UNKNOWN_PLAYER_LABEL : t.fullName)).join(' · ');

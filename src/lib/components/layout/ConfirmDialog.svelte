@@ -11,12 +11,12 @@
 
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import * as AlertDialog from '$lib/components/ui/alert-dialog';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
+	import * as AlertDialog from '#lib/components/ui/alert-dialog';
+	import { Button } from '#lib/components/ui/button';
+	import { Input } from '#lib/components/ui/input';
+	import { Label } from '#lib/components/ui/label';
 	import CopyField from './CopyField.svelte';
-	import { cn } from '$lib/utils';
+	import { cn } from '#lib/utils';
 
 	let {
 		open = $bindable(false),

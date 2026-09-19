@@ -1,13 +1,13 @@
 <script lang="ts" generics="FormInput extends RemoteFormInput">
 	import { untrack } from 'svelte';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import * as Field from '$lib/components/ui/field';
-	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
-	import * as Select from '$lib/components/ui/select';
-	import type { ScheduleItem, EventLocation } from '$lib/types/event';
-	import { toISODate } from '$lib/utils/dates';
-	import type { RemoteForm, RemoteFormInput } from '@sveltejs/kit';
+	import { Button } from '#lib/components/ui/button';
+	import { Input } from '#lib/components/ui/input';
+	import * as Field from '#lib/components/ui/field';
+	import RichTextEditor from '#lib/components/RichTextEditor.svelte';
+	import * as Select from '#lib/components/ui/select';
+	import type { ScheduleItem, EventLocation } from '#lib/types/event';
+	import { toISODate } from '#lib/utils/dates';
+	import type { RemoteForm, RemoteFormInput } from '$app/server';
 
 	interface Props {
 		mode: 'add' | 'edit';

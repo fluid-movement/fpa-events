@@ -1,12 +1,12 @@
 <script lang="ts">
-	import PageHeader from '$lib/components/layout/PageHeader.svelte';
-	import Section from '$lib/components/layout/Section.svelte';
-	import ServiceUnavailable from '$lib/components/layout/ServiceUnavailable.svelte';
-	import { Badge } from '$lib/components/ui/badge';
+	import PageHeader from '#lib/components/layout/PageHeader.svelte';
+	import Section from '#lib/components/layout/Section.svelte';
+	import ServiceUnavailable from '#lib/components/layout/ServiceUnavailable.svelte';
+	import { Badge } from '#lib/components/ui/badge';
 	import PlayerCareer from './PlayerCareer.svelte';
-	import { getPlayerProfile } from '$lib/api/players.remote';
-	import { formatPoints } from '$lib/utils/numbers';
-	import { parseApiDate } from '$lib/utils/dates';
+	import { getPlayerProfile } from '#lib/api/players.remote';
+	import { formatPoints } from '#lib/utils/numbers';
+	import { parseApiDate } from '#lib/utils/dates';
 
 	let { playerId, backHref }: { playerId: string; backHref: string } = $props();
 

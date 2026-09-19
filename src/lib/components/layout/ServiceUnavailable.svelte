@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import EmptyState from '$lib/components/layout/EmptyState.svelte';
+	import { Button } from '#lib/components/ui/button';
+	import EmptyState from '#lib/components/layout/EmptyState.svelte';
 	import CloudOffIcon from '@lucide/svelte/icons/cloud-off';
-	import { dev } from '$app/environment';
+	import { dev } from '$app/env';
 
 	interface Props {
 		/** What was unavailable, e.g. "Results are temporarily unavailable". */

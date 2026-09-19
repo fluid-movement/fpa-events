@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { client } from '$lib/auth-client';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import * as Field from '$lib/components/ui/field';
-	import FormStatus from '$lib/components/layout/FormStatus.svelte';
+	import { client } from '#lib/auth-client';
+	import { Button } from '#lib/components/ui/button';
+	import { Input } from '#lib/components/ui/input';
+	import * as Field from '#lib/components/ui/field';
+	import FormStatus from '#lib/components/layout/FormStatus.svelte';
 
 	let currentPassword = $state('');
 	let newPassword = $state('');

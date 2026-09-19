@@ -1,9 +1,9 @@
 <script lang="ts">
 	import 'leaflet/dist/leaflet.css';
 	import { onMount, untrack } from 'svelte';
-	import type { GeocodingResult } from '$lib/geocoding';
+	import type { GeocodingResult } from '#lib/geocoding';
 	import type { Map as LeafletMap, Marker } from 'leaflet';
-	import { addOsmTiles, loadLeaflet } from '$lib/leaflet';
+	import { addOsmTiles, loadLeaflet } from '#lib/leaflet';
 	import GeocodingCombobox from './GeocodingCombobox.svelte';
 
 	/** Central London — a neutral starting view when the event has no position. */

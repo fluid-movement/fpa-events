@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import Section from '$lib/components/layout/Section.svelte';
-	import ConfirmSubmit from '$lib/components/layout/ConfirmSubmit.svelte';
-	import EmptyState from '$lib/components/layout/EmptyState.svelte';
+	import { Button } from '#lib/components/ui/button';
+	import Section from '#lib/components/layout/Section.svelte';
+	import ConfirmSubmit from '#lib/components/layout/ConfirmSubmit.svelte';
+	import EmptyState from '#lib/components/layout/EmptyState.svelte';
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import MapPinIcon from '@lucide/svelte/icons/map-pin';
 	import TrashIcon from '@lucide/svelte/icons/trash-2';
-	import type { EventLocation } from '$lib/types/event';
+	import type { EventLocation } from '#lib/types/event';
 	import { deleteEventLocation } from './locations.remote';
 
 	interface Props {

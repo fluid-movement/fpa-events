@@ -1,16 +1,16 @@
 <script lang="ts">
-	import * as Dialog from '$lib/components/ui/dialog';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
-	import { Switch } from '$lib/components/ui/switch';
+	import * as Dialog from '#lib/components/ui/dialog';
+	import { Button } from '#lib/components/ui/button';
+	import { Input } from '#lib/components/ui/input';
+	import { Label } from '#lib/components/ui/label';
+	import { Switch } from '#lib/components/ui/switch';
 	import LocationsList from './LocationsList.svelte';
-	import ScheduleList from '$lib/components/schedule/ScheduleList.svelte';
-	import VenueLocationPicker from '$lib/components/VenueLocationPicker.svelte';
+	import ScheduleList from '#lib/components/schedule/ScheduleList.svelte';
+	import VenueLocationPicker from '#lib/components/VenueLocationPicker.svelte';
 	import { listEventLocations, createEventLocation } from './locations.remote';
 	import { addSchedule, updateSchedule, deleteSchedule } from './schedule.remote';
 	import { getEvent } from '../event-details.remote';
-	import { daysBetween } from '$lib/utils/dates';
+	import { daysBetween } from '#lib/utils/dates';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import ConfirmSubmit from '$lib/components/layout/ConfirmSubmit.svelte';
+	import { Button } from '#lib/components/ui/button';
+	import ConfirmSubmit from '#lib/components/layout/ConfirmSubmit.svelte';
 	import TrashIcon from '@lucide/svelte/icons/trash-2';
 	import { deleteEvent } from './delete-event.remote';
 

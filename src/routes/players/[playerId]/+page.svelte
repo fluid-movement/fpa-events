@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import PlayerProfilePanel from '$lib/components/results/PlayerProfilePanel.svelte';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import PlayerProfilePanel from '#lib/components/results/PlayerProfilePanel.svelte';
 
 	const playerId = $derived(page.params.playerId!);
 	const backHref = resolve('/results');

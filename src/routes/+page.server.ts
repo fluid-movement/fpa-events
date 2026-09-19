@@ -1,6 +1,6 @@
-import { db } from '$lib/server/db';
-import { events, eventLocations } from '$lib/server/db/schema';
-import { listEventsWithAttendeeCount } from '$lib/server/utils/events';
+import { db } from '#lib/server/db';
+import { events, eventLocations } from '#lib/server/db/schema';
+import { listEventsWithAttendeeCount } from '#lib/server/utils/events';
 import { asc, gte, count, eq, sql } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 

@@ -1,27 +1,27 @@
 import * as v from 'valibot';
 import { query } from '$app/server';
-import { fpaApiGet, FpaApiError } from '$lib/server/fpa-api/client';
+import { fpaApiGet, FpaApiError } from '#lib/server/fpa-api/client';
 import {
 	facetsOf,
 	filterEvents,
 	loadEventIndex,
 	type IndexedEvent
-} from '$lib/server/fpa-api/eventIndex';
-import type { EventDetail } from '$lib/server/fpa-api/types';
-import type { ApiResult } from '$lib/rankings/types';
+} from '#lib/server/fpa-api/eventIndex';
+import type { EventDetail } from '#lib/server/fpa-api/types';
+import type { ApiResult } from '#lib/rankings/types';
 import {
 	PAGE_SIZE,
 	type EventResultsView,
 	type ResultEventRow,
 	type ResultEventsView
-} from '$lib/results/types';
+} from '#lib/results/types';
 
 /**
  * Results data, fetched from fpa-api server-side.
  *
  * Same two constraints as `rankings.remote.ts`:
  *  - every export from a `.remote.ts` must be a remote function, so shared
- *    types and constants live in `$lib/results/types`;
+ *    types and constants live in `#lib/results/types`;
  *  - an error thrown here during SSR is not caught by `<svelte:boundary>` — the
  *    request 500s first — so an outage is returned as `ApiResult`, not thrown.
  */

@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { rankTint } from '$lib/rankings/playerList.svelte';
-	import { formatPoints } from '$lib/utils/numbers';
-	import { UNKNOWN_PLAYER_LABEL } from '$lib/results/types';
-	import type { Team } from '$lib/server/fpa-api/types';
+	import { rankTint } from '#lib/rankings/playerList.svelte';
+	import { formatPoints } from '#lib/utils/numbers';
+	import { UNKNOWN_PLAYER_LABEL } from '#lib/results/types';
+	import type { Team } from '#lib/server/fpa-api/types';
 
 	let {
 		team,
@@ -36,7 +36,7 @@
 			--><span
 					class="text-muted-foreground italic">{UNKNOWN_PLAYER_LABEL}</span
 				>{:else}<a
-					href={resolve(`/players/${player.id}`)}
+					href={resolve('/players/[playerId]', { playerId: player.id })}
 					class="hover:text-primary hover:underline"
 					data-testid="placing-player-{player.id}">{player.fullName}</a
 				>{/if}

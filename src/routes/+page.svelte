@@ -1,18 +1,18 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { Button } from '$lib/components/ui/button';
-	import * as Card from '$lib/components/ui/card';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import EmptyState from '$lib/components/layout/EmptyState.svelte';
-	import EventCalendarCard from '$lib/components/EventCalendarCard.svelte';
+	import { Button } from '#lib/components/ui/button';
+	import * as Card from '#lib/components/ui/card';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import EmptyState from '#lib/components/layout/EmptyState.svelte';
+	import EventCalendarCard from '#lib/components/EventCalendarCard.svelte';
 	import type { PageProps } from './$types';
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
 	import MapPinIcon from '@lucide/svelte/icons/map-pin';
 	import ArrowRightIcon from '@lucide/svelte/icons/arrow-right';
 	import GlobeIcon from '@lucide/svelte/icons/globe';
-	import EventsMap from '$lib/components/EventsMap.svelte';
-	import { formatFullDateRange } from '$lib/utils/dates';
-	import { stripHtml } from '$lib/utils/html';
+	import EventsMap from '#lib/components/EventsMap.svelte';
+	import { formatFullDateRange } from '#lib/utils/dates';
+	import { stripHtml } from '#lib/utils/html';
 
 	let { data }: PageProps = $props();
 	const event = $derived(data.nextEvent);
@@ -92,7 +92,7 @@
 					</Card.Content>
 				{/if}
 				<Card.Footer>
-					<Button href={resolve(`/events/${event.id}`)} variant="outline" class="w-full">
+					<Button href={resolve('/events/[id]', { id: event.id })} variant="outline" class="w-full">
 						View details
 						<ArrowRightIcon />
 					</Button>

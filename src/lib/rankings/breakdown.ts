@@ -1,5 +1,5 @@
-import type { RankingBreakdownEntry } from '$lib/server/fpa-api/types';
-import type { CareerEntry } from '$lib/results/types';
+import type { RankingBreakdownEntry } from '#lib/server/fpa-api/types';
+import type { CareerEntry } from '#lib/results/types';
 import type { ScoringResult } from './types';
 
 /**

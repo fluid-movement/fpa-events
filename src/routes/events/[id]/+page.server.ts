@@ -1,10 +1,10 @@
-import { db } from '$lib/server/db';
-import { events, schedules, scheduleLocations, eventUser, user } from '$lib/server/db/schema';
+import { db } from '#lib/server/db';
+import { events, schedules, scheduleLocations, eventUser, user } from '#lib/server/db/schema';
 import { eq, count, and, asc } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { sanitizeRichText } from '$lib/utils/html';
-import type { EventUserStatus } from '$lib/types/event';
+import { sanitizeRichText } from '#lib/utils/html';
+import type { EventUserStatus } from '#lib/types/event';
 
 /** Names shown inline under the RSVP control before the "and N others" remainder. */
 const ATTENDEE_PEEK_LIMIT = 4;
@@ -58,7 +58,7 @@ export const load = (async ({ params, locals }) => {
 	]);
 
 	return {
-		// Drives the mobile top bar (see $lib/config/pageTitle).
+		// Drives the mobile top bar (see #lib/config/pageTitle).
 		title: event.name,
 		event: {
 			...event,

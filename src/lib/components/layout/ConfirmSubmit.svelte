@@ -1,6 +1,6 @@
 <script lang="ts" generics="Input extends RemoteFormInput">
 	import type { Snippet } from 'svelte';
-	import type { RemoteForm, RemoteFormInput } from '@sveltejs/kit';
+	import type { RemoteForm, RemoteFormInput } from '$app/server';
 	import ConfirmDialog, { type ConfirmTestIds } from './ConfirmDialog.svelte';
 
 	let {
