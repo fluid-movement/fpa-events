@@ -6,20 +6,10 @@ session with no prior context.
 
 ---
 
-## 1. The premise needs correcting first
+## 1. Where things stand
 
-The branch was opened to "migrate to SvelteKit 2", and `npx svelte-migrate sveltekit-2` was the
-intended first step. **That is the wrong command for this repo.**
-
-This project has been on SvelteKit 2 since it was created — `@sveltejs/kit` **2.70.1** is installed.
-SvelteKit 2 shipped in December 2023 and is not in preview. Both the blog post
-(`svelte.dev/blog/sveltekit-2`) and the guide (`svelte.dev/docs/kit/migrating-to-sveltekit-2`)
-describe migrating **1 → 2**, and `svelte-migrate sveltekit-2` is that same 1→2 codemod. Run here it
-would at best no-op, and at worst double-apply its rewrites — it converts `throw error()` →
-`error()`, adds `path` to `cookies.set` calls, and rewrites adapter config, all of which this
-codebase already has.
-
-What is actually in preview is **SvelteKit 3**, at `3.0.0-next.27`.
+SvelteKit 3 is in preview at **3.0.0-next.27**. This document is the path to it from what is
+installed today.
 
 |                                | installed | latest stable | preview           |
 | ------------------------------ | --------- | ------------- | ----------------- |
@@ -30,9 +20,8 @@ What is actually in preview is **SvelteKit 3**, at `3.0.0-next.27`.
 
 ### Two facts that set expectations
 
-- **There is no codemod for v3.** `svelte-migrate@1.10.3` ships `app-state`, `package`, `routes`,
-  `self-closing-tags`, `svelte-4`, `svelte-5`, `sveltekit-2` — and nothing newer. Every change
-  below is manual.
+- **There is no codemod.** `svelte-migrate@1.10.3` ships no v3 migration, so every change below is
+  manual.
 - **It drags a TypeScript major with it.** Kit 3 requires TypeScript 6, and the installed
   `typescript-eslint` caps at `<6.0.0`, so that moves too.
 
@@ -204,8 +193,7 @@ off either way.
 
 ## 7. Context a fresh session needs
 
-**Branch:** `feature/sveltekit-2-update`. The name describes an upgrade that already happened; worth
-renaming to something like `feature/sveltekit-3-preview`.
+**Branch:** `feature/sveltekit-2-update`.
 
 **Uncommitted local change that must travel.** `.env.test` has an uncommitted edit:
 `BETTER_AUTH_URL=http://localhost:5174`. The committed value is `5173`, which is **wrong for the
