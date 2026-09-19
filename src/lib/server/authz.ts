@@ -1,5 +1,5 @@
 import { getRequestEvent } from '$app/server';
-import { redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import { resolve } from '$app/paths';
 import { db } from '$lib/server/db';
 import { events, eventUser } from '$lib/server/db/schema';
@@ -86,8 +86,13 @@ export async function canManageEvent(
 /**
  * Load the event and check the current user against it.
  *
- * Throws `Error('Unauthorized')` (not logged in), `Error('Event not found')` (no
- * such event), or `Error('Forbidden')` (logged in but not permitted).
+ * Throws 401 (not logged in), 404 (no such event) or 403 (logged in but not
+ * permitted). These are `error()` rather than bare `Error`s so they carry their
+ * status: a plain throw from a remote function reaches the client as a 500
+ * "Internal Error", which is both wrong and noisy. Deleting an event is the case
+ * that showed it — SvelteKit refreshes the queries still mounted on the manage
+ * page, they look up a row that is now gone, and a 500 surfaces as an uncaught
+ * error instead of the 404 it is.
  */
 async function requireEventAccess(
 	eventId: string,
@@ -99,8 +104,8 @@ async function requireEventAccess(
 ) {
 	const { user, role } = requireUser();
 	const [event] = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
-	if (!event) throw new Error('Event not found');
-	if (!(await allow(event, user.id, role))) throw new Error('Forbidden');
+	if (!event) error(404, 'Event not found');
+	if (!(await allow(event, user.id, role))) error(403, 'Forbidden');
 	return event;
 }
 

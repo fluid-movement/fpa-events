@@ -12,6 +12,10 @@
 
 	const columns: DataColumn<Attendee>[] = [
 		{ header: 'Name', value: (a) => a.name, slot: 'primary' },
+		// The layout load has always selected `user.email` for this list and
+		// nothing rendered it. Organizers need a way to contact who is coming —
+		// it is the one thing the manage area has that the public page must not.
+		{ header: 'Email', value: (a) => a.email, slot: 'subtitle' },
 		{
 			header: 'Status',
 			value: (a) => a.status,

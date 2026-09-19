@@ -1,6 +1,6 @@
 import { test, expect, type BrowserContext, type Page } from '@playwright/test';
 import { TEST_USER } from './helpers/constants';
-import { installErrorGuard } from './helpers/console';
+import { expectConsoleErrors, installErrorGuard } from './helpers/console';
 import {
 	getTestUserId,
 	createTestUser,
@@ -327,6 +327,13 @@ test.describe('deleting an event', () => {
 	});
 
 	test('typing the exact name and confirming deletes the event', async ({ page, context }) => {
+		// Deleting from the manage page leaves that page's own queries pointing at
+		// a row that no longer exists. A successful remote form with no explicit
+		// single-flight update makes the client call `invalidateAll()`, so
+		// `getEvent` and `listEventLocations` re-run for the deleted id before the
+		// redirect unmounts them, and answer 404 — which is the right answer.
+		expectConsoleErrors(page);
+
 		await openDeleteDialog(page, context);
 
 		await page.getByTestId('delete-confirm-input').fill(EVENT_NAME);
