@@ -5,7 +5,11 @@ import { verifyTurnstile } from './turnstile';
 // The mocked env has no TURNSTILE_SECRET_KEY by default (see mocks/env-dynamic-private.ts).
 
 afterEach(() => {
-	delete env.TURNSTILE_SECRET_KEY;
+	// Not `delete`: TypeScript 6 rejects deleting a non-optional property, and
+	// SvelteKit types `$env/dynamic/private` from the variables actually present
+	// at sync time, so this one is required whenever a `.env` defines it.
+	// `verifyTurnstile` branches on `!secret`, so '' and unset are the same thing.
+	env.TURNSTILE_SECRET_KEY = '';
 	vi.restoreAllMocks();
 });
 
