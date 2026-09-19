@@ -39,7 +39,7 @@
 	>
 		{#if !magicLink}
 			<form {...generateLink}>
-				<input type="hidden" name="eventId" value={eventId} />
+				<input {...generateLink.fields.eventId.as('hidden', eventId)} />
 				<Button type="submit" disabled={generateLink.pending > 0}>
 					<LinkIcon />
 					{generateLink.pending > 0 ? 'Generating…' : 'Generate invite link'}
@@ -57,7 +57,7 @@
 						</p>
 					{/if}
 					<form {...regenerateLink}>
-						<input type="hidden" name="eventId" value={eventId} />
+						<input {...regenerateLink.fields.eventId.as('hidden', eventId)} />
 						<Button type="submit" variant="outline" size="sm" disabled={regenerateLink.pending > 0}>
 							{regenerateLink.pending > 0 ? 'Regenerating…' : 'Regenerate'}
 						</Button>

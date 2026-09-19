@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/svelte';
 import ImageUpload from './ImageUpload.svelte';
+import { stubFormFields } from '../../test/form-fields';
+import type { RemoteFormFields } from '$app/server';
+import type { EventFormData } from '#lib/server/eventForm';
+
+const fields = stubFormFields<RemoteFormFields<EventFormData>>();
 
 // --- Global stubs ---
 
@@ -65,17 +70,17 @@ afterEach(() => {
 
 describe('ImageUpload — initial state', () => {
 	it('shows the "no image" placeholder when no currentUrl is given', () => {
-		render(ImageUpload);
+		render(ImageUpload, { props: { fields } });
 		expect(screen.getByText('No image selected')).toBeInTheDocument();
 	});
 
 	it('shows "Upload image" label when no currentUrl is given', () => {
-		render(ImageUpload);
+		render(ImageUpload, { props: { fields } });
 		expect(screen.getByText('Upload image')).toBeInTheDocument();
 	});
 
 	it('hidden picture input is empty by default', () => {
-		render(ImageUpload);
+		render(ImageUpload, { props: { fields } });
 		const input = document.querySelector('input[name="picture"]') as HTMLInputElement;
 		expect(input.value).toBe('');
 	});
@@ -84,7 +89,7 @@ describe('ImageUpload — initial state', () => {
 describe('ImageUpload — with existing image (edit mode)', () => {
 	it('renders the existing image', () => {
 		render(ImageUpload, {
-			props: { currentUrl: 'https://example.com/photo.jpg' }
+			props: { fields, currentUrl: 'https://example.com/photo.jpg' }
 		});
 		const img = screen.getByAltText('Event cover preview') as HTMLImageElement;
 		expect(img.src).toBe('https://example.com/photo.jpg');
@@ -92,21 +97,21 @@ describe('ImageUpload — with existing image (edit mode)', () => {
 
 	it('does not show the "no image" placeholder', () => {
 		render(ImageUpload, {
-			props: { currentUrl: 'https://example.com/photo.jpg' }
+			props: { fields, currentUrl: 'https://example.com/photo.jpg' }
 		});
 		expect(screen.queryByText('No image selected')).not.toBeInTheDocument();
 	});
 
 	it('shows "Change image" label', () => {
 		render(ImageUpload, {
-			props: { currentUrl: 'https://example.com/photo.jpg' }
+			props: { fields, currentUrl: 'https://example.com/photo.jpg' }
 		});
 		expect(screen.getByText('Change image')).toBeInTheDocument();
 	});
 
 	it('hidden picture input contains the existing url', () => {
 		render(ImageUpload, {
-			props: { currentUrl: 'https://example.com/photo.jpg' }
+			props: { fields, currentUrl: 'https://example.com/photo.jpg' }
 		});
 		const input = document.querySelector('input[name="picture"]') as HTMLInputElement;
 		expect(input.value).toBe('https://example.com/photo.jpg');
@@ -116,7 +121,7 @@ describe('ImageUpload — with existing image (edit mode)', () => {
 describe('ImageUpload — successful upload', () => {
 	it('shows a preview immediately after file selection', async () => {
 		mockFetchSuccess();
-		render(ImageUpload);
+		render(ImageUpload, { props: { fields } });
 
 		const input = document.querySelector('input[type="file"]') as HTMLInputElement;
 		selectFile(input, makeFile());
@@ -130,7 +135,7 @@ describe('ImageUpload — successful upload', () => {
 
 	it('updates hidden inputs with the uploaded url and dimensions after success', async () => {
 		mockFetchSuccess('https://test.r2.dev/events/abc.jpg');
-		render(ImageUpload);
+		render(ImageUpload, { props: { fields } });
 
 		const input = document.querySelector('input[type="file"]') as HTMLInputElement;
 		selectFile(input, makeFile());
@@ -148,7 +153,7 @@ describe('ImageUpload — successful upload', () => {
 
 	it('changes label to "Change image" after a successful upload', async () => {
 		mockFetchSuccess();
-		render(ImageUpload);
+		render(ImageUpload, { props: { fields } });
 
 		const input = document.querySelector('input[type="file"]') as HTMLInputElement;
 		selectFile(input, makeFile());
@@ -160,7 +165,7 @@ describe('ImageUpload — successful upload', () => {
 
 	it('calls the upload endpoint with the selected file', async () => {
 		mockFetchSuccess();
-		render(ImageUpload);
+		render(ImageUpload, { props: { fields } });
 
 		const file = makeFile('my-photo.jpg', 'image/jpeg');
 		const input = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -178,7 +183,7 @@ describe('ImageUpload — successful upload', () => {
 describe('ImageUpload — failed upload', () => {
 	it('shows an error message returned from the server', async () => {
 		mockFetchError('File must be an image');
-		render(ImageUpload);
+		render(ImageUpload, { props: { fields } });
 
 		const input = document.querySelector('input[type="file"]') as HTMLInputElement;
 		selectFile(input, makeFile());
@@ -190,7 +195,7 @@ describe('ImageUpload — failed upload', () => {
 
 	it('reverts the preview to the empty state after a failed upload', async () => {
 		mockFetchError();
-		render(ImageUpload);
+		render(ImageUpload, { props: { fields } });
 
 		const input = document.querySelector('input[type="file"]') as HTMLInputElement;
 		selectFile(input, makeFile());
@@ -202,7 +207,7 @@ describe('ImageUpload — failed upload', () => {
 
 	it('does not update hidden picture input on failure', async () => {
 		mockFetchError();
-		render(ImageUpload);
+		render(ImageUpload, { props: { fields } });
 
 		const input = document.querySelector('input[type="file"]') as HTMLInputElement;
 		selectFile(input, makeFile());

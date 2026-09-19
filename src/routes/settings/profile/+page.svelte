@@ -15,7 +15,7 @@
 	<Field.Group>
 		<Field.Field>
 			<Field.Label for="name">Name</Field.Label>
-			<Input id="name" name="name" type="text" required value={data.name} />
+			<Input id="name" {...updateProfile.fields.name.as('text', data.name)} required />
 		</Field.Field>
 
 		<Field.Field>

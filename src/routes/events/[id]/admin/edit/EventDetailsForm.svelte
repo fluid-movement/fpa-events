@@ -54,15 +54,15 @@
 			<Field.Label for="event-name">Event name</Field.Label>
 			<Input
 				id="event-name"
-				name="name"
 				placeholder="Your event name"
-				value={event.name}
 				data-testid="event-name-input"
+				{...updateEvent.fields.name.as('text', event.name)}
 			/>
 		</Field.Field>
 		<Field.Field>
 			<Field.Label for="event-location">Event location</Field.Label>
 			<EventLocationInput
+				fields={updateEvent.fields}
 				value={event.location}
 				city={event.city ?? undefined}
 				country={event.country ?? undefined}
@@ -71,7 +71,7 @@
 		<Field.Field>
 			<Field.Label>Description</Field.Label>
 			<RichTextEditor
-				name="description"
+				field={updateEvent.fields.description}
 				value={event.description}
 				placeholder="Info about the event"
 			/>
@@ -79,6 +79,7 @@
 		<Field.Field>
 			<Field.Label>Cover image</Field.Label>
 			<ImageUpload
+				fields={updateEvent.fields}
 				currentUrl={event.picture}
 				currentWidth={event.pictureWidth}
 				currentHeight={event.pictureHeight}
@@ -94,12 +95,12 @@
 				<p class="text-sm text-muted-foreground">Select a date range</p>
 			{/if}
 			<RangeCalendar bind:value={dateRange} class="w-fit rounded-md border" />
-			<input type="hidden" name="startDate" value={dateRange.start?.toString() ?? ''} />
-			<input type="hidden" name="endDate" value={dateRange.end?.toString() ?? ''} />
+			<input {...updateEvent.fields.startDate.as('hidden', dateRange.start?.toString() ?? '')} />
+			<input {...updateEvent.fields.endDate.as('hidden', dateRange.end?.toString() ?? '')} />
 		</Field.Field>
 		<Field.Separator />
 		<Turnstile bind:token />
-		<input type="hidden" name="turnstileToken" value={token} />
+		<input {...updateEvent.fields.turnstileToken.as('hidden', token)} />
 		<Field.Field orientation="horizontal">
 			<Button
 				type="submit"

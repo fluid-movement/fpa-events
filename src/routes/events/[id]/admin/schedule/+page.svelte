@@ -67,29 +67,33 @@
 			</Dialog.Description>
 		</Dialog.Header>
 		<form {...createEventLocation} onsubmit={() => (showVenuePicker = false)} class="space-y-4">
-			<input type="hidden" name="eventId" value={event.id} />
+			<input {...createEventLocation.fields.eventId.as('hidden', event.id)} />
 
 			<!-- Exactly one mode renders at a time, so `name`/`address` never collide.
 			     The picker supplies its own name, address and coordinate fields. -->
 			{#if useMapForLocation}
-				<VenueLocationPicker lat={eventLat} lng={eventLng} />
+				<VenueLocationPicker fields={createEventLocation.fields} lat={eventLat} lng={eventLng} />
 			{:else}
 				<div class="space-y-3">
 					<div class="space-y-1.5">
 						<Label for="location-name">Location name</Label>
 						<Input
 							id="location-name"
-							name="name"
 							placeholder="Main field, Sports hall, Beach…"
 							required
 							data-testid="location-name-input"
+							{...createEventLocation.fields.name.as('text')}
 						/>
 					</div>
 					<div class="space-y-1.5">
 						<Label for="location-address">
 							Address <span class="text-muted-foreground">(optional)</span>
 						</Label>
-						<Input id="location-address" name="address" placeholder="Street, city" />
+						<Input
+							id="location-address"
+							placeholder="Street, city"
+							{...createEventLocation.fields.address.as('text')}
+						/>
 					</div>
 				</div>
 			{/if}
