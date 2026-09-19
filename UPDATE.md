@@ -278,3 +278,102 @@ first paint.
 
 If repeat-visit latency is the actual concern, the cheaper lever is HTTP caching on the remote
 function responses plus revisiting the 5-minute index TTL, given fpa-api only refreshes hourly.
+
+---
+
+# Outcome — implemented 2026-09-19
+
+The migration above was carried out. This section records where reality differed
+from the plan, because several of the plan's assumptions turned out to be wrong.
+
+## What the plan got right
+
+- No codemod exists; every change was manual.
+- TypeScript 6 is required and 7 is still blocked by `svelte-check` and
+  `typescript-eslint`. 6.0.3 remains the ceiling.
+- `$lib` -> `#lib` is the largest mechanical change (533 specifiers, 219 files).
+- `vite.config.ts` did need hand review; its vitest aliases are exact-match
+  regexes where `$` is both an anchor and part of the alias.
+- Risk 2 was a false alarm: both `getRequestEvent().params` sites are inside
+  `form()`, not `query()`, and neither trips the new restriction.
+- `ResolvedPathname` survives under that name (only `Pathname` -> `Path` and
+  `Asset` -> `AssetPath` were renamed, neither of which this app uses).
+
+## What the plan missed
+
+**1. `$env/*` is deleted, not renamed.** This is the largest single omission.
+Variables are now declared in `src/env.ts` with `defineEnvVars` and imported
+from `$app/env/private` / `$app/env/public` as _named exports_, so every
+consumer changed shape and the two tests that mutated `env.X` needed
+live-binding mocks. `$app/environment` also folded into `$app/env`.
+
+**2. Kit 3's generated tsconfig no longer supplies `include`/`exclude`.** It
+moved to `node_modules/$app/tsconfig`, from where relative globs cannot work,
+so the project tsconfig has to carry them. Until it did, `svelte-check`
+walked `build/` and `tools/migrate` and reported 24220 errors. The true
+figure was 41.
+
+**3. Remote form fields must be built by `fields.<name>.as(...)`.** Not in the
+changelog's breaking list, and the single biggest source of runtime breakage:
+every remote form 500s with "Form contained a field that wasn't created with
+form.fields.as(...)" until it is converted. SvelteKit encodes the form id and
+a type prefix into each field's `name`, so there is no escape hatch. This
+reached 9 forms and ~37 fields, including four shared components
+(`EventLocationInput`, `ImageUpload`, `VenueLocationPicker`, `RichTextEditor`)
+that previously named their own hidden inputs and now take the owning form's
+fields as a prop.
+
+**4. `svelte.config.js` is refused outright**, and the `kit` namespace inside it
+is gone. Options pass through `sveltekit(...)` in the Vite config. Because
+`eslint.config.js` also imports them, they live in `svelte-options.js`.
+
+**5. `resolve()` type-enforces route ids.** 27 interpolated calls became
+`resolve('/events/[id]', { id })`.
+
+**6. `page.url` is immutable**, so `searchParams` no longer feeds
+`SvelteURLSearchParams` directly.
+
+## Risk 1 resolved: `vp` cannot run the Kit 3 dev server
+
+Not a peer-range problem as the plan guessed — `vp dev` fails outright with
+"The configured Vite SSR environment must be a RunnableDevEnvironment".
+
+vite-plus 0.3.3 does not fix this cleanly: it requires `vite` to be aliased to
+`npm:@voidzero-dev/vite-plus-core`, and its `vp migrate` rewrites `vitest`
+imports to `vite-plus/test` across all 23 test files. That couples the whole
+suite to vite-plus and is a tooling decision in its own right, so it was not
+taken. `dev` and `dev:test` now run plain `vite dev`; vite-plus stays at 0.2.x
+driving `npm run test`.
+
+**This is the open decision for whoever picks this up:** either accept plain
+`vite dev`, or move the project to vite-plus 0.3.x deliberately, alias and
+import rewrite included.
+
+## Risk 3: better-auth — clear
+
+No better-auth release supports Kit 3 (1.7.5 still peers `@sveltejs/kit@^2.0.0`),
+so its optional peer is pinned to the root Kit with an `overrides` entry. In
+practice nothing broke: sign-up, sign-in, sessions, email verification, the
+forgot-password flow and cookie handling all pass.
+
+## Where it landed
+
+The integration suite matches the pre-migration baseline exactly: **92 passed,
+23 failed, 1 skipped**, with the 23 being the same specs that already failed
+before any of this — `/rankings`, `/results`, `/players` and the two console-error
+canaries, all of which need `fpa-api.fluid-movement.de`. They were verified as
+failing identically on Kit 2 before the migration started; they are a network
+limitation of the machine this ran on, not a regression. **Re-run them somewhere
+with access to fpa-api before shipping**, since they cover the remote-function
+and caching surface most exposed to the Kit 3 changes.
+
+Also green: `npm run check` (0 errors / 3213 files), 216 unit tests, eslint,
+`prettier --check .`, `npm run build`, and `vite dev` serving pages.
+
+## Deployment notes
+
+- `engines.node` is now `>=22.17` (Kit 3's floor). Coolify's
+  `NIXPACKS_NODE_VERSION=22` resolves to 22.19.0, which clears it by two patch
+  releases. **Pin it to an exact version before this ships.**
+- adapter-node 6 removed the `ORIGIN` environment variable in favour of
+  `paths.origin`. Nothing in the repo sets it; if Coolify does, it is now inert.
