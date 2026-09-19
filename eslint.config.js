@@ -55,7 +55,10 @@ export default defineConfig(
 			'src/lib/components/AppSidebar.svelte',
 			// `*` stands in for the [id] segment — square brackets are a character
 			// class in a glob, so the literal route-param path would never match.
-			'src/routes/events/*/admin/SetupChecklist.svelte'
+			'src/routes/events/*/admin/SetupChecklist.svelte',
+			// Resolves the path itself and appends a division query string; the rule
+			// only recognises a bare resolve() call as the whole attribute.
+			'src/lib/components/rankings/RankingBreakdown.svelte'
 		],
 		rules: { 'svelte/no-navigation-without-resolve': 'off' }
 	}

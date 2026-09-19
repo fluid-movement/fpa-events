@@ -12,6 +12,7 @@ import Heart from '@lucide/svelte/icons/heart';
 import ClipboardList from '@lucide/svelte/icons/clipboard-list';
 import Settings from '@lucide/svelte/icons/settings';
 import Podium from '@lucide/svelte/icons/podium';
+import Trophy from '@lucide/svelte/icons/trophy';
 
 export type MenuGroup = {
 	label?: string;
@@ -46,6 +47,11 @@ export const menuGroups: MenuGroup[] = [
 				label: 'Rankings',
 				url: resolve('/rankings'),
 				icon: Podium
+			},
+			{
+				label: 'Results',
+				url: resolve('/results'),
+				icon: Trophy
 			}
 		]
 	},

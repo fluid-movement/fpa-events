@@ -127,3 +127,59 @@ export function daysBetween(start: DateLike, end: DateLike): string[] {
 	}
 	return days;
 }
+
+/**
+ * Parse a date as fpa-api writes it.
+ *
+ * The API mixes zero-padded and unpadded forms — `2026-07-29` alongside
+ * `2020-2-8` — and `new Date(string)` treats the two differently: the padded
+ * form matches the ISO grammar and is read as UTC midnight, the unpadded one
+ * falls back to the implementation's local-time parse. Left alone that shifts
+ * some dates a day west of the date they name and not others.
+ *
+ * Splitting the parts ourselves gives every date the same local-midnight
+ * meaning. Returns null for a missing or unparseable value — upstream events
+ * really can have no date at all.
+ */
+export function parseApiDate(value: string | null | undefined): Date | null {
+	if (!value) return null;
+
+	const parts = value.split('-');
+	if (parts.length !== 3) return null;
+
+	const [year, month, day] = parts.map(Number);
+	if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) return null;
+
+	const date = new Date(year, month - 1, day);
+	// Rejects the impossible (`2020-2-31` rolls over into March) rather than
+	// silently rendering a date the source never claimed.
+	return date.getMonth() === month - 1 && date.getDate() === day ? date : null;
+}
+
+/** Sortable `YYYY-MM-DD`, whichever form the API used. Null sorts last. */
+export function apiDateKey(value: string | null | undefined): string | null {
+	const date = parseApiDate(value);
+	return date ? toISODate(date) : null;
+}
+
+/**
+ * Date range for an upstream event, tolerant of the nulls and half-ranges the
+ * API allows. Falls back to "Date unknown" rather than rendering "Invalid Date".
+ */
+export function formatApiDateRange(
+	start: string | null | undefined,
+	end: string | null | undefined,
+	style: 'long' | 'short' = 'long',
+	locale = DEFAULT_LOCALE
+): string {
+	const format = style === 'short' ? formatShortDateRange : formatFullDateRange;
+	const s = parseApiDate(start);
+	const e = parseApiDate(end);
+
+	if (!s && !e) return 'Date unknown';
+	// A half-range renders as the single day we do know, rather than inventing
+	// the other end.
+	if (!s) return format(e!, e!, locale);
+	if (!e) return format(s, s, locale);
+	return format(s, e, locale);
+}

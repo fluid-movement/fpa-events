@@ -5,21 +5,26 @@
 	import { dev } from '$app/environment';
 
 	interface Props {
+		/** What was unavailable, e.g. "Results are temporarily unavailable". */
+		title: string;
+		description?: string;
 		/** Diagnostic detail. Shown only in dev — it names internal hosts. */
 		message?: string;
+		testId?: string;
 	}
 
-	let { message }: Props = $props();
+	let {
+		title,
+		description = 'The data comes from a separate system that refreshes on a schedule, and it could not be reached. This is usually brief.',
+		message,
+		testId = 'service-unavailable'
+	}: Props = $props();
 </script>
 
-<div class="rounded-xl border border-dashed" data-testid="rankings-unavailable">
-	<EmptyState
-		icon={CloudOffIcon}
-		title="Rankings are temporarily unavailable"
-		description="The rankings service could not be reached. This is usually brief — the data comes from a separate system that refreshes on a schedule."
-	>
+<div class="rounded-xl border border-dashed" data-testid={testId}>
+	<EmptyState icon={CloudOffIcon} {title} {description}>
 		{#snippet action()}
-			<Button variant="outline" data-testid="rankings-retry" onclick={() => location.reload()}>
+			<Button variant="outline" data-testid="{testId}-retry" onclick={() => location.reload()}>
 				Try again
 			</Button>
 		{/snippet}

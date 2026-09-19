@@ -12,6 +12,8 @@ const STATIC_TITLES: Record<string, string> = {
 	'/events': 'Events',
 	'/events/create': 'Create event',
 	'/rankings': 'Rankings',
+	'/results': 'Results',
+	'/players': 'Player',
 	'/dashboard': 'Dashboard',
 	'/attending': 'Attending',
 	'/organizing': 'Organizing',

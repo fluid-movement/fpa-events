@@ -21,9 +21,29 @@ export interface RankingRow {
 	playerId: string;
 	fullName: string;
 	points: number;
+	/** Scoring events behind the total. Drives the expander; the detail is lazy. */
 	resultsCount: number;
-	/** Top scoring events. Trimmed to BREAKDOWN_LIMIT. */
-	breakdown: Array<{ eventName: string; division: string; points: number }>;
+}
+
+/**
+ * One scoring event in an expanded player row.
+ *
+ * Fetched on demand rather than shipped with the table: carrying the ids needed
+ * for the event link on all ~350 players grew the standings payload from 112 KB
+ * to 202 KB, and almost none of it is ever expanded.
+ */
+export interface ScoringResult {
+	resultId: string;
+	/** Null upstream sometimes; without it there is nothing to link to. */
+	eventId: string | null;
+	eventName: string;
+	division: string;
+	/** Ranking points earned. Not the raw judged score. */
+	points: number;
+	/** Finish in the deepest round reached. Null when no placement matched. */
+	place: number | null;
+	roundName: string | null;
+	teammates: Array<{ id: string; fullName: string; unknown: boolean }>;
 }
 
 export interface RatingRow {
@@ -50,9 +70,3 @@ export const DEFAULT_RATING_SERIES = 'rating-open';
  * anything. A floor of 50 cuts that to ~746 and makes the leaderboard honest.
  */
 export const DEFAULT_MIN_MATCH_COUNT = 50;
-
-/**
- * Breakdown entries kept per player. The API returns up to 15, and sending them
- * all for 341 players is most of a 261 KB response we would never render.
- */
-export const BREAKDOWN_LIMIT = 5;

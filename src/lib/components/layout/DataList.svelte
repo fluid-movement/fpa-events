@@ -23,6 +23,15 @@
 		/** Per-cell class, e.g. the medal tint on a rank. */
 		cellClass?: (row: T) => string | undefined;
 		headerClass?: string;
+		/**
+		 * Turns the cell's text into a link. Return undefined for a row that has
+		 * nowhere to go, and it stays plain text — a link to nothing is worse
+		 * than no link.
+		 *
+		 * Only the text is wrapped, not the cell, so the row keeps its table
+		 * semantics and the rest of the row stays selectable.
+		 */
+		href?: (row: T) => string | undefined;
 	};
 
 	const SLOT_CLASS: Record<DataSlot, string> = {
@@ -118,6 +127,7 @@
 						class="grid grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center border-t px-3.5 py-2.5 transition-colors md:table-row md:px-0 md:py-0 md:hover:bg-muted/40"
 					>
 						{#each columns as col (col.header)}
+							{@const href = col.href?.(row)}
 							<td
 								role="cell"
 								class={cn(
@@ -128,7 +138,11 @@
 									col.cellClass?.(row)
 								)}
 							>
-								{text(col, row)}
+								{#if href}
+									<a {href} class="hover:text-primary hover:underline">{text(col, row)}</a>
+								{:else}
+									{text(col, row)}
+								{/if}
 							</td>
 						{/each}
 						{#if trailing}

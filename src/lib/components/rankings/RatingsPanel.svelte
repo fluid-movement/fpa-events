@@ -1,7 +1,7 @@
 <script lang="ts">
 	import SegmentedTabs from '$lib/components/layout/SegmentedTabs.svelte';
 	import RatingsTable from './RatingsTable.svelte';
-	import RankingsUnavailable from './RankingsUnavailable.svelte';
+	import ServiceUnavailable from '$lib/components/layout/ServiceUnavailable.svelte';
 	import { getRatings } from '$lib/api/rankings.remote';
 
 	interface Props {
@@ -27,7 +27,11 @@
 </script>
 
 {#if !standings.ok}
-	<RankingsUnavailable message={standings.message} />
+	<ServiceUnavailable
+		title="Rankings are temporarily unavailable"
+		message={standings.message}
+		testId="rankings-unavailable"
+	/>
 {:else}
 	<div class="mb-6 space-y-4">
 		<!-- Rankings and ratings disagree (the points leader is 5th by rating).

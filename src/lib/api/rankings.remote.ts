@@ -1,15 +1,18 @@
 import * as v from 'valibot';
 import { query } from '$app/server';
 import { fpaApiGet, FpaApiError } from '$lib/server/fpa-api/client';
-import type { RankingStandings, RatingStandings, SeriesRef } from '$lib/server/fpa-api/types';
+import { loadRankingStandings } from '$lib/server/fpa-api/rankingIndex';
+import type { PlayerProfile, RatingStandings, SeriesRef } from '$lib/server/fpa-api/types';
+import { joinScoringResults } from '$lib/rankings/breakdown';
+import { collapsePlacements } from '$lib/results/career';
 import {
-	BREAKDOWN_LIMIT,
 	DEFAULT_MIN_MATCH_COUNT,
 	DEFAULT_RANKING_SERIES,
 	DEFAULT_RATING_SERIES,
 	type ApiResult,
 	type RankingRow,
 	type RatingRow,
+	type ScoringResult,
 	type SeriesOption
 } from '$lib/rankings/types';
 
@@ -17,8 +20,12 @@ import {
  * Rankings data, fetched from fpa-api server-side.
  *
  * fpa-api serves everything from an in-memory index, so these calls are fast
- * (~150 ms) and need no caching layer here. Its data refreshes hourly, so a
- * little staleness is expected and harmless.
+ * (~150 ms). Its data refreshes hourly, so a little staleness is expected and
+ * harmless.
+ *
+ * The standings themselves are cached in `$lib/server/fpa-api/rankingIndex`
+ * because expanding a row reads the same response again, and every expand on a
+ * page would otherwise refetch all ~350 players.
  *
  * Two constraints shape this file:
  *  - SvelteKit requires every export from a `.remote.ts` file to be a remote
@@ -96,25 +103,18 @@ export const getRankings = query(
 		attempt(async () => {
 			const series = await resolveSeries(requestedSeries, 'rankings');
 
-			// The largest ranking series is 341 players, so one call covers it.
-			const data = await fpaApiGet<RankingStandings>(
-				`/rankings?series=${encodeURIComponent(series)}&limit=${API_ROW_LIMIT}`
-			);
+			const data = await loadRankingStandings(series);
 
-			// Trim here rather than in the browser: the raw response is ~261 KB
-			// because every entry carries its full breakdown, including ids we
-			// never use without a player drill-down.
+			// The breakdown is dropped entirely rather than trimmed: carrying the
+			// ids an event link needs grew the response from 112 KB to 202 KB, and
+			// nothing renders it until a row is expanded. Expanding fetches it
+			// through `getScoringResults` instead.
 			const rows: RankingRow[] = data.items.map((entry) => ({
 				rank: entry.rank,
 				playerId: entry.playerId,
 				fullName: entry.fullName,
 				points: entry.points,
-				resultsCount: entry.resultsCount,
-				breakdown: entry.breakdown.slice(0, BREAKDOWN_LIMIT).map((b) => ({
-					eventName: b.eventName ?? 'Unknown event',
-					division: b.division ?? 'Unknown division',
-					points: b.points
-				}))
+				resultsCount: entry.resultsCount
 			}));
 
 			return { series: data.series, division: data.division, rows, total: data.total };
@@ -157,5 +157,37 @@ export const getRatings = query(
 			}));
 
 			return { series: data.series, division: data.division, rows, total: data.total };
+		})
+);
+
+/**
+ * The scoring events behind one player's ranking total, with who they played
+ * with and where they finished.
+ *
+ * Called when a row is expanded, not with the table. Two upstream reads, one of
+ * which is cached across every expand on the page:
+ *
+ *  - the standings, for which results earned points and how many;
+ *  - the player profile, for teammates and placings.
+ *
+ * `resultId` joins them — see `$lib/rankings/breakdown`.
+ */
+export const getScoringResults = query(
+	v.object({ playerId: v.string(), series: v.optional(v.string()) }),
+	async ({ playerId, series: requestedSeries }): Promise<ApiResult<ScoringResult[]>> =>
+		attempt(async () => {
+			const series = await resolveSeries(requestedSeries, 'rankings');
+
+			const [standings, profile] = await Promise.all([
+				loadRankingStandings(series),
+				fpaApiGet<PlayerProfile>(`/players/${encodeURIComponent(playerId)}`)
+			]);
+
+			// An id that is not in this series has no scoring events to show. That
+			// is an empty list, not an error — the row simply says so.
+			const entry = standings.items.find((item) => item.playerId === playerId);
+			if (!entry) return [];
+
+			return joinScoringResults(entry.breakdown, collapsePlacements(profile.placements));
 		})
 );

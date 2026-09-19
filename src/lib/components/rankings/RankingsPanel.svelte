@@ -1,7 +1,7 @@
 <script lang="ts">
 	import SegmentedTabs from '$lib/components/layout/SegmentedTabs.svelte';
 	import RankingsTable from './RankingsTable.svelte';
-	import RankingsUnavailable from './RankingsUnavailable.svelte';
+	import ServiceUnavailable from '$lib/components/layout/ServiceUnavailable.svelte';
 	import { getSeries, getRankings } from '$lib/api/rankings.remote';
 
 	interface Props {
@@ -21,7 +21,11 @@
 </script>
 
 {#if !standings.ok}
-	<RankingsUnavailable message={standings.message} />
+	<ServiceUnavailable
+		title="Rankings are temporarily unavailable"
+		message={standings.message}
+		testId="rankings-unavailable"
+	/>
 {:else}
 	<!-- The switcher is driven by the API's own series list, so a new division
 	     appears without a code change. Skipped if that call failed but the
@@ -43,5 +47,5 @@
 		/>
 	{/if}
 
-	<RankingsTable rows={standings.data.rows} />
+	<RankingsTable rows={standings.data.rows} series={standings.data.series} />
 {/if}

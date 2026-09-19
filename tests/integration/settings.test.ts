@@ -68,6 +68,9 @@ test.describe('settings — password', () => {
 	}) => {
 		await signUpAndSignIn(page, context, { email, password: original });
 		await page.goto('/settings/password');
+		// The form is client-only: submitting before hydration does a native GET
+		// and the handler never runs. Same wait the rest of the suite uses.
+		await page.waitForLoadState('networkidle');
 
 		await page.locator('#current').fill(original);
 		await page.locator('#new').fill(changed);
@@ -80,6 +83,9 @@ test.describe('settings — password', () => {
 	test('changes the password and the new one works', async ({ page, context }) => {
 		await signIn(page, context, { email, password: original });
 		await page.goto('/settings/password');
+		// The form is client-only: submitting before hydration does a native GET
+		// and the handler never runs. Same wait the rest of the suite uses.
+		await page.waitForLoadState('networkidle');
 
 		await page.locator('#current').fill(original);
 		await page.locator('#new').fill(changed);
@@ -100,6 +106,9 @@ test.describe('settings — password', () => {
 		expectConsoleErrors(page);
 		await signIn(page, context, { email, password: changed });
 		await page.goto('/settings/password');
+		// The form is client-only: submitting before hydration does a native GET
+		// and the handler never runs. Same wait the rest of the suite uses.
+		await page.waitForLoadState('networkidle');
 
 		await page.locator('#current').fill('not-the-current-password');
 		await page.locator('#new').fill('another-new-password-1');

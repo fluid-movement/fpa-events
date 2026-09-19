@@ -1,13 +1,20 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { Button } from '$lib/components/ui/button';
 	import { type DataColumn } from '$lib/components/layout/DataList.svelte';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import PlayerLeaderboard from './PlayerLeaderboard.svelte';
+	import RankingBreakdown from './RankingBreakdown.svelte';
 	import { rankTint } from '$lib/rankings/playerList.svelte';
+	import { formatPoints } from '$lib/utils/numbers';
 	import type { RankingRow } from '$lib/rankings/types';
 
-	let { rows }: { rows: RankingRow[] } = $props();
+	let {
+		rows,
+		/** Passed through so an expanded row can look its player up in this series. */
+		series
+	}: { rows: RankingRow[]; series: string } = $props();
 
 	// SvelteSet is reactive on mutation, so rows can be toggled in place.
 	const expandedIds = new SvelteSet<string>();
@@ -16,10 +23,6 @@
 		if (expandedIds.has(playerId)) expandedIds.delete(playerId);
 		else expandedIds.add(playerId);
 	}
-
-	// Points can carry a decimal (e.g. 203.8) but are usually whole.
-	const formatPoints = (points: number) =>
-		Number.isInteger(points) ? String(points) : points.toFixed(1);
 
 	const columns: DataColumn<RankingRow>[] = [
 		{
@@ -30,7 +33,12 @@
 			cellClass: (r) => `font-semibold ${rankTint(r.rank)}`,
 			headerClass: 'w-16'
 		},
-		{ header: 'Player', value: (r) => r.fullName, slot: 'primary' },
+		{
+			header: 'Player',
+			value: (r) => r.fullName,
+			slot: 'primary',
+			href: (r) => resolve(`/players/${r.playerId}`)
+		},
 		{
 			header: 'Points',
 			value: (r) => formatPoints(r.points),
@@ -57,7 +65,7 @@
 	isExpanded={(r) => expandedIds.has(r.playerId)}
 >
 	{#snippet trailing(row)}
-		{#if row.breakdown.length > 0}
+		{#if row.resultsCount > 0}
 			{@const isOpen = expandedIds.has(row.playerId)}
 			<Button
 				variant="ghost"
@@ -73,22 +81,11 @@
 	{/snippet}
 
 	{#snippet expanded(row)}
-		<p class="mb-2 text-xs font-medium text-muted-foreground">
-			Top scoring events
-			{#if row.resultsCount > row.breakdown.length}
-				<span class="font-normal">({row.breakdown.length} of {row.resultsCount})</span>
-			{/if}
-		</p>
-		<ul class="space-y-1" data-testid="rankings-breakdown-{row.playerId}">
-			{#each row.breakdown as entry, i (i)}
-				<li class="flex items-baseline justify-between gap-4">
-					<span class="truncate">
-						{entry.eventName}
-						<span class="text-muted-foreground">· {entry.division}</span>
-					</span>
-					<span class="shrink-0 tabular-nums">{formatPoints(entry.points)}</span>
-				</li>
-			{/each}
-		</ul>
+		<!-- Fetched on expand, not shipped with the table — see
+		     `getScoringResults`. Keyed on the player so a reopened row does not
+		     reuse the previous one's request. -->
+		{#key row.playerId}
+			<RankingBreakdown playerId={row.playerId} fullName={row.fullName} {series} />
+		{/key}
 	{/snippet}
 </PlayerLeaderboard>

@@ -5,9 +5,12 @@ import {
 	daysBetween,
 	daysUntil,
 	formatCompactDateRange,
+	formatApiDateRange,
 	formatDateRange,
 	formatFullDateRange,
-	formatShortDateRange
+	formatShortDateRange,
+	apiDateKey,
+	parseApiDate
 } from './dates';
 
 describe('daysUntil', () => {
@@ -161,5 +164,82 @@ describe('daysBetween', () => {
 
 	it('returns nothing when the end precedes the start', () => {
 		expect(daysBetween('2026-08-17T12:00:00', '2026-08-14T12:00:00')).toEqual([]);
+	});
+});
+
+/**
+ * fpa-api writes dates two ways — `2026-07-29` and `2020-2-8` — and the padded
+ * form is the one `new Date()` reads as UTC. These tests exist because that
+ * difference silently moved half the catalogue's dates by a day.
+ */
+describe('parseApiDate', () => {
+	it('reads a zero-padded date as the local day it names', () => {
+		const d = parseApiDate('2026-07-29')!;
+		expect([d.getFullYear(), d.getMonth(), d.getDate()]).toEqual([2026, 6, 29]);
+	});
+
+	it('reads an unpadded date as the same kind of local day', () => {
+		const d = parseApiDate('2020-2-8')!;
+		expect([d.getFullYear(), d.getMonth(), d.getDate()]).toEqual([2020, 1, 8]);
+	});
+
+	it('agrees with itself across both spellings of one day', () => {
+		expect(parseApiDate('2020-02-08')!.getTime()).toBe(parseApiDate('2020-2-8')!.getTime());
+	});
+
+	it('returns null for a missing date', () => {
+		expect(parseApiDate(null)).toBeNull();
+		expect(parseApiDate(undefined)).toBeNull();
+		expect(parseApiDate('')).toBeNull();
+	});
+
+	it('returns null rather than rolling a day that does not exist', () => {
+		// `new Date(2020, 1, 31)` would quietly become 2 March.
+		expect(parseApiDate('2020-2-31')).toBeNull();
+	});
+
+	it('returns null for a shape it does not recognise', () => {
+		expect(parseApiDate('2020')).toBeNull();
+		expect(parseApiDate('not-a-date')).toBeNull();
+	});
+});
+
+describe('apiDateKey', () => {
+	it('pads both spellings into one sortable form', () => {
+		expect(apiDateKey('2020-2-8')).toBe('2020-02-08');
+		expect(apiDateKey('2020-10-01')).toBe('2020-10-01');
+	});
+
+	it('sorts a single-digit month before a later double-digit one', () => {
+		// The comparison the upstream API gets wrong.
+		expect(apiDateKey('2020-2-8')! < apiDateKey('2020-10-01')!).toBe(true);
+	});
+
+	it('returns null when there is no usable date', () => {
+		expect(apiDateKey(null)).toBeNull();
+	});
+});
+
+describe('formatApiDateRange', () => {
+	it('renders a single day once', () => {
+		expect(formatApiDateRange('2026-07-29', '2026-07-29')).toBe('July 29, 2026');
+	});
+
+	it('renders a span across both ends', () => {
+		expect(formatApiDateRange('2026-07-29', '2026-08-02')).toBe('July 29, 2026 – August 2, 2026');
+	});
+
+	it('abbreviates months in the short style', () => {
+		expect(formatApiDateRange('2026-07-29', '2026-08-02', 'short')).toBe(
+			'Jul 29, 2026 – Aug 2, 2026'
+		);
+	});
+
+	it('falls back to the end alone when only that is known', () => {
+		expect(formatApiDateRange(null, '2026-07-29')).toBe('July 29, 2026');
+	});
+
+	it('says so when neither end is known, rather than "Invalid Date"', () => {
+		expect(formatApiDateRange(null, null)).toBe('Date unknown');
 	});
 });

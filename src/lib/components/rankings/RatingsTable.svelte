@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { type DataColumn } from '$lib/components/layout/DataList.svelte';
 	import PlayerLeaderboard from './PlayerLeaderboard.svelte';
 	import { rankTint } from '$lib/rankings/playerList.svelte';
@@ -29,7 +30,12 @@
 			cellClass: (r) => `font-semibold ${rankTint(r.rank)}`,
 			headerClass: 'w-16'
 		},
-		{ header: 'Player', value: (r) => r.fullName, slot: 'primary' },
+		{
+			header: 'Player',
+			value: (r) => r.fullName,
+			slot: 'primary',
+			href: (r) => resolve(`/players/${r.playerId}`)
+		},
 		{
 			header: 'Rating',
 			value: (r) => formatRating(r.rating),

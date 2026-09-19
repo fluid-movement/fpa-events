@@ -53,7 +53,7 @@ test.describe('/rankings', () => {
 		await expect(page.getByTestId('rankings-table')).toBeVisible();
 	});
 
-	test('expands a row to reveal which events earned the points', async ({ page }) => {
+	test('expands a row to reveal the scoring events, with partners and links', async ({ page }) => {
 		await page.goto('/rankings');
 		await page.waitForLoadState('networkidle');
 
@@ -65,7 +65,41 @@ test.describe('/rankings', () => {
 
 		await expect(page.getByTestId(`rankings-breakdown-${playerId}`)).toBeHidden();
 		await firstToggle.click();
-		await expect(page.getByTestId(`rankings-breakdown-${playerId}`)).toBeVisible();
+
+		// The detail is fetched on expand, so the list arrives after the click.
+		const breakdown = page.getByTestId(`rankings-breakdown-${playerId}`);
+		await expect(breakdown).toBeVisible();
+
+		// Every ranked player earned their points somewhere, so there is at least
+		// one scoring event, and it links to that event's results.
+		const eventLink = breakdown.locator('[data-testid^="rankings-breakdown-event-"]').first();
+		await expect(eventLink).toBeVisible();
+		await expect(eventLink).toHaveAttribute('href', /results\/[0-9a-f-]{36}\?division=/);
+
+		// Freestyle is played in pairs and co-op, so the top player has partners.
+		await expect(breakdown).toContainText('with ');
+	});
+
+	test('a scoring event links through to that division of the event', async ({ page }) => {
+		await page.goto('/rankings');
+		await page.waitForLoadState('networkidle');
+
+		await page.locator('[data-testid^="rankings-expand-"]').first().click();
+		await page.locator('[data-testid^="rankings-breakdown-event-"]').first().click();
+
+		await expect(page).toHaveURL(/\/results\/[0-9a-f-]{36}\?division=/);
+		await page.waitForLoadState('networkidle');
+		await expect(page.getByTestId('division-results')).toBeVisible();
+	});
+
+	test('does not ship the breakdown with the table', async ({ page }) => {
+		// The detail is loaded on demand: carrying the ids an event link needs for
+		// every player grew the standings payload from 112 KB to 202 KB.
+		const response = await page.goto('/rankings');
+		const html = (await response?.text()) ?? '';
+
+		expect(html).toContain('data-testid="rankings-table"');
+		expect(html).not.toContain('rankings-breakdown-');
 	});
 
 	test('filters the list live and restores it when cleared', async ({ page }) => {
@@ -129,5 +163,29 @@ test.describe('/rankings', () => {
 		await page.getByTestId('ratings-threshold-100').click();
 		await expect(page).toHaveURL(/minMatches=100/);
 		await expect(page.getByTestId('ratings-table')).toBeVisible();
+	});
+	test('a ranked player name opens their profile', async ({ page }) => {
+		await page.goto('/rankings');
+		await page.waitForLoadState('networkidle');
+
+		const name = page.locator('[data-testid="rankings-table"] tbody tr').first().locator('a');
+		const label = (await name.textContent())!.trim();
+		await name.click();
+
+		await expect(page).toHaveURL(/\/players\/[0-9a-f-]{36}/);
+		await page.waitForLoadState('networkidle');
+
+		// The profile is the same person the row named.
+		await expect(page.getByRole('heading', { level: 1 })).toHaveText(label);
+		await expect(page.getByTestId('player-stats')).toBeVisible();
+	});
+
+	test('a rated player name opens their profile too', async ({ page }) => {
+		await page.goto('/rankings?tab=ratings');
+		await page.waitForLoadState('networkidle');
+
+		await page.locator('[data-testid="ratings-table"] tbody tr').first().locator('a').click();
+
+		await expect(page).toHaveURL(/\/players\/[0-9a-f-]{36}/);
 	});
 });
