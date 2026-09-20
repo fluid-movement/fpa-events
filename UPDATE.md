@@ -329,6 +329,33 @@ reached 9 forms and ~37 fields, including four shared components
 that previously named their own hidden inputs and now take the owning form's
 fields as a prop.
 
+**3a. `as(type, value)` seeds a field; it does not bind one.** The follow-up to
+the point above, found in review on 2026-09-20 rather than during the migration,
+because nothing fails loudly. Two rules, both in Kit's own source:
+
+- The client form runtime attaches a single `input` listener to the `<form>`
+  (`runtime/client/remote-functions/form.svelte.js`), writes every keystroke into
+  the form's state and sets `dirty[field.name] = true`.
+- The getter `as()` installs reads that state first and suppresses the seed once
+  the field is dirty: `deep_get(context.get(), path) ?? (dirty ? undefined :
+fallback)` (`runtime/form-utils.js`).
+
+So Kit owns a visible field's value from the first keystroke. A `bind:value`
+converted to `as('text', someLocalState)` keeps rendering correctly, but the
+local variable stops tracking what the user typed — it is now a write-only seed.
+`VenueLocationPicker` carried exactly that: `nameValue` had been two-way bound,
+and after conversion its `if (!nameValue)` guard read a permanently empty string.
+No data was lost (Kit's dirty state outranks the stale seed, which is why nothing
+failed), but the "fill the venue name from the geocoding hit only when empty"
+rule had quietly stopped meaning that.
+
+**The pattern the Svelte team intends** is the field's own accessors —
+`value()`, `set()`, `dirty()`, `touched()`, `issues()`, all public API on
+`RemoteFormFieldMethods`. The fix reads `fields.name.dirty() ?
+(fields.name.value() ?? '') : name` and writes with `fields.name.set(...)`,
+so there is one source of truth. Hidden fields are unaffected — they receive no
+input events, so driving them from `$derived` state is still correct.
+
 **4. `svelte.config.js` is refused outright**, and the `kit` namespace inside it
 is gone. Options pass through `sveltekit(...)` in the Vite config. Because
 `eslint.config.js` also imports them, they live in `svelte-options.js`.
@@ -338,6 +365,18 @@ is gone. Options pass through `sveltekit(...)` in the Vite config. Because
 
 **6. `page.url` is immutable**, so `searchParams` no longer feeds
 `SvelteURLSearchParams` directly.
+
+**7. The `$lib` sweep has to leave `src/`.** `components.json` — the
+shadcn-svelte CLI's config — declared all five of its aliases against `$lib`,
+and `AGENTS.md` and `docs/context.md` named `$lib/...` paths in prose. None of
+them break a build, so the migration's own verification could not catch them;
+the next `npx shadcn-svelte add <component>` would have generated imports
+against an alias that no longer exists. Fixed 2026-09-20. The CLI does resolve
+`#lib`: it routes a `#`-prefixed specifier through `package.json` `imports` and
+also honours `tsconfig.json` `paths`, both of which this project supplies. The
+remaining `$lib` hits in the tree are deliberate — this document and the comment
+in `vite.config.ts` describe the migration, and `.agents/skills/shadcn-svelte/`
+is vendored upstream documentation whose examples are generic.
 
 ## Risk 1 resolved: `vp` cannot run the Kit 3 dev server
 

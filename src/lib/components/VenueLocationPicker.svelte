@@ -38,8 +38,10 @@
 	}: Props = $props();
 
 	// Seeded once. The inputs and the map pin own these from mount onwards, so
-	// tracking the props would undo whatever the organizer just did.
-	let nameValue = $state(untrack(() => name));
+	// tracking the props would undo whatever the organizer just did. The venue
+	// name is deliberately absent: it is a *visible* field, so SvelteKit's form
+	// state owns it from the first keystroke and a local mirror cannot stay in
+	// sync with it — see `currentName`.
 	let addressValue = $state(untrack(() => address));
 	let latValue = $state(untrack(() => lat));
 	let lngValue = $state(untrack(() => lng));
@@ -48,9 +50,23 @@
 	let map: LeafletMap | null = $state(null);
 	let marker: Marker | null = $state(null);
 
+	/**
+	 * What the venue-name box currently shows.
+	 *
+	 * `as('text', name)` renders the `name` prop only while the field is clean;
+	 * from the first keystroke (or a `set()`) SvelteKit's own form state is the
+	 * source of truth, so asking the field is the only way to see what the
+	 * organizer actually typed.
+	 */
+	function currentName() {
+		return fields.name.dirty() ? (fields.name.value() ?? '') : name;
+	}
+
 	function handleSelect(result: GeocodingResult) {
 		addressValue = result.displayName;
-		if (!nameValue) nameValue = result.name ?? result.displayName;
+		// Fill the name from the search hit only while the box is still empty —
+		// never overwrite a venue name the organizer typed themselves.
+		if (!currentName()) fields.name.set(result.name ?? result.displayName);
 		latValue = result.lat;
 		lngValue = result.lng;
 	}
@@ -112,7 +128,7 @@
 		<input
 			id="venue-name"
 			placeholder="e.g. Central Park, Disc Golf Field 3"
-			{...fields.name.as('text', nameValue)}
+			{...fields.name.as('text', name)}
 			class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
 		/>
 	</div>

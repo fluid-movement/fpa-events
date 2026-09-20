@@ -159,7 +159,7 @@ export const actions = {
 };
 ```
 
-Client-side auth client: `import { client } from '$lib/auth-client'`
+Client-side auth client: `import { client } from '#lib/auth-client'`
 
 ---
 

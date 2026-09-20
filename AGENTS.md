@@ -16,32 +16,57 @@ This is a private repository without branch protection enabled. Commits go direc
 
 ## Code Style
 
-**Always use remote functions for server interactions** — never traditional form actions or `+page.server.ts` `actions`. Use `form()` and `query()` from `$app/server` in `data.remote.ts` files colocated with the route. The project has `remoteFunctions: true` enabled in `svelte.config.js`.
+**Always use remote functions for server interactions** — never traditional form actions or `+page.server.ts` `actions`. Use `form()` and `query()` from `$app/server` in `data.remote.ts` files colocated with the route. The project has `remoteFunctions: true` enabled in `svelte-options.js` — Kit 3 refuses a `svelte.config.js`, so the options pass through `sveltekit(...)` in `vite.config.ts`, and `eslint.config.js` imports that same file.
 
 **Always use modern Svelte 5 runes** — `$state`, `$derived`, `$derived.by`, `$effect`, `$props`. Never legacy reactive syntax (`$:`, `let` stores, etc.).
 
 **No `use:enhance`** — remote functions handle progressive enhancement automatically via `{...formAction}` spread on `<form>` elements.
 
+**Every form field is built by `fields.<name>.as(...)`.** Kit 3 encodes the form
+id and a type prefix into each field's `name` and rejects anything it did not
+build — a hand-written `name="..."` input makes the submission fail with _"Form
+contained a field that wasn't created with form.fields.as(...)"_. A component
+rendering part of a form therefore takes the owning form's `fields` as a prop
+rather than naming its own inputs; `EventLocationInput`, `ImageUpload`,
+`VenueLocationPicker`, `RichTextEditor` and `ConfirmSubmit` are the examples.
+
+- **The second argument to `as()` is a seed, not a binding.** Kit's form-level
+  `input` listener owns the value from the first keystroke (which marks the field
+  dirty and suppresses the seed), so there is no `bind:value` to reach for — and
+  a local `$state` mirror of a _visible_ field silently goes stale.
+- **To read or write a field from JS, use the field's own API:**
+  `fields.x.value()`, `fields.x.set(v)`, `fields.x.dirty()`, `fields.x.touched()`,
+  `fields.x.issues()`. `currentName()` in `VenueLocationPicker` is the worked
+  example — it asks the field, not a mirror, whether the box is still empty.
+- **Hidden fields are the exception.** They never receive input events, so
+  deriving their value from JS state and spreading `as('hidden', value)` is the
+  right shape (`ImageUpload`, `EventLocationInput`).
+
+**Imports use `#lib` — a real `package.json` subpath import, not a bundler
+alias.** Kit 3 removed `$lib`. `package.json` `imports`, the `paths` in
+`tsconfig.json` and the `aliases` in `components.json` all have to agree; the
+shadcn-svelte CLI reads the last of those when it generates imports.
+
 **Reach for the shared helpers before writing a new one.** The cleanup pass that
 introduced these found the same code in three to five places each time; adding a
 sixth copy is the thing to avoid.
 
-- **Auth guards** — `$lib/server/authz`: `requireSignedIn(locals)` in a `load`,
+- **Auth guards** — `#lib/server/authz`: `requireSignedIn(locals)` in a `load`,
   `requireSignedInRequest()` in a remote function (302 vs 307 is deliberate),
   `requireEventManager(id)` / `requireEventOwner(id)` for event permissions.
-- **Event queries** — `$lib/server/utils/events`: `listEventsWithAttendeeCount`,
+- **Event queries** — `#lib/server/utils/events`: `listEventsWithAttendeeCount`,
   `withUserStatus`, `attendingEvents`, `organizingEvents`, `eventUserCounts`.
   Never count attendees one event at a time.
-- **Dates** — `$lib/utils/dates` owns every format the app renders. Add a named
+- **Dates** — `#lib/utils/dates` owns every format the app renders. Add a named
   function there rather than a local `toLocaleDateString` in a component.
-- **HTML** — `$lib/utils/html`: `sanitizeRichText` on the way in,
+- **HTML** — `#lib/utils/html`: `sanitizeRichText` on the way in,
   `escapeHtml` for the one place that builds markup by hand (Leaflet popups),
   `stripHtml` for excerpts.
-- **Destructive actions** — `<ConfirmSubmit>` (`$lib/components/layout`) pairs a
+- **Destructive actions** — `<ConfirmSubmit>` (`#lib/components/layout`) pairs a
   confirmation dialog with a hidden remote form. Don't hand-roll the
   `requestSubmit()` dance.
 - **Signed-out pages** — `<AuthCard>` + `<AuthForm>`.
-- **Leaflet** — `$lib/leaflet`: `loadLeaflet()`, `addOsmTiles()`,
+- **Leaflet** — `#lib/leaflet`: `loadLeaflet()`, `addOsmTiles()`,
   `enableTwoFingerPan()`. Never import `leaflet` statically; it touches `window`.
 
 **Prefer `untrack` to an `$effect` when seeding state from a prop.** Mirroring
