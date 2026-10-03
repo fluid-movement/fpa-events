@@ -1,4 +1,10 @@
-# SvelteKit 3 preview migration — findings and plan
+# SvelteKit 3 migration — findings and plan
+
+> **Status, 2026-10-03: done, and on the stable release.** SvelteKit 3.0.0 shipped and this branch
+> now runs it (`@sveltejs/kit` 3.0.0, `@sveltejs/adapter-node` 6.0.0, `@sveltejs/adapter-auto` 8.0.0).
+> Sections 1-8 below are the original research, written on 2026-09-19 against the `3.0.0-next.27`
+> preview, and are kept as a dated record — their version numbers and open questions are historical.
+> **For what actually happened, and what is still outstanding, read [Outcome](#outcome--implemented-2026-09-19) at the end.**
 
 Research done 2026-09-19 on branch `feature/sveltekit-2-update`. Nothing in this document has been
 implemented; the working tree is unchanged apart from this file. Written to be picked up cold by a
@@ -357,6 +363,30 @@ practice nothing broke: sign-up, sign-in, sessions, email verification, the
 forgot-password flow and cookie handling all pass.
 
 ## Where it landed
+
+### Upgraded to the 3.0.0 release, 2026-10-03
+
+SvelteKit 3 left preview. The three prerelease pins moved to their stable releases — `@sveltejs/kit`
+3.0.0, `@sveltejs/adapter-node` 6.0.0, `@sveltejs/adapter-auto` 8.0.0 — and the existing carets
+picked up `@sveltejs/vite-plugin-svelte` 7.3.1, `vite` 8.3.2 and `typescript-eslint` 8.71.0.
+**No code changes were needed:** every gate passed unchanged, and the integration suite returned the
+same 92 / 23 / 1 as the preview run.
+
+Two things did not improve and are unchanged above:
+
+- **better-auth 1.7.7 still peers `@sveltejs/kit@^2.0.0`**, so the `overrides` entry stays. Nothing
+  actually breaks; it is only npm's resolver that needs telling.
+- **vite-plus 1.0.0 is out, and still does not help.** It continues to alias `vite` to its own core
+  build and now moves to vitest 5, so adopting it is a larger decision than before, not a smaller
+  one. `dev`/`dev:test` stay on plain `vite dev`.
+
+Kit 3.0.0 also raised its Svelte floor to `^5.57.1` (from `^5.56.4`); the branch was already there.
+
+One note for the next person: the `fields.as(...)` requirement described above still does not appear
+anywhere in the released changelog's breaking-changes list, despite being the single largest source
+of runtime breakage. Do not expect to find it documented.
+
+### The suite
 
 The integration suite matches the pre-migration baseline exactly: **92 passed,
 23 failed, 1 skipped**, with the 23 being the same specs that already failed
