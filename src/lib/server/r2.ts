@@ -1,5 +1,11 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
-import { env } from '$env/dynamic/private';
+import {
+	R2_ACCOUNT_ID,
+	R2_ACCESS_KEY_ID,
+	R2_SECRET_ACCESS_KEY,
+	R2_BUCKET_NAME,
+	R2_PUBLIC_URL
+} from '$app/env/private';
 import { ulid } from 'ulid';
 
 /** Uploads are immutable — the key carries a fresh ULID every time. */
@@ -15,10 +21,10 @@ let client: S3Client | null = null;
 function r2(): S3Client {
 	client ??= new S3Client({
 		region: 'auto',
-		endpoint: `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+		endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
 		credentials: {
-			accessKeyId: env.R2_ACCESS_KEY_ID ?? '',
-			secretAccessKey: env.R2_SECRET_ACCESS_KEY ?? ''
+			accessKeyId: R2_ACCESS_KEY_ID ?? '',
+			secretAccessKey: R2_SECRET_ACCESS_KEY ?? ''
 		}
 	});
 	return client;
@@ -34,7 +40,7 @@ export async function uploadImage(file: File): Promise<{ url: string; key: strin
 
 	await r2().send(
 		new PutObjectCommand({
-			Bucket: env.R2_BUCKET_NAME,
+			Bucket: R2_BUCKET_NAME,
 			Key: key,
 			Body: Buffer.from(await file.arrayBuffer()),
 			ContentType: file.type,
@@ -42,10 +48,10 @@ export async function uploadImage(file: File): Promise<{ url: string; key: strin
 		})
 	);
 
-	return { url: `${env.R2_PUBLIC_URL}/${key}`, key };
+	return { url: `${R2_PUBLIC_URL}/${key}`, key };
 }
 
 export async function deleteImage(url: string): Promise<void> {
-	const key = url.replace(`${env.R2_PUBLIC_URL}/`, '');
-	await r2().send(new DeleteObjectCommand({ Bucket: env.R2_BUCKET_NAME, Key: key }));
+	const key = url.replace(`${R2_PUBLIC_URL}/`, '');
+	await r2().send(new DeleteObjectCommand({ Bucket: R2_BUCKET_NAME, Key: key }));
 }

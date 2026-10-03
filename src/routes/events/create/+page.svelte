@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import EventLocationInput from '$lib/components/EventLocationInput.svelte';
-	import * as Field from '$lib/components/ui/field';
-	import { RangeCalendar } from '$lib/components/ui/range-calendar/index.js';
-	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
-	import ImageUpload from '$lib/components/ImageUpload.svelte';
-	import Turnstile, { captchaEnabled } from '$lib/components/Turnstile.svelte';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import PageHeader from '$lib/components/layout/PageHeader.svelte';
+	import { Button } from '#lib/components/ui/button';
+	import { Input } from '#lib/components/ui/input';
+	import EventLocationInput from '#lib/components/EventLocationInput.svelte';
+	import * as Field from '#lib/components/ui/field';
+	import { RangeCalendar } from '#lib/components/ui/range-calendar/index.js';
+	import RichTextEditor from '#lib/components/RichTextEditor.svelte';
+	import ImageUpload from '#lib/components/ImageUpload.svelte';
+	import Turnstile, { captchaEnabled } from '#lib/components/Turnstile.svelte';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import PageHeader from '#lib/components/layout/PageHeader.svelte';
 	import type { DateValue } from '@internationalized/date';
 
 	import { createEvent } from './data.remote';
@@ -43,16 +43,19 @@
 			<Field.Group>
 				<Field.Field>
 					<Field.Label for="event-location">Event location</Field.Label>
-					<EventLocationInput />
+					<EventLocationInput fields={createEvent.fields} />
 					<Field.Description>City and country — e.g. "Munich, Germany"</Field.Description>
 				</Field.Field>
 				<Field.Field>
 					<Field.Label>Description</Field.Label>
-					<RichTextEditor name="description" placeholder="Info about the event" />
+					<RichTextEditor
+						field={createEvent.fields.description}
+						placeholder="Info about the event"
+					/>
 				</Field.Field>
 				<Field.Field>
 					<Field.Label>Cover image</Field.Label>
-					<ImageUpload />
+					<ImageUpload fields={createEvent.fields} />
 				</Field.Field>
 				<Field.Field>
 					<Field.Label>Event dates</Field.Label>
@@ -64,13 +67,15 @@
 						<p class="text-sm text-muted-foreground">Select a date range</p>
 					{/if}
 					<RangeCalendar bind:value={dateRange} class="rounded-md border" />
-					<input type="hidden" name="startDate" value={dateRange.start?.toString() ?? ''} />
-					<input type="hidden" name="endDate" value={dateRange.end?.toString() ?? ''} />
+					<input
+						{...createEvent.fields.startDate.as('hidden', dateRange.start?.toString() ?? '')}
+					/>
+					<input {...createEvent.fields.endDate.as('hidden', dateRange.end?.toString() ?? '')} />
 				</Field.Field>
 			</Field.Group>
 			<Field.Separator />
 			<Turnstile bind:token />
-			<input type="hidden" name="turnstileToken" value={token} />
+			<input {...createEvent.fields.turnstileToken.as('hidden', token)} />
 			<Field.Field orientation="horizontal">
 				<Button type="submit" disabled={(captchaEnabled && !token) || createEvent.pending > 0}>
 					{createEvent.pending > 0 ? 'Creating event…' : 'Create event'}

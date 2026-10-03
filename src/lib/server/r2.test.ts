@@ -14,7 +14,7 @@ vi.mock('@aws-sdk/client-s3', () => ({
 	DeleteObjectCommand: MockDeleteObjectCommand
 }));
 
-// $env/dynamic/private is aliased to src/test/mocks/env-dynamic-private.ts by vite.config.ts
+// $app/env/private is aliased to src/test/mocks/app-env-private.ts by vite.config.ts
 
 import { uploadImage, deleteImage } from './r2';
 

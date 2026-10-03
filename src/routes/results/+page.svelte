@@ -3,9 +3,9 @@
 	import { goto } from '$app/navigation';
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 	import { resolve } from '$app/paths';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import PageHeader from '$lib/components/layout/PageHeader.svelte';
-	import ResultsPanel from '$lib/components/results/ResultsPanel.svelte';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import PageHeader from '#lib/components/layout/PageHeader.svelte';
+	import ResultsPanel from '#lib/components/results/ResultsPanel.svelte';
 
 	const BASE = resolve('/results');
 
@@ -32,7 +32,12 @@
 		// SvelteURLSearchParams rather than the built-in: this reads `params`,
 		// which is reactive, and the lint rule that enforces it exists to stop
 		// exactly that dependency being lost.
-		const next = new SvelteURLSearchParams(params);
+		//
+		// `.toString()` because SvelteKit 3 made `page.url` immutable on a type
+		// level, so `searchParams` is a `ReadonlyURLSearchParams` and is no
+		// longer accepted by the constructor. It still reads `params`, so the
+		// reactive dependency is unchanged.
+		const next = new SvelteURLSearchParams(params.toString());
 		for (const [key, value] of Object.entries(overrides)) {
 			if (value === undefined || value === '') next.delete(key);
 			else next.set(key, value);
@@ -45,12 +50,15 @@
 	// almost never page 7 of the new one.
 	//
 	// `buildHref` starts from `resolve('/results')` and only appends a query
-	// string, so the target is already resolved; the lint rule just cannot see
-	// through the helper. The filters navigate rather than link because the
-	// search box is debounced and the selects are bits-ui, not anchors.
+	// string, so the target is already resolved. The filters navigate rather
+	// than link because the search box is debounced and the selects are
+	// bits-ui, not anchors.
+	//
+	// `reset: false` is SvelteKit 3's replacement for `noScroll` + `keepFocus`:
+	// keep the scroll position and the focused control across the navigation,
+	// which is what makes typing in the debounced search box survive.
 	const go = (overrides: Record<string, string | undefined>) =>
-		// eslint-disable-next-line svelte/no-navigation-without-resolve
-		goto(buildHref({ ...overrides, page: undefined }), { keepFocus: true, noScroll: true });
+		goto(buildHref({ ...overrides, page: undefined }), { reset: false });
 
 	const pageHref = (value: number) => buildHref({ page: value === 1 ? undefined : String(value) });
 </script>

@@ -1,5 +1,5 @@
 import { fpaApiGet } from './client';
-import { apiDateKey } from '$lib/utils/dates';
+import { apiDateKey } from '#lib/utils/dates';
 import type { EventSummary, PaginatedEvents } from './types';
 
 /**
@@ -18,7 +18,7 @@ import type { EventSummary, PaginatedEvents } from './types';
  *    filter dropdowns need the whole index regardless.
  *
  * The whole index is ~244 KB over two requests, so it is cached for five
- * minutes. `$lib/api/rankings.remote.ts` argues against caching a single
+ * minutes. `#lib/api/rankings.remote.ts` argues against caching a single
  * ~150 ms call and that still holds; this is a different trade. The API
  * refreshes hourly, so a longer TTL would only add staleness on top of its own
  * (`fpa-api/docs/INTEGRATION.md`).

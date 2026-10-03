@@ -1,8 +1,14 @@
 <script lang="ts">
-	import type { GeocodingResult } from '$lib/geocoding';
+	import type { GeocodingResult } from '#lib/geocoding';
+	import type { RemoteFormFields } from '$app/server';
+	import type { EventFormData } from '#lib/server/eventForm';
 	import GeocodingCombobox from './GeocodingCombobox.svelte';
 
 	type Props = {
+		// SvelteKit 3 will not accept a form field that wasn't built by
+		// `fields.<name>.as(...)`, so the owning form has to hand its fields down
+		// rather than this component naming the inputs itself.
+		fields: RemoteFormFields<EventFormData>;
 		value?: string;
 		locationValue?: string;
 		city?: string;
@@ -12,6 +18,7 @@
 	};
 
 	let {
+		fields,
 		value = '',
 		locationValue = '',
 		city = '',
@@ -56,9 +63,11 @@
 	/>
 
 	<!-- Hidden fields populated on selection -->
-	<input type="hidden" name="location" value={hiddenLocation} />
-	<input type="hidden" name="city" value={hiddenCity} />
-	<input type="hidden" name="country" value={hiddenCountry} />
-	<input type="hidden" name="latitude" value={hiddenLatitude ?? ''} />
-	<input type="hidden" name="longitude" value={hiddenLongitude ?? ''} />
+	<input {...fields.location.as('hidden', hiddenLocation)} />
+	<input {...fields.city.as('hidden', hiddenCity)} />
+	<input {...fields.country.as('hidden', hiddenCountry)} />
+	<input {...fields.latitude.as('hidden', hiddenLatitude === null ? '' : String(hiddenLatitude))} />
+	<input
+		{...fields.longitude.as('hidden', hiddenLongitude === null ? '' : String(hiddenLongitude))}
+	/>
 </div>

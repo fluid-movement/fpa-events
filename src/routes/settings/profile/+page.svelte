@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import * as Field from '$lib/components/ui/field';
-	import FormStatus from '$lib/components/layout/FormStatus.svelte';
+	import { Button } from '#lib/components/ui/button';
+	import { Input } from '#lib/components/ui/input';
+	import * as Field from '#lib/components/ui/field';
+	import FormStatus from '#lib/components/layout/FormStatus.svelte';
 	import { updateProfile } from './data.remote';
 	import type { PageProps } from './$types';
 
@@ -15,7 +15,7 @@
 	<Field.Group>
 		<Field.Field>
 			<Field.Label for="name">Name</Field.Label>
-			<Input id="name" name="name" type="text" required value={data.name} />
+			<Input id="name" {...updateProfile.fields.name.as('text', data.name)} required />
 		</Field.Field>
 
 		<Field.Field>

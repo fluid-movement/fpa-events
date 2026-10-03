@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
 import DivisionResults from './DivisionResults.svelte';
-import type { DivisionResult, Team } from '$lib/server/fpa-api/types';
+import type { DivisionResult, Team } from '#lib/server/fpa-api/types';
 
 /**
  * The upstream data has three traps — points that mean opposite things under

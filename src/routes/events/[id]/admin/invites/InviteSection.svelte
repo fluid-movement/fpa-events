@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import Section from '$lib/components/layout/Section.svelte';
-	import CopyField from '$lib/components/layout/CopyField.svelte';
-	import DataList, { type DataColumn } from '$lib/components/layout/DataList.svelte';
+	import { Button } from '#lib/components/ui/button';
+	import Section from '#lib/components/layout/Section.svelte';
+	import CopyField from '#lib/components/layout/CopyField.svelte';
+	import DataList, { type DataColumn } from '#lib/components/layout/DataList.svelte';
 	import LinkIcon from '@lucide/svelte/icons/link';
-	import type { Attendee } from '$lib/types/event';
-	import { hoursUntil } from '$lib/utils/dates';
+	import type { Attendee } from '#lib/types/event';
+	import { hoursUntil } from '#lib/utils/dates';
 	import { generateLink, regenerateLink } from './magic-links.remote';
 
 	interface MagicLink {
@@ -39,7 +39,7 @@
 	>
 		{#if !magicLink}
 			<form {...generateLink}>
-				<input type="hidden" name="eventId" value={eventId} />
+				<input {...generateLink.fields.eventId.as('hidden', eventId)} />
 				<Button type="submit" disabled={generateLink.pending > 0}>
 					<LinkIcon />
 					{generateLink.pending > 0 ? 'Generating…' : 'Generate invite link'}
@@ -57,7 +57,7 @@
 						</p>
 					{/if}
 					<form {...regenerateLink}>
-						<input type="hidden" name="eventId" value={eventId} />
+						<input {...regenerateLink.fields.eventId.as('hidden', eventId)} />
 						<Button type="submit" variant="outline" size="sm" disabled={regenerateLink.pending > 0}>
 							{regenerateLink.pending > 0 ? 'Regenerating…' : 'Regenerate'}
 						</Button>

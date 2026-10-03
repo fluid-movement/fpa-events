@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// The `$lib/server/db` alias in vite.config's test block does not win over
+// The `#lib/server/db` alias in vite.config's test block does not win over
 // SvelteKit's own resolution, so mock the module explicitly here.
 const { selectMock } = vi.hoisted(() => ({ selectMock: vi.fn() }));
-vi.mock('$lib/server/db', () => ({ db: { select: selectMock } }));
+vi.mock('#lib/server/db', () => ({ db: { select: selectMock } }));
 
 import { isEventManager, canManageEvent } from './authz';
 

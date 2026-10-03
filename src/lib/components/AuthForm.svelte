@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { Button } from '$lib/components/ui/button';
-	import { captchaEnabled } from '$lib/components/Turnstile.svelte';
+	import { Button } from '#lib/components/ui/button';
+	import { captchaEnabled } from '#lib/components/Turnstile.svelte';
 
 	let {
 		submitLabel,

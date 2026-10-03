@@ -3,13 +3,13 @@ import { redirect } from '@sveltejs/kit';
 import { query, form, getRequestEvent } from '$app/server';
 import { resolve } from '$app/paths';
 import { eq } from 'drizzle-orm';
-import { db } from '$lib/server/db';
-import { events, eventLocations } from '$lib/server/db/schema';
-import { eventFormSchema, parsePictureFields, resolveEventLocationId } from '$lib/server/eventForm';
-import { deleteImage } from '$lib/server/r2';
-import { requireEventManager } from '$lib/server/authz';
-import { requireTurnstile } from '$lib/server/turnstile';
-import { sanitizeRichText } from '$lib/utils/html';
+import { db } from '#lib/server/db';
+import { events, eventLocations } from '#lib/server/db/schema';
+import { eventFormSchema, parsePictureFields, resolveEventLocationId } from '#lib/server/eventForm';
+import { deleteImage } from '#lib/server/r2';
+import { requireEventManager } from '#lib/server/authz';
+import { requireTurnstile } from '#lib/server/turnstile';
+import { sanitizeRichText } from '#lib/utils/html';
 
 /** The event as the manage area edits it: dates as `yyyy-mm-dd`, never null. */
 export const getEvent = query(v.string(), async (id) => {
@@ -77,5 +77,5 @@ export const updateEvent = form(eventFormSchema, async (data) => {
 
 	await getEvent(eventId).refresh();
 	// Back to the read-only record, which is the manage area's index route.
-	redirect(303, resolve(`/events/${eventId}/admin`));
+	redirect(303, resolve('/events/[id]/admin', { id: eventId }));
 });

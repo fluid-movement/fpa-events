@@ -19,8 +19,8 @@
 
 <script lang="ts">
 	import { Tabs as TabsPrimitive } from 'bits-ui';
-	import { cn } from '$lib/utils.js';
-	import { tabIndicator } from '$lib/actions/tab-indicator';
+	import { cn } from '#lib/utils.js';
+	import { tabIndicator } from '#lib/actions/tab-indicator';
 
 	let {
 		ref = $bindable(null),

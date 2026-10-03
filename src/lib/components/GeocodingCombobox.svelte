@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import { autocomplete, type GeocodingResult } from '$lib/geocoding';
-	import { Input } from '$lib/components/ui/input';
+	import { autocomplete, type GeocodingResult } from '#lib/geocoding';
+	import { Input } from '#lib/components/ui/input';
 
 	type Props = {
 		/** Initial text. Not reactive — after mount the field is the source of truth. */

@@ -1,10 +1,10 @@
 import * as v from 'valibot';
 import { query } from '$app/server';
-import { fpaApiGet, FpaApiError } from '$lib/server/fpa-api/client';
-import type { PlayerProfile } from '$lib/server/fpa-api/types';
-import type { ApiResult } from '$lib/rankings/types';
-import { collapsePlacements } from '$lib/results/career';
-import type { PlayerProfileView } from '$lib/results/types';
+import { fpaApiGet, FpaApiError } from '#lib/server/fpa-api/client';
+import type { PlayerProfile } from '#lib/server/fpa-api/types';
+import type { ApiResult } from '#lib/rankings/types';
+import { collapsePlacements } from '#lib/results/career';
+import type { PlayerProfileView } from '#lib/results/types';
 
 /**
  * Player profiles from fpa-api.

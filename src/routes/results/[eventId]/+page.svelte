@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import EventResultsPanel from '$lib/components/results/EventResultsPanel.svelte';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import EventResultsPanel from '#lib/components/results/EventResultsPanel.svelte';
 
 	const eventId = $derived(page.params.eventId!);
 	const division = $derived(page.url.searchParams.get('division') ?? undefined);
@@ -10,7 +10,7 @@
 	const backHref = resolve('/results');
 
 	const divisionHref = (value: string) =>
-		`${resolve(`/results/${eventId}`)}?division=${encodeURIComponent(value)}`;
+		`${resolve('/results/[eventId]', { eventId: eventId })}?division=${encodeURIComponent(value)}`;
 </script>
 
 <svelte:head>

@@ -1,4 +1,4 @@
-import { requireSignedIn } from '$lib/server/authz';
+import { requireSignedIn } from '#lib/server/authz';
 import type { LayoutServerLoad } from './$types';
 
 /** Every settings tab is for the signed-in user only — guarded once, here. */

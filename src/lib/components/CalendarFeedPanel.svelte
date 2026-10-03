@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
-	import { Button } from '$lib/components/ui/button';
-	import CopyField from '$lib/components/layout/CopyField.svelte';
-	import ConfirmSubmit from '$lib/components/layout/ConfirmSubmit.svelte';
+	import { browser } from '$app/env';
+	import { Button } from '#lib/components/ui/button';
+	import CopyField from '#lib/components/layout/CopyField.svelte';
+	import ConfirmSubmit from '#lib/components/layout/ConfirmSubmit.svelte';
 	import CalendarPlusIcon from '@lucide/svelte/icons/calendar-plus';
-	import { regenerateToken } from '$lib/api/calendar.remote';
+	import { regenerateToken } from '#lib/api/calendar.remote';
 
 	let { token, class: className }: { token: string; class?: string } = $props();
 

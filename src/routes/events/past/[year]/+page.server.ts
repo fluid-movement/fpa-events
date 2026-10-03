@@ -1,12 +1,12 @@
 import { and, gte, lt } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
-import { events } from '$lib/server/db/schema';
+import { events } from '#lib/server/db/schema';
 import {
 	getArchiveYears,
 	groupEventsByMonth,
 	listEventsWithAttendeeCount,
 	withUserStatus
-} from '$lib/server/utils/events';
+} from '#lib/server/utils/events';
 import type { PageServerLoad } from './$types';
 
 export const load = (async ({ params, locals }) => {
@@ -24,7 +24,7 @@ export const load = (async ({ params, locals }) => {
 	]);
 
 	return {
-		// Drives the mobile top bar (see $lib/config/pageTitle).
+		// Drives the mobile top bar (see #lib/config/pageTitle).
 		title: `Past events ${year}`,
 		eventsByMonth: groupEventsByMonth(await withUserStatus(inYear, locals.user?.id)),
 		archiveYears,

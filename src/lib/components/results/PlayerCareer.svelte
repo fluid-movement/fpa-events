@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import EmptyState from '$lib/components/layout/EmptyState.svelte';
-	import { rankTint } from '$lib/rankings/playerList.svelte';
-	import { parseApiDate } from '$lib/utils/dates';
-	import { UNKNOWN_PLAYER_LABEL, type CareerEntry } from '$lib/results/types';
+	import EmptyState from '#lib/components/layout/EmptyState.svelte';
+	import { rankTint } from '#lib/rankings/playerList.svelte';
+	import { parseApiDate } from '#lib/utils/dates';
+	import { UNKNOWN_PLAYER_LABEL, type CareerEntry } from '#lib/results/types';
 
 	let { career }: { career: CareerEntry[] } = $props();
 
@@ -22,7 +22,7 @@
 		{#each career as entry (entry.eventId + entry.division)}
 			<li>
 				<a
-					href={resolve(`/results/${entry.eventId}`)}
+					href={resolve('/results/[eventId]', { eventId: entry.eventId })}
 					class="surface-row flex items-center gap-3 rounded-xl px-4 py-3"
 				>
 					<span

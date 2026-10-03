@@ -1,8 +1,8 @@
 import { getRequestEvent } from '$app/server';
 import { error, redirect } from '@sveltejs/kit';
 import { resolve } from '$app/paths';
-import { db } from '$lib/server/db';
-import { events, eventUser } from '$lib/server/db/schema';
+import { db } from '#lib/server/db';
+import { events, eventUser } from '#lib/server/db/schema';
 import { and, eq } from 'drizzle-orm';
 
 type SessionUser = NonNullable<App.Locals['user']>;

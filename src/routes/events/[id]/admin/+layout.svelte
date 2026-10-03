@@ -1,20 +1,20 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { Button } from '$lib/components/ui/button';
-	import { Badge } from '$lib/components/ui/badge';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import PageHeader from '$lib/components/layout/PageHeader.svelte';
-	import SegmentedTabs from '$lib/components/layout/SegmentedTabs.svelte';
+	import { Button } from '#lib/components/ui/button';
+	import { Badge } from '#lib/components/ui/badge';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import PageHeader from '#lib/components/layout/PageHeader.svelte';
+	import SegmentedTabs from '#lib/components/layout/SegmentedTabs.svelte';
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
 	import MapPinIcon from '@lucide/svelte/icons/map-pin';
 	import SetupChecklist from './SetupChecklist.svelte';
 	import type { ChecklistItem } from './SetupChecklist.svelte';
-	import { Skeleton } from '$lib/components/ui/skeleton';
+	import { Skeleton } from '#lib/components/ui/skeleton';
 	import { getEvent } from './event-details.remote';
 	import { listEventLocations } from './schedule/locations.remote';
-	import { formatDateRange } from '$lib/utils/dates';
-	import { coOrganizers } from '$lib/utils/attendees';
+	import { formatDateRange } from '#lib/utils/dates';
+	import { coOrganizers } from '#lib/utils/attendees';
 	import type { LayoutProps } from './$types';
 
 	let { data, children }: LayoutProps = $props();
@@ -29,7 +29,7 @@
 	const details = $derived(await getEvent(event.id));
 	const locations = $derived(await listEventLocations(event.id));
 
-	const base = $derived(resolve(`/events/${event.id}/admin`));
+	const base = $derived(resolve('/events/[id]/admin', { id: event.id }));
 
 	// Sourced from `getEvent` rather than the layout load so that saving on the
 	// edit form updates the header immediately.
@@ -141,7 +141,7 @@
 				{/if}
 			{/snippet}
 			{#snippet actions()}
-				<Button href={resolve(`/events/${event.id}`)} variant="outline" size="sm">
+				<Button href={resolve('/events/[id]', { id: event.id })} variant="outline" size="sm">
 					View public page
 				</Button>
 			{/snippet}

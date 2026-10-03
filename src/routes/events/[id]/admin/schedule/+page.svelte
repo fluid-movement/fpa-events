@@ -1,16 +1,16 @@
 <script lang="ts">
-	import * as Dialog from '$lib/components/ui/dialog';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
-	import { Switch } from '$lib/components/ui/switch';
+	import * as Dialog from '#lib/components/ui/dialog';
+	import { Button } from '#lib/components/ui/button';
+	import { Input } from '#lib/components/ui/input';
+	import { Label } from '#lib/components/ui/label';
+	import { Switch } from '#lib/components/ui/switch';
 	import LocationsList from './LocationsList.svelte';
-	import ScheduleList from '$lib/components/schedule/ScheduleList.svelte';
-	import VenueLocationPicker from '$lib/components/VenueLocationPicker.svelte';
+	import ScheduleList from '#lib/components/schedule/ScheduleList.svelte';
+	import VenueLocationPicker from '#lib/components/VenueLocationPicker.svelte';
 	import { listEventLocations, createEventLocation } from './locations.remote';
 	import { addSchedule, updateSchedule, deleteSchedule } from './schedule.remote';
 	import { getEvent } from '../event-details.remote';
-	import { daysBetween } from '$lib/utils/dates';
+	import { daysBetween } from '#lib/utils/dates';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -67,29 +67,33 @@
 			</Dialog.Description>
 		</Dialog.Header>
 		<form {...createEventLocation} onsubmit={() => (showVenuePicker = false)} class="space-y-4">
-			<input type="hidden" name="eventId" value={event.id} />
+			<input {...createEventLocation.fields.eventId.as('hidden', event.id)} />
 
 			<!-- Exactly one mode renders at a time, so `name`/`address` never collide.
 			     The picker supplies its own name, address and coordinate fields. -->
 			{#if useMapForLocation}
-				<VenueLocationPicker lat={eventLat} lng={eventLng} />
+				<VenueLocationPicker fields={createEventLocation.fields} lat={eventLat} lng={eventLng} />
 			{:else}
 				<div class="space-y-3">
 					<div class="space-y-1.5">
 						<Label for="location-name">Location name</Label>
 						<Input
 							id="location-name"
-							name="name"
 							placeholder="Main field, Sports hall, Beach…"
 							required
 							data-testid="location-name-input"
+							{...createEventLocation.fields.name.as('text')}
 						/>
 					</div>
 					<div class="space-y-1.5">
 						<Label for="location-address">
 							Address <span class="text-muted-foreground">(optional)</span>
 						</Label>
-						<Input id="location-address" name="address" placeholder="Street, city" />
+						<Input
+							id="location-address"
+							placeholder="Street, city"
+							{...createEventLocation.fields.address.as('text')}
+						/>
 					</div>
 				</div>
 			{/if}

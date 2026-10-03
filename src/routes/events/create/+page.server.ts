@@ -1,4 +1,4 @@
-import { requireSignedIn } from '$lib/server/authz';
+import { requireSignedIn } from '#lib/server/authz';
 import type { PageServerLoad } from './$types';
 
 export const load = (({ locals }) => {

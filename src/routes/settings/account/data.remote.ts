@@ -2,10 +2,10 @@ import * as v from 'valibot';
 import { form } from '$app/server';
 import { redirect } from '@sveltejs/kit';
 import { resolve } from '$app/paths';
-import { db } from '$lib/server/db';
-import { events, user, verification } from '$lib/server/db/schema';
+import { db } from '#lib/server/db';
+import { events, user, verification } from '#lib/server/db/schema';
 import { eq } from 'drizzle-orm';
-import { requireSignedInRequest } from '$lib/server/authz';
+import { requireSignedInRequest } from '#lib/server/authz';
 
 export const deleteAccount = form(v.object({}), async () => {
 	const signedIn = requireSignedInRequest();

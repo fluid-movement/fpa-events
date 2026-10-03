@@ -1,15 +1,27 @@
 <script lang="ts">
 	import 'leaflet/dist/leaflet.css';
 	import { onMount, untrack } from 'svelte';
-	import type { GeocodingResult } from '$lib/geocoding';
+	import type { GeocodingResult } from '#lib/geocoding';
 	import type { Map as LeafletMap, Marker } from 'leaflet';
-	import { addOsmTiles, loadLeaflet } from '$lib/leaflet';
+	import { addOsmTiles, loadLeaflet } from '#lib/leaflet';
 	import GeocodingCombobox from './GeocodingCombobox.svelte';
+	import type { RemoteFormFields } from '$app/server';
 
 	/** Central London — a neutral starting view when the event has no position. */
 	const FALLBACK_POSITION = { lat: 51.505, lng: -0.09 };
 
+	/** The subset of the event-location form this picker writes. */
+	type VenueFields = {
+		name: string;
+		address?: string;
+		latitude?: string;
+		longitude?: string;
+	};
+
 	type Props = {
+		// SvelteKit 3 rejects form fields not built by `fields.<name>.as(...)`,
+		// so the owning form hands its fields down.
+		fields: RemoteFormFields<VenueFields>;
 		/** Starting values only; the fields below are the source of truth after mount. */
 		name?: string;
 		address?: string;
@@ -18,6 +30,7 @@
 	};
 
 	let {
+		fields,
 		name = '',
 		address = '',
 		lat = FALLBACK_POSITION.lat,
@@ -98,10 +111,8 @@
 		<label for="venue-name" class="text-sm font-medium text-foreground">Venue name</label>
 		<input
 			id="venue-name"
-			type="text"
-			name="name"
-			bind:value={nameValue}
 			placeholder="e.g. Central Park, Disc Golf Field 3"
+			{...fields.name.as('text', nameValue)}
 			class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
 		/>
 	</div>
@@ -114,7 +125,7 @@
 	</div>
 
 	<!-- Hidden fields for form submission -->
-	<input type="hidden" name="address" value={addressValue} />
-	<input type="hidden" name="latitude" value={latValue} />
-	<input type="hidden" name="longitude" value={lngValue} />
+	<input {...fields.address.as('hidden', addressValue)} />
+	<input {...fields.latitude.as('hidden', String(latValue))} />
+	<input {...fields.longitude.as('hidden', String(lngValue))} />
 </div>

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Badge } from '$lib/components/ui/badge';
-	import { daysUntil, countdownLabel } from '$lib/utils/dates';
+	import { Badge } from '#lib/components/ui/badge';
+	import { daysUntil, countdownLabel } from '#lib/utils/dates';
 
 	let { startDate, class: className }: { startDate: Date | string; class?: string } = $props();
 

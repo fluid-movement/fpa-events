@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { form, getRequestEvent } from '$app/server';
-import { requireSignedInRequest } from '$lib/server/authz';
+import { requireSignedInRequest } from '#lib/server/authz';
 
 /**
  * Name changes go through Better Auth's own endpoint rather than a direct

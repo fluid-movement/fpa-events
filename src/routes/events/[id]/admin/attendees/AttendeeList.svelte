@@ -1,8 +1,8 @@
 <script lang="ts">
-	import DataList, { type DataColumn } from '$lib/components/layout/DataList.svelte';
-	import EmptyState from '$lib/components/layout/EmptyState.svelte';
+	import DataList, { type DataColumn } from '#lib/components/layout/DataList.svelte';
+	import EmptyState from '#lib/components/layout/EmptyState.svelte';
 	import UsersIcon from '@lucide/svelte/icons/users';
-	import type { Attendee } from '$lib/types/event';
+	import type { Attendee } from '#lib/types/event';
 
 	interface Props {
 		attendees: Attendee[];

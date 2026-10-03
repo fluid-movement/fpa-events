@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { Badge } from '$lib/components/ui/badge';
-	import EmptyState from '$lib/components/layout/EmptyState.svelte';
+	import { Badge } from '#lib/components/ui/badge';
+	import EmptyState from '#lib/components/layout/EmptyState.svelte';
 	import SearchXIcon from '@lucide/svelte/icons/search-x';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
-	import { formatApiDateRange } from '$lib/utils/dates';
-	import type { ResultEventRow } from '$lib/results/types';
+	import { formatApiDateRange } from '#lib/utils/dates';
+	import type { ResultEventRow } from '#lib/results/types';
 
 	let { rows }: { rows: ResultEventRow[] } = $props();
 </script>
@@ -26,7 +26,7 @@
 		{#each rows as row (row.id)}
 			<li>
 				<a
-					href={resolve(`/results/${row.id}`)}
+					href={resolve('/results/[eventId]', { eventId: row.id })}
 					class="surface-row flex items-center gap-3 rounded-xl px-4 py-3"
 					data-testid="results-row-{row.id}"
 				>

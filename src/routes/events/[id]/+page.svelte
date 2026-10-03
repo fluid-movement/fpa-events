@@ -1,18 +1,18 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { Button } from '$lib/components/ui/button';
-	import { Badge } from '$lib/components/ui/badge';
-	import * as Tabs from '$lib/components/ui/tabs';
-	import ScheduleList from '$lib/components/schedule/ScheduleList.svelte';
-	import RichContent from '$lib/components/RichContent.svelte';
+	import { Button } from '#lib/components/ui/button';
+	import { Badge } from '#lib/components/ui/badge';
+	import * as Tabs from '#lib/components/ui/tabs';
+	import ScheduleList from '#lib/components/schedule/ScheduleList.svelte';
+	import RichContent from '#lib/components/RichContent.svelte';
 	import { toggleRsvp } from './data.remote';
 	import type { PageProps } from './$types';
-	import { formatDateRange } from '$lib/utils/dates';
-	import { attendeeSummary, firstName } from '$lib/utils/attendees';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import PageHeader from '$lib/components/layout/PageHeader.svelte';
-	import EmptyState from '$lib/components/layout/EmptyState.svelte';
+	import { formatDateRange } from '#lib/utils/dates';
+	import { attendeeSummary, firstName } from '#lib/utils/attendees';
+	import * as Dialog from '#lib/components/ui/dialog';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import PageHeader from '#lib/components/layout/PageHeader.svelte';
+	import EmptyState from '#lib/components/layout/EmptyState.svelte';
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
 	import MapPinIcon from '@lucide/svelte/icons/map-pin';
 	import HeartIcon from '@lucide/svelte/icons/heart';
@@ -119,7 +119,7 @@
 				{#snippet actions()}
 					{#if canManage}
 						<Button
-							href={resolve(`/events/${event.id}/admin`)}
+							href={resolve('/events/[id]/admin', { id: event.id })}
 							variant="outline"
 							size="sm"
 							data-testid="manage-event-link"

@@ -1,13 +1,14 @@
 <script lang="ts" generics="FormInput extends RemoteFormInput">
 	import { untrack } from 'svelte';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import * as Field from '$lib/components/ui/field';
-	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
-	import * as Select from '$lib/components/ui/select';
-	import type { ScheduleItem, EventLocation } from '$lib/types/event';
-	import { toISODate } from '$lib/utils/dates';
-	import type { RemoteForm, RemoteFormInput } from '@sveltejs/kit';
+	import { Button } from '#lib/components/ui/button';
+	import { Input } from '#lib/components/ui/input';
+	import * as Field from '#lib/components/ui/field';
+	import RichTextEditor from '#lib/components/RichTextEditor.svelte';
+	import * as Select from '#lib/components/ui/select';
+	import type { ScheduleItem, EventLocation } from '#lib/types/event';
+	import { toISODate } from '#lib/utils/dates';
+	import type { RemoteForm, RemoteFormInput, RemoteFormFields } from '$app/server';
+	import type { ScheduleFormInput } from './types';
 
 	interface Props {
 		mode: 'add' | 'edit';
@@ -32,6 +33,15 @@
 		onCancel,
 		onSuccess
 	}: Props = $props();
+
+	/**
+	 * `formData` stays generic so `ScheduleList` can hand over either the add or
+	 * the edit form, but `RemoteFormFieldsRoot` does not resolve field names
+	 * through an unresolved type parameter — so the template gets a concrete
+	 * view of the fields both schedule schemas share. `ScheduleFormInput`
+	 * documents that shared shape; the add form simply never renders `id`.
+	 */
+	const fields = $derived(formData.fields as unknown as RemoteFormFields<ScheduleFormInput>);
 
 	const editing = $derived(mode === 'edit' ? item : undefined);
 	const timeOf = (date: Date | string) => new Date(date).toTimeString().slice(0, 5);
@@ -87,9 +97,9 @@
 		? 'surface space-y-4 rounded-xl p-4'
 		: 'space-y-4 rounded-xl border border-dashed bg-muted/30 p-4'}
 >
-	{#if eventId}<input type="hidden" name="eventId" value={eventId} />{/if}
+	{#if eventId}<input {...fields.eventId.as('hidden', eventId)} />{/if}
 	{#if mode === 'edit'}
-		<input type="hidden" name="id" value={item?.id} />
+		<input {...fields.id.as('hidden', item?.id ?? '')} />
 	{/if}
 
 	<Field.Group class="gap-4">
@@ -97,10 +107,9 @@
 			<Field.Label for="schedule-name">Name *</Field.Label>
 			<Input
 				id="schedule-name"
-				name="name"
-				value={editing?.name}
 				required
 				placeholder="Activity name"
+				{...fields.name.as('text', editing?.name ?? '')}
 			/>
 		</Field.Field>
 
@@ -142,14 +151,13 @@
 
 		<!-- Hidden date inputs -->
 		<input
-			type="hidden"
-			name="startDate"
-			value={selectedDay && startTime ? `${selectedDay}T${startTime}` : ''}
+			{...fields.startDate.as(
+				'hidden',
+				selectedDay && startTime ? `${selectedDay}T${startTime}` : ''
+			)}
 		/>
 		<input
-			type="hidden"
-			name="endDate"
-			value={selectedDay && endTime ? `${selectedDay}T${endTime}` : ''}
+			{...fields.endDate.as('hidden', selectedDay && endTime ? `${selectedDay}T${endTime}` : '')}
 		/>
 
 		<Field.Field>
@@ -167,13 +175,13 @@
 					{/each}
 				</Select.Content>
 			</Select.Root>
-			<input type="hidden" name="locationId" value={locationId} />
+			<input {...fields.locationId.as('hidden', locationId)} />
 		</Field.Field>
 
 		<Field.Field>
 			<Field.Label>Description</Field.Label>
 			<RichTextEditor
-				name="description"
+				field={fields.description}
 				value={mode === 'edit' ? (item?.description ?? '') : ''}
 				placeholder="Optional"
 			/>

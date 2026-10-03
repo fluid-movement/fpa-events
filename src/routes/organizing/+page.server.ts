@@ -1,5 +1,5 @@
-import { requireSignedIn } from '$lib/server/authz';
-import { organizingEvents } from '$lib/server/utils/events';
+import { requireSignedIn } from '#lib/server/authz';
+import { organizingEvents } from '#lib/server/utils/events';
 import type { PageServerLoad } from './$types';
 
 export const load = (async ({ locals }) => {

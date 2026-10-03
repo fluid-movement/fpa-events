@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { type DataColumn } from '$lib/components/layout/DataList.svelte';
+	import { type DataColumn } from '#lib/components/layout/DataList.svelte';
 	import PlayerLeaderboard from './PlayerLeaderboard.svelte';
-	import { rankTint } from '$lib/rankings/playerList.svelte';
-	import type { RatingRow } from '$lib/rankings/types';
+	import { rankTint } from '#lib/rankings/playerList.svelte';
+	import type { RatingRow } from '#lib/rankings/types';
 
 	let { rows }: { rows: RatingRow[] } = $props();
 
@@ -34,7 +34,7 @@
 			header: 'Player',
 			value: (r) => r.fullName,
 			slot: 'primary',
-			href: (r) => resolve(`/players/${r.playerId}`)
+			href: (r) => resolve('/players/[playerId]', { playerId: r.playerId })
 		},
 		{
 			header: 'Rating',

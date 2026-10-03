@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { useSidebar } from '$lib/components/ui/sidebar/context.svelte.js';
-	import { routeActive } from '$lib/config/sidebarMenu';
+	import { useSidebar } from '#lib/components/ui/sidebar/context.svelte.js';
+	import { routeActive } from '#lib/config/sidebarMenu';
 	import HouseIcon from '@lucide/svelte/icons/house';
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
 	import CircleUserRoundIcon from '@lucide/svelte/icons/circle-user-round';

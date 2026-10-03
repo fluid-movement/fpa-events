@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { joinScoringResults } from './breakdown';
-import type { RankingBreakdownEntry } from '$lib/server/fpa-api/types';
-import type { CareerEntry } from '$lib/results/types';
+import type { RankingBreakdownEntry } from '#lib/server/fpa-api/types';
+import type { CareerEntry } from '#lib/results/types';
 
 const entry = (over: Partial<RankingBreakdownEntry> = {}): RankingBreakdownEntry => ({
 	resultId: 'res-1',

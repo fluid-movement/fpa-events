@@ -3,14 +3,14 @@ import type {
 	PlayerRanking,
 	PlayerRating,
 	TeamMember
-} from '$lib/server/fpa-api/types';
+} from '#lib/server/fpa-api/types';
 
 /**
  * Shared types and defaults for the results pages.
  *
  * These live outside the `.remote.ts` files because SvelteKit requires every
  * export from one to be a remote function — the same constraint that produced
- * `$lib/rankings/types.ts`. `ApiResult` is reused from there rather than
+ * `#lib/rankings/types.ts`. `ApiResult` is reused from there rather than
  * redefined; an fpa-api outage is modelled identically on both features.
  */
 

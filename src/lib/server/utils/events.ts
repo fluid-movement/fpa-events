@@ -1,7 +1,7 @@
-import type { Event, EventUserStatus } from '$lib/types/event';
-import { db } from '$lib/server/db';
-import { events, eventUser } from '$lib/server/db/schema';
-import { groupBy } from '$lib/utils/collections';
+import type { Event, EventUserStatus } from '#lib/types/event';
+import { db } from '#lib/server/db';
+import { events, eventUser } from '#lib/server/db/schema';
+import { groupBy } from '#lib/utils/collections';
 import {
 	and,
 	asc,

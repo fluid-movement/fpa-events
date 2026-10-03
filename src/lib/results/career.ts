@@ -1,4 +1,4 @@
-import type { PlayerPlacement } from '$lib/server/fpa-api/types';
+import type { PlayerPlacement } from '#lib/server/fpa-api/types';
 import type { CareerEntry } from './types';
 
 /**

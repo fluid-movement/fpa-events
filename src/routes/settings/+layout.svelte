@@ -2,9 +2,9 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import type { Snippet } from 'svelte';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import PageHeader from '$lib/components/layout/PageHeader.svelte';
-	import SegmentedTabs from '$lib/components/layout/SegmentedTabs.svelte';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import PageHeader from '#lib/components/layout/PageHeader.svelte';
+	import SegmentedTabs from '#lib/components/layout/SegmentedTabs.svelte';
 
 	let { children }: { children: Snippet } = $props();
 

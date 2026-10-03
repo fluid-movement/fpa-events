@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import { Label } from '$lib/components/ui/label';
+	import { Button } from '#lib/components/ui/button';
+	import { Label } from '#lib/components/ui/label';
 	import CopyIcon from '@lucide/svelte/icons/copy';
 	import CheckIcon from '@lucide/svelte/icons/check';
-	import { CopyToClipboard } from '$lib/hooks/copy-to-clipboard.svelte';
-	import { cn } from '$lib/utils';
+	import { CopyToClipboard } from '#lib/hooks/copy-to-clipboard.svelte';
+	import { cn } from '#lib/utils';
 
 	let {
 		value,

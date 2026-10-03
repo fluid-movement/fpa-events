@@ -1,6 +1,6 @@
 <script lang="ts" generics="Input extends RemoteFormInput">
 	import type { Snippet } from 'svelte';
-	import type { RemoteForm, RemoteFormInput } from '@sveltejs/kit';
+	import type { RemoteForm, RemoteFormInput, RemoteFormField } from '$app/server';
 	import ConfirmDialog, { type ConfirmTestIds } from './ConfirmDialog.svelte';
 
 	let {
@@ -45,6 +45,17 @@
 		icon?: Snippet;
 	} = $props();
 
+	/**
+	 * SvelteKit 3 rejects any form field not built by `fields.<name>.as(...)` —
+	 * it encodes the form id and a type prefix into the field's `name`. `form`
+	 * is generic here, so its fields object cannot be indexed by an arbitrary
+	 * key at the type level; at runtime it is a proxy that accepts any name.
+	 * Callers keep passing a plain `{ name: value }` map.
+	 */
+	const fieldsProxy = $derived(
+		form.fields as unknown as Record<string, RemoteFormField<string> | undefined>
+	);
+
 	let formEl: HTMLFormElement | undefined = $state();
 
 	function confirm() {
@@ -62,7 +73,7 @@
 -->
 <form bind:this={formEl} {...form} class="hidden">
 	{#each Object.entries(fields) as [name, value] (name)}
-		<input type="hidden" {name} value={value ?? ''} />
+		<input {...fieldsProxy[name]!.as('hidden', value == null ? '' : String(value))} />
 	{/each}
 </form>
 

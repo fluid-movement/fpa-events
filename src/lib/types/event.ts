@@ -1,9 +1,9 @@
-import type { events } from '$lib/server/db/schema';
+import type { events } from '#lib/server/db/schema';
 
 /**
  * Shared shapes for the event UI.
  *
- * The import above is type-only, so nothing from `$lib/server` reaches the
+ * The import above is type-only, so nothing from `#lib/server` reaches the
  * browser bundle — it just keeps these in step with the table definitions.
  */
 export type Event = typeof events.$inferSelect;

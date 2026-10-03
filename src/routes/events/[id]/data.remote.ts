@@ -1,10 +1,10 @@
 import * as v from 'valibot';
 import { form, getRequestEvent } from '$app/server';
 import { error } from '@sveltejs/kit';
-import { db } from '$lib/server/db';
-import { events, eventUser } from '$lib/server/db/schema';
+import { db } from '#lib/server/db';
+import { events, eventUser } from '#lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { requireSignedInRequest } from '$lib/server/authz';
+import { requireSignedInRequest } from '#lib/server/authz';
 
 /** RSVP on, or off again — the public event page's single write. */
 export const toggleRsvp = form(v.object({}), async () => {

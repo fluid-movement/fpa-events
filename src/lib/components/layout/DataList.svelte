@@ -44,7 +44,7 @@
 </script>
 
 <script lang="ts" generics="T">
-	import { cn } from '$lib/utils';
+	import { cn } from '#lib/utils';
 
 	let {
 		rows,

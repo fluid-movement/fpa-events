@@ -1,11 +1,17 @@
 <script lang="ts">
+	import type { RemoteFormFields } from '$app/server';
+	import type { EventFormData } from '#lib/server/eventForm';
+
 	interface Props {
+		// SvelteKit 3 rejects form fields not built by `fields.<name>.as(...)`,
+		// so the owning form hands its fields down.
+		fields: RemoteFormFields<EventFormData>;
 		currentUrl?: string | null;
 		currentWidth?: number | null;
 		currentHeight?: number | null;
 	}
 
-	let { currentUrl = null, currentWidth = null, currentHeight = null }: Props = $props();
+	let { fields, currentUrl = null, currentWidth = null, currentHeight = null }: Props = $props();
 
 	type Upload = { url: string; width: number; height: number };
 
@@ -118,7 +124,7 @@
 		<p class="text-sm text-destructive">{uploadError}</p>
 	{/if}
 
-	<input type="hidden" name="picture" value={pictureUrl} />
-	<input type="hidden" name="pictureWidth" value={pictureWidth || ''} />
-	<input type="hidden" name="pictureHeight" value={pictureHeight || ''} />
+	<input {...fields.picture.as('hidden', pictureUrl)} />
+	<input {...fields.pictureWidth.as('hidden', String(pictureWidth || ''))} />
+	<input {...fields.pictureHeight.as('hidden', String(pictureHeight || ''))} />
 </div>

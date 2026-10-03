@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { goto } from '$app/navigation';
-	import * as Select from '$lib/components/ui/select';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import PageHeader from '$lib/components/layout/PageHeader.svelte';
-	import SegmentedTabs from '$lib/components/layout/SegmentedTabs.svelte';
-	import EventCalendar from '$lib/components/EventCalendar.svelte';
+	import * as Select from '#lib/components/ui/select';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import PageHeader from '#lib/components/layout/PageHeader.svelte';
+	import SegmentedTabs from '#lib/components/layout/SegmentedTabs.svelte';
+	import EventCalendar from '#lib/components/EventCalendar.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -14,7 +14,11 @@
 
 	const tabs = $derived([
 		{ label: 'Upcoming', href: resolve('/events'), match: ['upcoming'] },
-		{ label: 'Past', href: resolve(`/events/past/${mostRecentYear}`), match: ['past'] }
+		{
+			label: 'Past',
+			href: resolve('/events/past/[year]', { year: String(mostRecentYear) }),
+			match: ['past']
+		}
 	]);
 </script>
 
@@ -32,7 +36,7 @@
 						type="single"
 						value={String(data.year)}
 						onValueChange={(val) => {
-							if (val) goto(resolve(`/events/past/${val}`));
+							if (val) goto(resolve('/events/past/[year]', { year: String(val) }));
 						}}
 					>
 						<Select.Trigger class="w-32">

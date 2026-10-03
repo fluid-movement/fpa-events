@@ -1,8 +1,8 @@
 <script lang="ts">
-	import SegmentedTabs from '$lib/components/layout/SegmentedTabs.svelte';
+	import SegmentedTabs from '#lib/components/layout/SegmentedTabs.svelte';
 	import RankingsTable from './RankingsTable.svelte';
-	import ServiceUnavailable from '$lib/components/layout/ServiceUnavailable.svelte';
-	import { getSeries, getRankings } from '$lib/api/rankings.remote';
+	import ServiceUnavailable from '#lib/components/layout/ServiceUnavailable.svelte';
+	import { getSeries, getRankings } from '#lib/api/rankings.remote';
 
 	interface Props {
 		/** Series from the URL. Validated server-side; falls back to the default. */

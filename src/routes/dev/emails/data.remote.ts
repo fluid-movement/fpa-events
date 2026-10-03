@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { form } from '$app/server';
 import { error } from '@sveltejs/kit';
-import { sendTestEmail } from '$lib/server/email';
+import { sendTestEmail } from '#lib/server/email';
 
 const schema = v.object({
 	to: v.pipe(v.string(), v.email()),

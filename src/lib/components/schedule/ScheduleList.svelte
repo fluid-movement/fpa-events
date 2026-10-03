@@ -2,18 +2,18 @@
 	lang="ts"
 	generics="AddInput extends RemoteFormInput, UpdateInput extends RemoteFormInput, DeleteInput extends RemoteFormInput"
 >
-	import { Button } from '$lib/components/ui/button';
+	import { Button } from '#lib/components/ui/button';
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import ScheduleItemCard from './ScheduleItemCard.svelte';
-	import ConfirmSubmit from '$lib/components/layout/ConfirmSubmit.svelte';
-	import EmptyState from '$lib/components/layout/EmptyState.svelte';
+	import ConfirmSubmit from '#lib/components/layout/ConfirmSubmit.svelte';
+	import EmptyState from '#lib/components/layout/EmptyState.svelte';
 	import TrashIcon from '@lucide/svelte/icons/trash-2';
 	import CalendarClockIcon from '@lucide/svelte/icons/calendar-clock';
 	import ScheduleItemForm from './ScheduleItemForm.svelte';
-	import type { ScheduleItem, EventLocation } from '$lib/types/event';
-	import { toISODate } from '$lib/utils/dates';
-	import { groupBy } from '$lib/utils/collections';
-	import type { RemoteForm, RemoteFormInput } from '@sveltejs/kit';
+	import type { ScheduleItem, EventLocation } from '#lib/types/event';
+	import { toISODate } from '#lib/utils/dates';
+	import { groupBy } from '#lib/utils/collections';
+	import type { RemoteForm, RemoteFormInput } from '$app/server';
 
 	interface Props {
 		schedules: ScheduleItem[];

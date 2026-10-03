@@ -1,9 +1,9 @@
 import * as v from 'valibot';
 import { form, query } from '$app/server';
-import { db } from '$lib/server/db';
-import { scheduleLocations } from '$lib/server/db/schema';
+import { db } from '#lib/server/db';
+import { scheduleLocations } from '#lib/server/db/schema';
 import { eq } from 'drizzle-orm';
-import { requireEventManager } from '$lib/server/authz';
+import { requireEventManager } from '#lib/server/authz';
 
 /**
  * Coordinates are optional — a venue can be a plain name.

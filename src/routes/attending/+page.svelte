@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { Button } from '$lib/components/ui/button';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import PageHeader from '$lib/components/layout/PageHeader.svelte';
-	import DividerLabel from '$lib/components/layout/DividerLabel.svelte';
-	import EmptyState from '$lib/components/layout/EmptyState.svelte';
-	import EventCalendarCard from '$lib/components/EventCalendarCard.svelte';
-	import CountdownBadge from '$lib/components/CountdownBadge.svelte';
-	import CalendarFeedPanel from '$lib/components/CalendarFeedPanel.svelte';
+	import { Button } from '#lib/components/ui/button';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import PageHeader from '#lib/components/layout/PageHeader.svelte';
+	import DividerLabel from '#lib/components/layout/DividerLabel.svelte';
+	import EmptyState from '#lib/components/layout/EmptyState.svelte';
+	import EventCalendarCard from '#lib/components/EventCalendarCard.svelte';
+	import CountdownBadge from '#lib/components/CountdownBadge.svelte';
+	import CalendarFeedPanel from '#lib/components/CalendarFeedPanel.svelte';
 	import HeartIcon from '@lucide/svelte/icons/heart';
-	import { regenerateToken } from '$lib/api/calendar.remote';
+	import { regenerateToken } from '#lib/api/calendar.remote';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();

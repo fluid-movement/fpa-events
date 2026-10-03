@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { collapsePlacements } from './career';
-import type { PlayerPlacement } from '$lib/server/fpa-api/types';
+import type { PlayerPlacement } from '#lib/server/fpa-api/types';
 
 const placement = (
 	over: Partial<PlayerPlacement> & Pick<PlayerPlacement, 'eventId' | 'round' | 'roundName'>

@@ -1,16 +1,16 @@
-import { env } from '$env/dynamic/private';
+import { MAILGUN_API_KEY, MAILGUN_DOMAIN, MAILGUN_FROM_EMAIL } from '$app/env/private';
 import Mailgun from 'mailgun.js';
-import { getTemplate, type EmailTemplateId } from '$lib/email/templates';
+import { getTemplate, type EmailTemplateId } from '#lib/email/templates';
 
 type Message = { to: string; subject: string; html: string };
 
 let client: ReturnType<InstanceType<typeof Mailgun>['client']> | null = null;
 
 function getClient() {
-	if (!client && env.MAILGUN_API_KEY) {
+	if (!client && MAILGUN_API_KEY) {
 		client = new Mailgun(FormData).client({
 			username: 'api',
-			key: env.MAILGUN_API_KEY,
+			key: MAILGUN_API_KEY,
 			url: 'https://api.eu.mailgun.net'
 		});
 	}
@@ -43,8 +43,8 @@ export async function sendEmail(message: Message): Promise<void> {
 	}
 
 	try {
-		await mailgun.messages.create(env.MAILGUN_DOMAIN!, {
-			from: env.MAILGUN_FROM_EMAIL || `noreply@${env.MAILGUN_DOMAIN}`,
+		await mailgun.messages.create(MAILGUN_DOMAIN!, {
+			from: MAILGUN_FROM_EMAIL || `noreply@${MAILGUN_DOMAIN}`,
 			...message
 		});
 		console.log(`[email] Sent "${message.subject}" to ${message.to}`);

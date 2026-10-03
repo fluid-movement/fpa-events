@@ -11,4 +11,7 @@
 	const details = $derived(await getEvent(event.id));
 </script>
 
-<EventDetailsForm event={details} onCancel={() => goto(resolve(`/events/${event.id}/admin`))} />
+<EventDetailsForm
+	event={details}
+	onCancel={() => goto(resolve('/events/[id]/admin', { id: event.id }))}
+/>

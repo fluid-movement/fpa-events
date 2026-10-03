@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { tabsListVariants, tabsTriggerVariants } from '$lib/components/ui/tabs';
-	import { tabIndicator } from '$lib/actions/tab-indicator';
-	import { cn } from '$lib/utils';
+	import { tabsListVariants, tabsTriggerVariants } from '#lib/components/ui/tabs';
+	import { tabIndicator } from '#lib/actions/tab-indicator';
+	import { cn } from '#lib/utils';
 
 	export type SegmentedTab = {
 		label: string;

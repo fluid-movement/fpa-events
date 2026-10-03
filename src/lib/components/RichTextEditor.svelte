@@ -2,13 +2,20 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { Editor, type ChainedCommands } from '@tiptap/core';
 	import StarterKit from '@tiptap/starter-kit';
-	import { cn } from '$lib/utils';
+	import { cn } from '#lib/utils';
+	import type { RemoteFormField } from '$app/server';
 
 	let {
-		name,
+		field,
 		value = '',
 		placeholder = 'Write something...'
-	}: { name: string; value?: string; placeholder?: string } = $props();
+	}: {
+		// SvelteKit 3 rejects form fields not built by `fields.<name>.as(...)`,
+		// so callers pass the field accessor rather than a bare name.
+		field: RemoteFormField<string>;
+		value?: string;
+		placeholder?: string;
+	} = $props();
 
 	type ToolbarItem =
 		| { separator: true }
@@ -125,7 +132,7 @@
 </div>
 
 <!-- Hidden input for form submission -->
-<input type="hidden" {name} value={htmlContent} />
+<input {...field.as('hidden', htmlContent)} />
 
 <style>
 	:global(.ProseMirror) {

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import PageHeader from '$lib/components/layout/PageHeader.svelte';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import PageHeader from '#lib/components/layout/PageHeader.svelte';
 </script>
 
 <PageShell width="form" class="space-y-8">

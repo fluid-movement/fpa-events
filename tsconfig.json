@@ -1,5 +1,5 @@
 {
-	"extends": "./.svelte-kit/tsconfig.json",
+	"extends": "$app/tsconfig",
 	"compilerOptions": {
 		"allowImportingTsExtensions": true,
 		"allowJs": true,
@@ -10,6 +10,34 @@
 		"skipLibCheck": true,
 		"sourceMap": true,
 		"strict": true,
-		"moduleResolution": "bundler"
-	}
+		"moduleResolution": "bundler",
+		// `#lib` comes from the package.json `imports` field, which Vite resolves
+		// extensionlessly but TypeScript does not — without these, every one of
+		// the ~530 `#lib/...` imports would need an explicit `.js` suffix.
+		"paths": {
+			"#lib": ["./src/lib"],
+			"#lib/*": ["./src/lib/*"]
+		}
+	},
+	// SvelteKit 3 writes its tsconfig to `node_modules/$app/tsconfig` and no
+	// longer supplies `include`/`exclude` (it can't — the generated file no
+	// longer sits next to the project). Without these, `svelte-check` walks
+	// `build/` and `tools/` too: the adapter output is not ours to type-check,
+	// and `tools/migrate` is a separate package with its own tsconfig and
+	// dependencies.
+	"include": [
+		".svelte-kit/types/**/$types.d.ts",
+		"src/**/*.js",
+		"src/**/*.ts",
+		"src/**/*.svelte",
+		"tests/**/*.js",
+		"tests/**/*.ts",
+		"tests/**/*.svelte",
+		"drizzle.config.ts",
+		"eslint.config.js",
+		"playwright.config.ts",
+		"svelte-options.js",
+		"vite.config.ts"
+	],
+	"exclude": ["node_modules/**", "build/**", ".svelte-kit/output/**", "tools/**"]
 }

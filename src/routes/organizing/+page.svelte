@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { Button } from '$lib/components/ui/button';
-	import { Badge } from '$lib/components/ui/badge';
-	import * as Tabs from '$lib/components/ui/tabs';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import PageHeader from '$lib/components/layout/PageHeader.svelte';
-	import EmptyState from '$lib/components/layout/EmptyState.svelte';
-	import { formatDateRange } from '$lib/utils/dates';
+	import { Button } from '#lib/components/ui/button';
+	import { Badge } from '#lib/components/ui/badge';
+	import * as Tabs from '#lib/components/ui/tabs';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import PageHeader from '#lib/components/layout/PageHeader.svelte';
+	import EmptyState from '#lib/components/layout/EmptyState.svelte';
+	import { formatDateRange } from '#lib/utils/dates';
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
 	import MapPinIcon from '@lucide/svelte/icons/map-pin';
 	import HeartIcon from '@lucide/svelte/icons/heart';
@@ -47,10 +47,10 @@
 		<!-- Full width and side by side on a phone; compact and right-aligned once
 		     there's room next to the details. -->
 		<div class="flex shrink-0 gap-2 *:flex-1 md:*:flex-none">
-			<Button href={resolve(`/events/${event.id}`)} variant="outline" size="sm">
+			<Button href={resolve('/events/[id]', { id: event.id })} variant="outline" size="sm">
 				View public page
 			</Button>
-			<Button href={resolve(`/events/${event.id}/admin`)} size="sm">Manage event</Button>
+			<Button href={resolve('/events/[id]/admin', { id: event.id })} size="sm">Manage event</Button>
 		</div>
 	</div>
 {/snippet}

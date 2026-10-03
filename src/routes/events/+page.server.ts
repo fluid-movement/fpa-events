@@ -1,11 +1,11 @@
 import { gt } from 'drizzle-orm';
-import { events } from '$lib/server/db/schema';
+import { events } from '#lib/server/db/schema';
 import {
 	getArchiveYears,
 	groupEventsByMonth,
 	listEventsWithAttendeeCount,
 	withUserStatus
-} from '$lib/server/utils/events';
+} from '#lib/server/utils/events';
 import type { PageServerLoad } from './$types';
 
 export const load = (async ({ locals }) => {

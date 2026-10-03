@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { findOrCreateEventLocation } from '$lib/server/db/eventLocations';
+import { findOrCreateEventLocation } from '#lib/server/db/eventLocations';
 
 /**
  * The event form, shared by create and edit — they post the same fields, and

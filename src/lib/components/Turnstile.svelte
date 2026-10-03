@@ -1,8 +1,8 @@
 <script module lang="ts">
-	import { env } from '$env/dynamic/public';
+	import { PUBLIC_TURNSTILE_SITE_KEY } from '$app/env/public';
 
 	/** Whether Turnstile is configured. Forms use this to know if a token is required. */
-	export const captchaEnabled = !!env.PUBLIC_TURNSTILE_SITE_KEY;
+	export const captchaEnabled = !!PUBLIC_TURNSTILE_SITE_KEY;
 
 	const SCRIPT_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 
@@ -67,7 +67,7 @@
 			.then(() => {
 				if (cancelled || !container || !window.turnstile) return;
 				widgetId = window.turnstile.render(container, {
-					sitekey: env.PUBLIC_TURNSTILE_SITE_KEY ?? '',
+					sitekey: PUBLIC_TURNSTILE_SITE_KEY ?? '',
 					callback: (t) => (token = t),
 					'error-callback': () => (token = ''),
 					'expired-callback': () => (token = '')

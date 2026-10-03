@@ -1,10 +1,10 @@
 <script lang="ts">
-	import * as Sidebar from '$lib/components/ui/sidebar';
+	import * as Sidebar from '#lib/components/ui/sidebar';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import type { ResolvedPathname } from '$app/types';
-	import { menuGroups, routeActive } from '$lib/config/sidebarMenu';
-	import { useSidebar } from '$lib/components/ui/sidebar/context.svelte.js';
+	import { menuGroups, routeActive } from '#lib/config/sidebarMenu';
+	import { useSidebar } from '#lib/components/ui/sidebar/context.svelte.js';
 	import Logo from './Logo.svelte';
 	import SidebarLogin from './SidebarLogin.svelte';
 	import PlusIcon from '@lucide/svelte/icons/plus';
