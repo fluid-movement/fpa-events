@@ -217,6 +217,15 @@ export async function getEventUserRows(eventId: string, userId: string): Promise
 	return rows.map((r) => r.status);
 }
 
+export async function getEventDates(
+	eventId: string
+): Promise<{ startDate: Date; endDate: Date } | null> {
+	const [row] = await sql()<{ start_date: Date; end_date: Date }[]>`
+		SELECT start_date, end_date FROM events WHERE id = ${eventId}
+	`;
+	return row ? { startDate: row.start_date, endDate: row.end_date } : null;
+}
+
 export async function eventExists(eventId: string): Promise<boolean> {
 	const rows = await sql()`SELECT id FROM events WHERE id = ${eventId}`;
 	return rows.length > 0;

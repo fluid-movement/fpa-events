@@ -49,8 +49,9 @@ past, even on a multi-day event, and RSVP closes at the start.
   `resolveEventLocationId` from `src/lib/server/eventForm.ts`. Dates arrive as
   `yyyy-mm-dd` and are stored as `new Date(string)`, i.e. UTC midnight. The
   edit form turns them back with `toISOString().slice(0, 10)`. Keep the two
-  sides symmetric or dates shift by a day. The server does not yet check that
-  the end is not before the start.
+  sides symmetric or dates shift by a day. `eventFormSchema` checks that both are real
+  `yyyy-mm-dd` dates and that the end is not before the start (same day is
+  fine); the error is forwarded to `endDate`.
 - Location: `location` is the free display string. The city fields are filled
   only when a Photon suggestion was picked, and only a complete set updates
   `event_location_id` (see `/components/geolocation-and-maps.md`).

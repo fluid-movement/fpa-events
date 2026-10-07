@@ -1,0 +1,3 @@
+- [x] An event whose end is before its start is rejected on create and edit
+- [x] Malformed dates are rejected
+- [x] Unit tests cover the schema rules and an integration test covers the edit path

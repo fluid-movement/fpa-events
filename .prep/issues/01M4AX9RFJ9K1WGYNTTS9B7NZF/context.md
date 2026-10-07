@@ -1,0 +1,1 @@
+`eventFormSchema` (`src/lib/server/eventForm.ts`) validates `startDate`/`endDate` as real yyyy-mm-dd dates and, as an object-level check forwarded to `endDate`, rejects an end before the start (same day allowed). Shared by create and edit, so both get it. Unit tests on the schema; an integration test posts the edit form with a reversed range. Knowledge: /features/events.md.
