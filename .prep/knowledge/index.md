@@ -13,5 +13,6 @@ okf_version: "0.2"
 * [architecture](/architecture/index.md) - 2 entries
 * [components](/components/index.md) - 5 entries
 * [conventions](/conventions/index.md) - 3 entries
-* [features](/features/index.md) - 6 entries
+* [decisions](/decisions/index.md) - 2 entries
+* [features](/features/index.md) - 7 entries
 * [pitfalls](/pitfalls/index.md) - 3 entries

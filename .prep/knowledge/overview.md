@@ -61,11 +61,18 @@ system those rules apply to.
 ## Legacy migration
 
 - [Laravel → fpa-events data migration](/features/legacy-migration.md)
+- [Laravel parity](/features/laravel-parity.md)
 
-## Stale documentation
+## Decisions
 
-`docs/context.md` and `docs/todo.md` predate the remote-function rewrite and
-describe form actions, a `/design` route and an unbuilt membership phase; treat
-them as history. The README still says `db:push` for production and links
-`docs/SETUP.md`, `STACK.md`, `REFERENCE.md` and `POSTGRES-SETUP.md`, which do not
-exist. `TODO.md` at the root is the live backlog.
+- [Product scope relative to the Laravel app](/decisions/product-scope.md)
+- [One dark theme, no light mode](/decisions/dark-only-theme.md)
+
+## Where else to look
+
+prep is the single source of truth: knowledge here, work in `.prep/issues`. The
+old `docs/` folder was retired into it on 2026-10-07. `AGENTS.md` holds the
+binding coding rules; `UPDATE.md` is the record of the SvelteKit 3 migration;
+`tools/migrate/README.md` is the cutover runbook. The README's deploy section
+and its links to `docs/*` files are stale (tracked as an issue). `TODO.md` at the
+root predates prep; its open items are filed as issues.

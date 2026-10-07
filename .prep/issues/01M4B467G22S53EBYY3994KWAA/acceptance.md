@@ -1,0 +1,3 @@
+- [x] Every still-true fact from docs/ is in a knowledge entry
+- [x] Every still-wanted open item from docs/todo.md is an issue
+- [x] docs/ is deleted and no knowledge entry references it
