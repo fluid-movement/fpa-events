@@ -14,6 +14,8 @@ scope:
   - src/env.ts
   - svelte-options.js
   - UPDATE.md
+  - src/hooks.server.ts
+  - src/lib/server/errors.ts
 status: stable
 confirmed_commit: ee73afc64738434fd6f496fd50caf09ce5470f63
 ---
@@ -74,5 +76,19 @@ adapter-node 6 removed the `ORIGIN` env var in favour of the `paths.origin`
 option, which the repo does not set. The deployed origin behind Coolify's
 proxy has to be verified (tracked under Go Live).
 
-Server source maps are emitted, but Node only applies them with
-`--enable-source-maps` on the start command, which is not set yet.
+## Errors in production
+
+`handleError` in `src/hooks.server.ts` handles unexpected server errors
+(`kind: 'unknown'`) only. Each gets an 8-character reference that is shown on the
+error page ("quote reference …") and logged on one line with method, **route
+id** (never the raw path: calendar-feed and invite URLs carry tokens) and user
+id, followed by the stack. Search the Coolify log for `ref=<id>`. Errors thrown
+with `error()` keep Kit's defaults and are not logged. The rules live in
+`describeServerError` (`src/lib/server/errors.ts`, unit-tested). Coolify logs are
+lost on redeploy; choosing an error tracker is an open decision.
+
+Stack traces are readable as deployed: verified on Node 22.19 against the
+production build (2026-10-07), the app's frames already name source files
+(`src/routes/+page.server.ts:14:43`) without any flag. Setting
+`NODE_OPTIONS=--enable-source-maps` in Coolify additionally maps framework and
+dependency frames and prints absolute paths; it is optional.

@@ -17,7 +17,7 @@ scope:
   - src/routes/reset-password
   - src/routes/settings
 status: stable
-confirmed_commit: ee73afc64738434fd6f496fd50caf09ce5470f63
+confirmed_commit: 0e6be36dd0079377fcd135e84e15f46d32b0ebf5
 ---
 
 # Authentication

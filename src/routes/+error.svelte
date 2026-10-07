@@ -22,4 +22,10 @@
 			<Button href={resolve('/')}>Back to home</Button>
 		{/snippet}
 	</EmptyState>
+	{#if page.error?.errorId}
+		<!-- Matches the server log line, so a report can be traced back. -->
+		<p class="mt-4 text-center text-sm text-muted-foreground" data-testid="error-reference">
+			If this keeps happening, quote reference <code>{page.error.errorId}</code>.
+		</p>
+	{/if}
 </PageShell>

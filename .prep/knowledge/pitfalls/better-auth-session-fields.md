@@ -10,7 +10,7 @@ scope:
   - src/lib/server/auth.ts
   - src/routes/settings/privacy
 status: stable
-confirmed_commit: ee73afc64738434fd6f496fd50caf09ce5470f63
+confirmed_commit: 0e6be36dd0079377fcd135e84e15f46d32b0ebf5
 ---
 
 # Custom user columns are not on session.user

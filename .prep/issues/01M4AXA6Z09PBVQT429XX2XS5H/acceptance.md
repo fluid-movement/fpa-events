@@ -1,0 +1,5 @@
+- [x] An unexpected server error is logged once with reference id, method, route id, user id and stack
+- [x] The error page shows the reference id; expected 4xx errors are not logged and get no id
+- [x] No URL path segment (tokens) is written to the log
+- [x] Unit tests cover the logging helper
+- [x] Source maps verified locally with NODE_OPTIONS=--enable-source-maps; the Coolify setting is handed to the user
