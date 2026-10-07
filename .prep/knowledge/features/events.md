@@ -60,17 +60,25 @@ past, even on a multi-day event, and RSVP closes at the start.
 ## Cover images
 
 `ImageUpload.svelte` POSTs the file to `/api/events/upload-image` (signed-in,
-`image/*`, ≤ 10 MB). That endpoint stores it in R2 under `events/<ulid>.<ext>`
-with a one-year immutable cache header and returns the public URL. The
-component measures `naturalWidth/Height` and submits URL + dimensions as
-hidden fields. On edit, a replaced picture is deleted from R2 on a best-effort
-basis. The `picture` field is currently trusted as sent (tracked as a security
-bug). The hero is one fixed `object-cover` layout; banner/portrait layouts are
-a planned feature.
+≤ 10 MB, JPEG/PNG/WebP/GIF/AVIF only, so no SVG, which can carry script). That
+endpoint stores it in R2 under `events/<ulid>.<ext>` with a one-year immutable
+cache header and returns the public URL. The component measures
+`naturalWidth/Height` and submits URL + dimensions as hidden fields.
+
+The URL is client-supplied, so `parsePictureFields` (`src/lib/server/eventForm.ts`)
+gates it on create and edit: a **changed** picture must pass
+`isUploadedPictureUrl` (under `R2_PUBLIC_URL/events/`, no further path) and be
+used by no other event, else 400. An event's existing value, including legacy
+`/pictures/` URLs from the migration, may always stay. `releasePicture(url,
+eventId)` deletes a replaced or deleted event's old image, best-effort, and only
+when no other event still references it. With `R2_PUBLIC_URL` blank (dev/test)
+no new picture is accepted. The hero is one fixed `object-cover` layout;
+banner/portrait layouts are a planned feature.
 
 ## Delete
 
 `deleteEvent` (`delete-event.remote.ts`) needs owner level
-(`requireEventOwner`). It deletes the R2 picture, then the event (cascading to
+(`requireEventOwner`). It releases the R2 picture (`releasePicture`), then
+deletes the event (cascading to
 `event_user`, magic links, schedules and venues), and redirects to `/events`.
 The UI is the manage area's `DangerZone` using `<ConfirmSubmit>`.

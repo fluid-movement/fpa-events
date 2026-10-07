@@ -25,7 +25,7 @@ export const createEvent = form(eventFormSchema, async (data) => {
 		endDate: new Date(data.endDate),
 		location: data.location,
 		eventLocationId: await resolveEventLocationId(data),
-		...parsePictureFields(data, NO_PICTURE)
+		...(await parsePictureFields(data, NO_PICTURE, null))
 	});
 	await db.insert(eventUser).values({ eventId, userId: signedIn.id, status: 'organizing' });
 

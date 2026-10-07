@@ -44,3 +44,45 @@ export async function pickEventDateRange(page: Page): Promise<{ start: string; e
 	await expect(page.getByText('Select a date range')).toHaveCount(0);
 	return { start, end };
 }
+
+/**
+ * Post the `remote` function's form that currently holds `holding` straight to
+ * its action, with the named fields overridden — what a hand-crafted request
+ * does. Editing hidden inputs in the DOM is not enough: Kit submits from its own
+ * field state. `accept: text/html` makes it the no-JS submission Kit expects from
+ * a plain POST; without it Kit answers 405.
+ */
+export async function postOverriding(
+	page: Page,
+	remote: string,
+	holding: string,
+	overrides: Record<string, string>
+): Promise<void> {
+	const found = await page.evaluate(
+		async ([remote, holding, overrides]) => {
+			// Matched on the remote function too: an item's edit and delete forms
+			// both hold its id, and picking the wrong one deletes instead of edits.
+			const form = [...document.querySelectorAll('form')].find(
+				(f) =>
+					decodeURIComponent(f.action).endsWith(`/${remote}`) &&
+					[...new FormData(f).values()].includes(holding)
+			);
+			if (!form) return false;
+			const body = new FormData(form);
+			for (const key of [...body.keys()]) {
+				// Kit names fields `<key>/<form id>`.
+				const field = key.split('/')[0];
+				if (field in overrides) body.set(key, overrides[field]);
+			}
+			await fetch(form.action, {
+				method: 'POST',
+				body,
+				redirect: 'manual',
+				headers: { accept: 'text/html' }
+			});
+			return true;
+		},
+		[remote, holding, overrides] as const
+	);
+	expect(found, `no ${remote} form on the page holds ${holding}`).toBe(true);
+}

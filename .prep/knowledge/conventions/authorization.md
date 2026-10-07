@@ -9,7 +9,7 @@ scope:
   - src/lib/server/authz.ts
   - src/routes/events/[id]/admin
 status: stable
-confirmed_commit: e40d7f59c6400113acd643dbc1f8ee91278d8f29
+confirmed_commit: 1e3ac44b6d6d1644f37e073c4b5055e9495eac68
 ---
 
 # Authorization: owners, co-organizers and admins

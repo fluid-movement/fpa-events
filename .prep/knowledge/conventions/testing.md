@@ -55,14 +55,19 @@ semantics, seed suppression included.
 ## Testing a hostile request
 
 To prove a remote function rejects tampered input (another event's id,
-disallowed markup), post the real form with fields overridden. See
-`postOverriding` in `tests/integration/schedule.test.ts`: build `FormData` from
-the rendered form, override fields by key (Kit names them
-`<key>/<form id>`), and `fetch(form.action)` with `accept: text/html`. Without
+disallowed markup), post the real form with fields overridden:
+`postOverriding(page, remote, holding, overrides)` in
+`tests/integration/helpers/forms.ts`. It finds the form of the named remote
+function that holds `holding` (an item's edit and delete forms both hold its
+id, so naming the remote matters), builds its `FormData`, overrides fields by
+key (Kit names them `<key>/<form id>`), and `fetch`es `form.action` with
+`accept: text/html`. Without
 that header Kit answers 405. **Editing the hidden inputs in the DOM and clicking
 submit does not work**: Kit submits from its own field state, so such a test
 passes against vulnerable code. Run every security test once against the
-unfixed code and watch it fail.
+unfixed code and watch it fail **on an assertion about the data**, not on a
+setup error. `svelte-check` does not type-check `tests/`, so a broken helper
+signature only shows up at run time.
 
 ## Rules that prevent flakes
 

@@ -5,15 +5,13 @@ import { resolve } from '$app/paths';
 import { db } from '#lib/server/db';
 import { events } from '#lib/server/db/schema';
 import { eq } from 'drizzle-orm';
-import { deleteImage } from '#lib/server/r2';
+import { releasePicture } from '#lib/server/eventForm';
 import { requireEventOwner } from '#lib/server/authz';
 
 export const deleteEvent = form(v.object({ eventId: v.string() }), async (data) => {
 	const ev = await requireEventOwner(data.eventId);
 
-	if (ev.picture) {
-		await deleteImage(ev.picture).catch(() => {});
-	}
+	await releasePicture(ev.picture, data.eventId);
 
 	await db.delete(events).where(eq(events.id, data.eventId));
 	redirect(302, resolve('/events'));

@@ -1,0 +1,5 @@
+- [x] An event cannot be given a picture URL that is not a fresh upload from our bucket
+- [x] An event cannot take over another event's picture URL
+- [x] Replacing or deleting a picture never deletes an object another event still references
+- [x] The upload endpoint refuses SVG and other non-raster types
+- [x] Tests cover the takeover attempt and the SVG upload, and fail against the old code

@@ -198,6 +198,17 @@ export async function getScheduleDescriptions(eventId: string): Promise<(string 
 	return rows.map((r) => r.description);
 }
 
+export async function setEventPicture(eventId: string, url: string | null): Promise<void> {
+	await sql()`UPDATE events SET picture = ${url} WHERE id = ${eventId}`;
+}
+
+export async function getEventPicture(eventId: string): Promise<string | null> {
+	const [row] = await sql()<
+		{ picture: string | null }[]
+	>`SELECT picture FROM events WHERE id = ${eventId}`;
+	return row?.picture ?? null;
+}
+
 export async function eventExists(eventId: string): Promise<boolean> {
 	const rows = await sql()`SELECT id FROM events WHERE id = ${eventId}`;
 	return rows.length > 0;

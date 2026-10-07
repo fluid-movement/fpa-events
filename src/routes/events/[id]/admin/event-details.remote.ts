@@ -5,8 +5,12 @@ import { resolve } from '$app/paths';
 import { eq } from 'drizzle-orm';
 import { db } from '#lib/server/db';
 import { events, eventLocations } from '#lib/server/db/schema';
-import { eventFormSchema, parsePictureFields, resolveEventLocationId } from '#lib/server/eventForm';
-import { deleteImage } from '#lib/server/r2';
+import {
+	eventFormSchema,
+	parsePictureFields,
+	releasePicture,
+	resolveEventLocationId
+} from '#lib/server/eventForm';
 import { requireEventManager } from '#lib/server/authz';
 import { requireTurnstile } from '#lib/server/turnstile';
 import { sanitizeRichText } from '#lib/utils/html';
@@ -54,11 +58,9 @@ export const updateEvent = form(eventFormSchema, async (data) => {
 	const existing = await requireEventManager(eventId);
 	await requireTurnstile(data.turnstileToken);
 
-	const picture = parsePictureFields(data, existing);
-	// Drop the replaced image from the bucket, but never let that failure block
-	// the save — an orphaned object is cheaper than a lost edit.
-	if (existing.picture && picture.picture !== existing.picture) {
-		await deleteImage(existing.picture).catch(() => {});
+	const picture = await parsePictureFields(data, existing, eventId);
+	if (picture.picture !== existing.picture) {
+		await releasePicture(existing.picture, eventId);
 	}
 
 	await db

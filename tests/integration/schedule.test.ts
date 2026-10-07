@@ -17,6 +17,7 @@ import {
 } from './helpers/db';
 import { TEST_USER } from './helpers/constants';
 import { expectConsoleErrors, installErrorGuard } from './helpers/console';
+import { postOverriding } from './helpers/forms';
 
 installErrorGuard(test);
 
@@ -48,38 +49,6 @@ async function fillItemForm(page: Page, name: string, start: string, end: string
 	await page.locator('button[aria-pressed]').first().click();
 	await page.locator('#schedule-start-time').fill(start);
 	await page.locator('#schedule-end-time').fill(end);
-}
-
-/**
- * Post the form that currently holds `holding` straight to its remote action,
- * with the named fields overridden. Editing the DOM is not enough: Kit submits
- * from its own field state. `accept: text/html` makes it the no-JS submission
- * Kit expects from a plain POST.
- */
-async function postOverriding(page: Page, holding: string, overrides: Record<string, string>) {
-	const found = await page.evaluate(
-		async ([holding, overrides]) => {
-			const form = [...document.querySelectorAll('form')].find((f) =>
-				[...new FormData(f).values()].includes(holding)
-			);
-			if (!form) return false;
-			const body = new FormData(form);
-			for (const key of [...body.keys()]) {
-				// Kit names fields `<key>/<form id>`.
-				const field = key.split('/')[0];
-				if (field in overrides) body.set(key, overrides[field]);
-			}
-			await fetch(form.action, {
-				method: 'POST',
-				body,
-				redirect: 'manual',
-				headers: { accept: 'text/html' }
-			});
-			return true;
-		},
-		[holding, overrides] as const
-	);
-	expect(found, `no form on the page holds ${holding}`).toBe(true);
 }
 
 test.describe('schedule items', () => {
@@ -237,7 +206,7 @@ test.describe('schedule descriptions are sanitized', () => {
 		const itemId = await insertScheduleItem(eventId, ITEM_NAME, '');
 		await openSchedulePage(page, eventId);
 		await page.getByRole('button', { name: `Edit ${ITEM_NAME}` }).click();
-		await postOverriding(page, itemId, { description: PAYLOAD });
+		await postOverriding(page, 'updateSchedule', itemId, { description: PAYLOAD });
 
 		await expect.poll(() => getScheduleDescriptions(eventId)).toEqual(['<p>Bring water</p>']);
 	});
@@ -283,7 +252,7 @@ test.describe('schedule writes stay inside the authorised event', () => {
 		await openSchedulePage(page, ownEventId);
 		await page.getByRole('button', { name: `Edit ${ITEM_NAME}` }).click();
 		await page.locator('#schedule-name').fill('Hijacked');
-		await postOverriding(page, ownItemId, { id: otherItemId });
+		await postOverriding(page, 'updateSchedule', ownItemId, { id: otherItemId });
 
 		expect((await getScheduleItem(otherItemId))?.name).toBe('Not Yours');
 	});
@@ -292,7 +261,7 @@ test.describe('schedule writes stay inside the authorised event', () => {
 		expectConsoleErrors(page);
 		await openSchedulePage(page, ownEventId);
 		await page.getByRole('button', { name: `Delete ${ITEM_NAME}` }).click();
-		await postOverriding(page, ownItemId, { id: otherItemId });
+		await postOverriding(page, 'deleteSchedule', ownItemId, { id: otherItemId });
 
 		expect(await getScheduleItem(otherItemId)).not.toBeNull();
 	});
@@ -301,7 +270,7 @@ test.describe('schedule writes stay inside the authorised event', () => {
 		expectConsoleErrors(page);
 		await openSchedulePage(page, ownEventId);
 		await page.getByRole('button', { name: `Edit ${ITEM_NAME}` }).click();
-		await postOverriding(page, ownItemId, { locationId: String(otherVenueId) });
+		await postOverriding(page, 'updateSchedule', ownItemId, { locationId: String(otherVenueId) });
 
 		expect((await getScheduleItem(ownItemId))?.locationId).toBeNull();
 	});
@@ -311,7 +280,9 @@ test.describe('schedule writes stay inside the authorised event', () => {
 		const ownVenueId = await insertVenue(ownEventId, 'Own Venue');
 		await openSchedulePage(page, ownEventId);
 		await page.getByRole('button', { name: 'Delete Own Venue' }).click();
-		await postOverriding(page, String(ownVenueId), { id: String(otherVenueId) });
+		await postOverriding(page, 'deleteEventLocation', String(ownVenueId), {
+			id: String(otherVenueId)
+		});
 
 		expect(await venueExists(otherVenueId)).toBe(true);
 	});

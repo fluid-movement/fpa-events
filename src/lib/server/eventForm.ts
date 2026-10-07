@@ -1,5 +1,11 @@
 import * as v from 'valibot';
+import { error } from '@sveltejs/kit';
+import { and, eq, ne } from 'drizzle-orm';
+import { R2_PUBLIC_URL } from '$app/env/private';
+import { db } from '#lib/server/db';
+import { events } from '#lib/server/db/schema';
 import { findOrCreateEventLocation } from '#lib/server/db/eventLocations';
+import { deleteImage } from '#lib/server/r2';
 
 /**
  * The event form, shared by create and edit — they post the same fields, and
@@ -27,16 +33,66 @@ export const eventFormSchema = v.object({
 
 export type EventFormData = v.InferOutput<typeof eventFormSchema>;
 
-/** The three picture columns, keeping `fallback` wherever the form sent nothing. */
-export function parsePictureFields(
+type PictureColumns = {
+	picture: string | null;
+	pictureWidth: number | null;
+	pictureHeight: number | null;
+};
+
+/** Whether `url` is an object the upload endpoint put in our bucket. */
+export function isUploadedPictureUrl(url: string, publicUrl = R2_PUBLIC_URL): boolean {
+	if (!publicUrl) return false;
+	const prefix = `${publicUrl.replace(/\/+$/, '')}/events/`;
+	return url.startsWith(prefix) && !url.slice(prefix.length).includes('/');
+}
+
+/** Whether any event other than `eventId` uses `url` as its picture. */
+async function pictureUsedElsewhere(url: string, eventId: string | null): Promise<boolean> {
+	const [row] = await db
+		.select({ id: events.id })
+		.from(events)
+		.where(eventId ? and(eq(events.picture, url), ne(events.id, eventId)) : eq(events.picture, url))
+		.limit(1);
+	return !!row;
+}
+
+/**
+ * The three picture columns, keeping `current` wherever the form sent nothing.
+ *
+ * The picture URL comes from a hidden form field, so it is checked here: a new
+ * value must be a fresh upload into our bucket that no other event uses.
+ * Otherwise an organizer could adopt another event's image and then, by
+ * replacing it, have the server delete it (see `releasePicture`). An event's
+ * existing value — including legacy `/pictures/` URLs from the migration — is
+ * always allowed to stay.
+ */
+export async function parsePictureFields(
 	data: EventFormData,
-	fallback: { picture: string | null; pictureWidth: number | null; pictureHeight: number | null }
-) {
+	current: PictureColumns,
+	eventId: string | null
+): Promise<PictureColumns> {
+	const picture = data.picture || current.picture;
+	if (picture && picture !== current.picture) {
+		if (!isUploadedPictureUrl(picture) || (await pictureUsedElsewhere(picture, eventId))) {
+			error(400, 'Invalid picture');
+		}
+	}
+
 	return {
-		picture: data.picture || fallback.picture,
-		pictureWidth: data.pictureWidth ? parseInt(data.pictureWidth, 10) : fallback.pictureWidth,
-		pictureHeight: data.pictureHeight ? parseInt(data.pictureHeight, 10) : fallback.pictureHeight
+		picture,
+		pictureWidth: data.pictureWidth ? parseInt(data.pictureWidth, 10) : current.pictureWidth,
+		pictureHeight: data.pictureHeight ? parseInt(data.pictureHeight, 10) : current.pictureHeight
 	};
+}
+
+/**
+ * Delete an event's old picture from the bucket, unless another event still
+ * points at it. Best-effort: an orphaned object is cheaper than a failed save
+ * or delete.
+ */
+export async function releasePicture(url: string | null, eventId: string): Promise<void> {
+	if (!url || (await pictureUsedElsewhere(url, eventId))) return;
+	await deleteImage(url).catch(() => {});
 }
 
 /**
