@@ -25,7 +25,7 @@ with `src/test/mocks/db.ts`.
 | `user`                               | text id      | Better Auth table plus app columns: `role` (`user`/`admin`), `calendar_token` (unique), `show_attendance` (default true)                                                                                                            |
 | `session`, `account`, `verification` | text id      | Better Auth internals; `account.password` holds the hash                                                                                                                                                                            |
 | `events`                             | text ULID    | `user_id` → creator (**no cascade**), `start_date`/`end_date` timestamps, `location` display text, optional `event_location_id` → `event_locations` (set null), HTML `description`, optional `picture` URL + `picture_width/height` |
-| `event_user`                         | identity int | `event_id` (cascade), `user_id` (cascade), free-text `status` (`attending` / `organizing`, see `EventUserStatus` in `#lib/types/event`). No unique (event, user) constraint                                                         |
+| `event_user`                         | identity int | `event_id` (cascade), `user_id` (cascade), free-text `status` (`attending` / `organizing`, see `EventUserStatus` in `#lib/types/event`). **Unique on (event_id, user_id)**: one relationship per user and event; write with `onConflictDoNothing` / `onConflictDoUpdate`                                                         |
 | `event_magic_links`                  | text ULID    | co-organizer invite; `expires_at`; one live link per event by convention                                                                                                                                                            |
 | `event_locations`                    | identity int | global city-level points, deduplicated by (city, country) in `findOrCreateEventLocation`                                                                                                                                            |
 | `schedule_locations`                 | identity int | per-event venues; `latitude/longitude` nullable                                                                                                                                                                                     |
@@ -40,7 +40,10 @@ eagerly.
 
 - `npm run db:generate` turns schema changes into SQL in `migrations/`
   (`drizzle.config.ts`). `0000` is the base, `0001` made venue coordinates
-  nullable and added `show_attendance`.
+  nullable and added `show_attendance`, `0002` deduplicated `event_user`
+  (organizing kept over attending, then the oldest) and added its unique index.
+  Drizzle generates only the DDL; data fix-ups like that dedupe are written into
+  the generated SQL by hand, before the statement they unblock.
 - `npm run db:migrate` applies them; `db:reset` = migrate + seed. The test DB has
   `db:migrate:test` / `db:reset:test`, and the pre-push hook runs the former.
 - Production is migrated from the Coolify terminal (DB ports are firewalled).

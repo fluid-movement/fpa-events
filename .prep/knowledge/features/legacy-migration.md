@@ -64,7 +64,9 @@ the new site.
 - `event_locations`: built from the mapping-file entries actually referenced,
   deduplicated on (city, country).
 - RSVPs: `event_user` statuses are the same strings; the identity PK is
-  regenerated. Magic links copy 1:1.
+  regenerated. The target allows one row per (event, user), so legacy rows are
+  read organizing-first and inserted `ON CONFLICT DO NOTHING`; dropped
+  duplicates appear as a warning in the report. Magic links copy 1:1.
 - Schedules: legacy location text becomes a `schedule_locations` venue,
   deduplicated per event on (name, lat, lng) when there are coordinates and on
   name when there are not. No location text means no venue.

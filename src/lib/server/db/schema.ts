@@ -4,6 +4,7 @@ import {
 	text,
 	integer,
 	index,
+	uniqueIndex,
 	real,
 	boolean,
 	timestamp,
@@ -83,7 +84,9 @@ export const eventUser = pgTable(
 	(table) => [
 		index('user_status_index').on(table.userId, table.status, table.eventId),
 		index('event_user_index').on(table.eventId, table.userId, table.updatedAt),
-		index('event_status_index').on(table.eventId, table.status, table.updatedAt)
+		index('event_status_index').on(table.eventId, table.status, table.updatedAt),
+		// One relationship per user and event: RSVP'd or organizing, never both.
+		uniqueIndex('event_user_event_id_user_id_unique').on(table.eventId, table.userId)
 	]
 );
 

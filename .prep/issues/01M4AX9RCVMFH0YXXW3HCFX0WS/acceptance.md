@@ -1,0 +1,5 @@
+- [x] The database rejects a second event_user row for the same event and user
+- [x] Existing duplicates are removed by the migration, keeping the organizing row
+- [x] toggleRsvp refuses organizers and cannot create duplicates
+- [x] tools/migrate tolerates duplicates in the legacy data
+- [x] Tests cover the constraint and the organizer RSVP

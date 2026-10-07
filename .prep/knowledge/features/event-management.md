@@ -10,7 +10,7 @@ scope:
   - src/routes/invite
   - src/lib/components/schedule
 status: stable
-confirmed_commit: 1e3ac44b6d6d1644f37e073c4b5055e9495eac68
+confirmed_commit: c2d87b6583c506d03a02fae53d14b89166dcd419
 ---
 
 # Event management area

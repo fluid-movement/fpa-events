@@ -203,16 +203,26 @@ async function migrateEventUsers(
 	report: Report
 ): Promise<void> {
 	const { rows } = await legacy.query<LegacyEventUser>(
-		`SELECT event_id, user_id, status, created_at::text, updated_at::text FROM event_user ORDER BY id`
+		// Organizing first, so that when the legacy data holds both an attending and
+		// an organizing row for one user, the organizing one is kept.
+		`SELECT event_id, user_id, status, created_at::text, updated_at::text FROM event_user
+		 ORDER BY (lower(status) = 'organizing') DESC, id`
 	);
+	let migrated = 0;
 	for (const r of rows) {
-		await target.query(
+		// The target allows one row per (event, user); later duplicates are dropped.
+		const result = await target.query(
 			`INSERT INTO event_user (event_id, user_id, status, created_at, updated_at)
-			 VALUES ($1, $2, $3, $4::timestamp, $5::timestamp)`,
+			 VALUES ($1, $2, $3, $4::timestamp, $5::timestamp)
+			 ON CONFLICT (event_id, user_id) DO NOTHING`,
 			[r.event_id, r.user_id, r.status, r.created_at, r.updated_at]
 		);
+		migrated += result.rowCount ?? 0;
 	}
-	report.count('event_user', rows.length, rows.length);
+	if (migrated < rows.length) {
+		report.warn(`event_user: dropped ${rows.length - migrated} duplicate (event, user) row(s)`);
+	}
+	report.count('event_user', rows.length, migrated);
 }
 
 async function migrateMagicLinks(

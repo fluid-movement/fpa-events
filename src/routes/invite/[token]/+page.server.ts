@@ -1,6 +1,6 @@
 import { db } from '#lib/server/db';
 import { eventMagicLinks, eventUser } from '#lib/server/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { error, redirect } from '@sveltejs/kit';
 import { resolve } from '$app/paths';
 import type { PageServerLoad } from './$types';
@@ -19,22 +19,14 @@ export const load = (async ({ params, locals }) => {
 		redirect(307, `${resolve('/sign-in')}?redirect=/invite/${token}`);
 	}
 
-	const [existing] = await db
-		.select()
-		.from(eventUser)
-		.where(and(eq(eventUser.eventId, link.eventId), eq(eventUser.userId, locals.user.id)));
-
-	if (existing) {
-		if (existing.status !== 'organizing') {
-			await db.update(eventUser).set({ status: 'organizing' }).where(eq(eventUser.id, existing.id));
-		}
-	} else {
-		await db.insert(eventUser).values({
-			eventId: link.eventId,
-			userId: locals.user.id,
-			status: 'organizing'
+	// An existing RSVP becomes an organizer seat; one row per (event, user).
+	await db
+		.insert(eventUser)
+		.values({ eventId: link.eventId, userId: locals.user.id, status: 'organizing' })
+		.onConflictDoUpdate({
+			target: [eventUser.eventId, eventUser.userId],
+			set: { status: 'organizing', updatedAt: new Date() }
 		});
-	}
 
 	redirect(303, resolve('/events/[id]', { id: link.eventId }));
 }) satisfies PageServerLoad;

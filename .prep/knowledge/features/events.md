@@ -14,7 +14,7 @@ scope:
   - src/routes/api/events
   - src/lib/components/ImageUpload.svelte
 status: stable
-confirmed_commit: 56353dfd85d3c3ad78867f49e74e8f12eb070b82
+confirmed_commit: c2d87b6583c506d03a02fae53d14b89166dcd419
 ---
 
 # Events: browse, create, edit, delete

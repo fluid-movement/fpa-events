@@ -209,6 +209,14 @@ export async function getEventPicture(eventId: string): Promise<string | null> {
 	return row?.picture ?? null;
 }
 
+/** Every relationship row the user has to the event — at most one is valid. */
+export async function getEventUserRows(eventId: string, userId: string): Promise<string[]> {
+	const rows = await sql()<{ status: string }[]>`
+		SELECT status FROM event_user WHERE event_id = ${eventId} AND user_id = ${userId}
+	`;
+	return rows.map((r) => r.status);
+}
+
 export async function eventExists(eventId: string): Promise<boolean> {
 	const rows = await sql()`SELECT id FROM events WHERE id = ${eventId}`;
 	return rows.length > 0;

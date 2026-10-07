@@ -22,16 +22,17 @@ confirmed_commit: 1e3ac44b6d6d1644f37e073c4b5055e9495eac68
 
 One table, `event_user`, holds both relationships between a user and an event:
 `status = 'attending'` (RSVP) and `status = 'organizing'` (creator seat or
-accepted co-organizer invite). A user is meant to have at most one row per
-event, but the database does not enforce it (tracked as a bug).
+accepted co-organizer invite). A user has at most one row per event, enforced by a unique index; accepting
+an invite upgrades an RSVP to organizing in place.
 
 ## RSVP
 
 `toggleRsvp` (`src/routes/events/[id]/data.remote.ts`): signed-in only. It
-refuses events that have already started, deletes the user's `attending` row if
-there is one, and inserts one otherwise. The detail page shows an "Organizing"
-badge instead of the button for organizers, and hides the button for past
-events. The server only checks the date.
+refuses events that have already started and organizers (400), deletes the
+user's `attending` row if there is one, and otherwise inserts one with
+`onConflictDoNothing`, so a double submit cannot race into two rows. The detail
+page shows an "Organizing" badge instead of the button for organizers, and
+hides the button for past events.
 
 The detail page keeps an optimistic `attending` flag and count, and an `$effect`
 resyncs them from server data after each revalidation. This `$effect` is

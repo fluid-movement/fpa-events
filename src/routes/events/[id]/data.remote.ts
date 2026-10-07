@@ -16,20 +16,22 @@ export const toggleRsvp = form(v.object({}), async () => {
 	if (!event) error(404, 'Event not found');
 	if (event.startDate < new Date()) error(400, 'Cannot RSVP to a past event');
 
+	// Any status: an organizer already has the row, and the unique (event, user)
+	// index means there is only ever one.
 	const [existing] = await db
-		.select({ id: eventUser.id })
+		.select({ id: eventUser.id, status: eventUser.status })
 		.from(eventUser)
-		.where(
-			and(
-				eq(eventUser.eventId, eventId),
-				eq(eventUser.userId, signedIn.id),
-				eq(eventUser.status, 'attending')
-			)
-		);
+		.where(and(eq(eventUser.eventId, eventId), eq(eventUser.userId, signedIn.id)));
+
+	if (existing?.status === 'organizing') error(400, 'Organizers cannot RSVP');
 
 	if (existing) {
 		await db.delete(eventUser).where(eq(eventUser.id, existing.id));
 	} else {
-		await db.insert(eventUser).values({ eventId, userId: signedIn.id, status: 'attending' });
+		// A double submit can race past the read above; the index settles it.
+		await db
+			.insert(eventUser)
+			.values({ eventId, userId: signedIn.id, status: 'attending' })
+			.onConflictDoNothing();
 	}
 });
