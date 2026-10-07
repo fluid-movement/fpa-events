@@ -57,8 +57,15 @@ extra query per signed-in request). See `/pitfalls/better-auth-session-fields.md
 
 `sign-in`, `sign-up`, `forget-password` and `reset-password` are client-only
 pages built on `<AuthCard>` + `<AuthForm>`, with a local `loading` flag.
-Sign-in always lands on `/dashboard`. It ignores any `?redirect=`, which breaks
-the signed-out invite flow (tracked as a bug).
+
+`?redirect=<path>` sets where the user lands. Sign-in uses it as `callbackURL`
+(default `/dashboard`) and for the resend-verification callback. Sign-up uses it
+as `callbackURL`, so the verification link signs the user in and lands there.
+The links between the two pages carry it along (`withRedirect`). Only
+same-origin paths are honoured (`safeRedirectPath` in `#lib/utils/urls`,
+unit-tested), so it cannot become an open redirect. Anything that sends a
+signed-out user to sign in should pass `?redirect=` the same way `/invite/[token]`
+does.
 
 ## Account deletion
 

@@ -1,0 +1,4 @@
+- [x] A signed-out invitee who signs in lands back on the invite and becomes a co-organizer
+- [x] Sign-up carries the redirect into the verification callback
+- [x] Only same-origin relative paths are honoured (unit-tested)
+- [x] An integration test covers the signed-out invite flow and fails against the old code

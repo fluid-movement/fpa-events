@@ -13,7 +13,7 @@ scope:
   - package.json
   - tsconfig.json
 status: stable
-confirmed_commit: 1e3ac44b6d6d1644f37e073c4b5055e9495eac68
+confirmed_commit: 4b88ef283667b3ff5e1dd21b9fa0cc7270a7ac21
 ---
 
 # Stack and source layout

@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
+	import { safeRedirectPath, withRedirect } from '#lib/utils/urls';
 	import { signUp } from '#lib/auth-client';
 	import { Input } from '#lib/components/ui/input';
 	import { Label } from '#lib/components/ui/label';
@@ -17,6 +19,10 @@
 	let token = $state('');
 	let turnstile = $state<Turnstile>();
 
+	// Carried over from /sign-in so an invitee without an account still lands on
+	// the invite: the verification link signs them in and goes here.
+	const requested = $derived(page.url.searchParams.get('redirect'));
+
 	async function handleSignUp() {
 		error = '';
 		loading = true;
@@ -24,6 +30,7 @@
 			email,
 			password,
 			name: `${firstName} ${lastName}`.trim(),
+			callbackURL: safeRedirectPath(requested, '/'),
 			fetchOptions: {
 				headers: { 'x-captcha-response': token },
 				onSuccess() {
@@ -41,7 +48,9 @@
 
 {#snippet signInLink()}
 	Already have an account?
-	<a href={resolve('/sign-in')} class="underline hover:text-foreground">Sign in</a>
+	<a href={withRedirect(resolve('/sign-in'), requested)} class="underline hover:text-foreground"
+		>Sign in</a
+	>
 {/snippet}
 
 <!-- The footer drops away on the confirmation screen, which offers its own link. -->
@@ -57,7 +66,10 @@
 				you don't see it, try signing in — we'll send you a new one.
 			</p>
 			<p class="mt-4 text-sm text-muted-foreground">
-				<a href={resolve('/sign-in')} class="underline hover:text-foreground">Go to sign in</a>
+				<a
+					href={withRedirect(resolve('/sign-in'), requested)}
+					class="underline hover:text-foreground">Go to sign in</a
+				>
 			</p>
 		</div>
 	{:else}

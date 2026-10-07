@@ -4,6 +4,8 @@
 	import { Input } from '#lib/components/ui/input';
 	import { Label } from '#lib/components/ui/label';
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
+	import { safeRedirectPath, withRedirect } from '#lib/utils/urls';
 	import AuthCard from '#lib/components/AuthCard.svelte';
 	import AuthForm from '#lib/components/AuthForm.svelte';
 	import Turnstile, { captchaEnabled } from '#lib/components/Turnstile.svelte';
@@ -17,13 +19,18 @@
 	let token = $state('');
 	let turnstile = $state<Turnstile>();
 
+	// Where to land after signing in: the page that sent the user here (an
+	// invite link, say), else the dashboard. Same-origin paths only.
+	const requested = $derived(page.url.searchParams.get('redirect'));
+	const next = $derived(safeRedirectPath(requested, '/dashboard'));
+
 	async function handleSignIn() {
 		error = '';
 		unverified = false;
 		resent = false;
 		loading = true;
 		await signIn.email(
-			{ email, password, callbackURL: '/dashboard' },
+			{ email, password, callbackURL: next },
 			{
 				headers: { 'x-captcha-response': token },
 				onError(context) {
@@ -43,7 +50,7 @@
 	async function resendVerification() {
 		resent = false;
 		await client.sendVerificationEmail(
-			{ email, callbackURL: '/' },
+			{ email, callbackURL: safeRedirectPath(requested, '/') },
 			{
 				headers: { 'x-captcha-response': token },
 				onSuccess() {
@@ -104,6 +111,8 @@
 
 	{#snippet footer()}
 		Don't have an account?
-		<a href={resolve('/sign-up')} class="underline hover:text-foreground">Sign up</a>
+		<a href={withRedirect(resolve('/sign-up'), requested)} class="underline hover:text-foreground"
+			>Sign up</a
+		>
 	{/snippet}
 </AuthCard>

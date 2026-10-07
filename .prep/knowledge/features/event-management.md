@@ -56,8 +56,9 @@ A manager generates one 48-hour magic link (`event_magic_links`).
 Regenerating deletes the old one first. Visiting `/invite/[token]`:
 
 - unknown token: 404; expired: an "expired" page;
-- signed out: redirect to `/sign-in?redirect=/invite/<token>`, but sign-in
-  currently ignores `redirect` (tracked as a bug);
+- signed out: redirect to `/sign-in?redirect=/invite/<token>`; signing in (or
+  signing up and verifying) returns to the invite
+  (`tests/integration/invite-sign-in.test.ts`);
 - signed in: upserts the user's `event_user` row to `organizing`, replacing an
   RSVP, and redirects to the event.
 
