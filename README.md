@@ -6,7 +6,7 @@ A modern event management application built with SvelteKit 5, PostgreSQL, and Be
 
 ### Frontend
 
-- **SvelteKit 5** - Full-stack framework with file-based routing
+- **SvelteKit 3** - Full-stack framework with file-based routing
 - **Svelte 5** - Reactive UI framework
 - **TailwindCSS 4** - Utility-first CSS framework
 - **bits-ui** - Headless UI components
