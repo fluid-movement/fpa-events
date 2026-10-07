@@ -1,0 +1,3 @@
+- [x] The schedule load abandons the Photon fallback after a short timeout
+- [x] A unit test shows autocomplete forwards the abort signal to fetch
+- [x] event-manage.test.ts passes

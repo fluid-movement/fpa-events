@@ -6,6 +6,12 @@ import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
 /**
+ * How long the map-centre fallback may hold up the tab. The picker works
+ * without a centre, so a slow Photon is worth giving up on, not waiting for.
+ */
+const GEOCODE_TIMEOUT_MS = 2000;
+
+/**
  * Access is already guarded by the layout load.
  *
  * The geocoding fallback below lives here rather than in the layout on purpose:
@@ -32,7 +38,11 @@ export const load = (async ({ params }) => {
 	let eventLng = row.location?.longitude ?? null;
 
 	if ((eventLat === null || eventLng === null) && row.event.location) {
-		const results = await autocomplete(row.event.location, 1).catch(() => []);
+		const results = await autocomplete(
+			row.event.location,
+			1,
+			AbortSignal.timeout(GEOCODE_TIMEOUT_MS)
+		).catch(() => []);
 		if (results[0]) {
 			eventLat = results[0].lat;
 			eventLng = results[0].lng;

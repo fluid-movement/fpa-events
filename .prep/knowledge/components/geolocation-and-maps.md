@@ -14,7 +14,7 @@ scope:
   - src/lib/components/EventLocationInput.svelte
   - src/lib/components/VenueLocationPicker.svelte
 status: stable
-confirmed_commit: ee73afc64738434fd6f496fd50caf09ce5470f63
+confirmed_commit: a09e452c2f58ce526aa8105722c102c7bb8bc640
 ---
 
 # Geolocation and maps
@@ -26,6 +26,11 @@ confirmed_commit: ee73afc64738434fd6f496fd50caf09ce5470f63
 country, lat/lng). It is called **from the browser** by `GeocodingCombobox`,
 and once server-side by the admin schedule load as a fallback. There is no
 caching and no rate limiting on our side.
+
+`autocomplete` takes an optional `AbortSignal`. Server code must pass one: a
+load that awaits Photon without a bound blocks navigation for as long as Photon
+is slow. The schedule load gives up after 2 s (`GEOCODE_TIMEOUT_MS`) and renders
+without a map centre; that hang once failed the pre-push suite.
 
 - `EventLocationInput`: city-level typeahead on the event form. Picking a
   suggestion fills hidden `city/country/latitude/longitude` fields.

@@ -47,13 +47,21 @@ function featureToResult(feature: PhotonFeature): GeocodingResult {
 	};
 }
 
-export async function autocomplete(query: string, limit = 5): Promise<GeocodingResult[]> {
+/**
+ * Pass `signal` from server code: Photon is an external service, and a load
+ * that awaits it without a bound blocks navigation for as long as it is slow.
+ */
+export async function autocomplete(
+	query: string,
+	limit = 5,
+	signal?: AbortSignal
+): Promise<GeocodingResult[]> {
 	if (!query.trim()) return [];
 	const url = new URL(PHOTON_URL);
 	url.searchParams.set('q', query);
 	url.searchParams.set('limit', String(limit));
 
-	const res = await fetch(url.toString());
+	const res = await fetch(url.toString(), { signal });
 	if (!res.ok) return [];
 
 	const data = await res.json();

@@ -1,0 +1,1 @@
+`autocomplete(query, limit)` in `src/lib/geocoding.ts` gains an optional `AbortSignal` it forwards to `fetch`; the browser combobox keeps calling it without one. The schedule load passes `AbortSignal.timeout(...)`; its existing `.catch(() => [])` already turns an abort into 'no fallback'. Knowledge: /components/geolocation-and-maps.md (says there is no timeout).
