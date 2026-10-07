@@ -1,0 +1,4 @@
+- [x] Editing or deleting another event's schedule item through one's own event fails and leaves it untouched
+- [x] Deleting another event's venue through one's own event fails and leaves it untouched
+- [x] A schedule item cannot reference another event's venue
+- [x] Integration tests cover the cross-event attempts

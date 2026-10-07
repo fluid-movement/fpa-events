@@ -1,8 +1,9 @@
 import * as v from 'valibot';
 import { form, query } from '$app/server';
+import { error } from '@sveltejs/kit';
 import { db } from '#lib/server/db';
 import { scheduleLocations } from '#lib/server/db/schema';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { requireEventManager } from '#lib/server/authz';
 
 /**
@@ -58,7 +59,12 @@ export const deleteEventLocation = form(
 	v.object({ id: v.pipe(v.string(), v.transform(Number)), eventId: v.string() }),
 	async (data) => {
 		await requireEventManager(data.eventId);
-		await db.delete(scheduleLocations).where(eq(scheduleLocations.id, data.id));
+		// Scoped to the authorised event: the venue id comes from the form.
+		const deleted = await db
+			.delete(scheduleLocations)
+			.where(and(eq(scheduleLocations.id, data.id), eq(scheduleLocations.eventId, data.eventId)))
+			.returning({ id: scheduleLocations.id });
+		if (deleted.length === 0) error(404, 'Venue not found');
 		await listEventLocations(data.eventId).refresh();
 	}
 );

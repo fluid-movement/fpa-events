@@ -7,11 +7,16 @@ import {
 	getScheduleCount,
 	getScheduleDescriptions,
 	insertScheduleItem,
+	getScheduleItem,
+	insertVenue,
+	venueExists,
+	createTestUser,
+	deleteTestUser,
 	getLocationCoords,
 	closeDb
 } from './helpers/db';
 import { TEST_USER } from './helpers/constants';
-import { installErrorGuard } from './helpers/console';
+import { expectConsoleErrors, installErrorGuard } from './helpers/console';
 
 installErrorGuard(test);
 
@@ -43,6 +48,38 @@ async function fillItemForm(page: Page, name: string, start: string, end: string
 	await page.locator('button[aria-pressed]').first().click();
 	await page.locator('#schedule-start-time').fill(start);
 	await page.locator('#schedule-end-time').fill(end);
+}
+
+/**
+ * Post the form that currently holds `holding` straight to its remote action,
+ * with the named fields overridden. Editing the DOM is not enough: Kit submits
+ * from its own field state. `accept: text/html` makes it the no-JS submission
+ * Kit expects from a plain POST.
+ */
+async function postOverriding(page: Page, holding: string, overrides: Record<string, string>) {
+	const found = await page.evaluate(
+		async ([holding, overrides]) => {
+			const form = [...document.querySelectorAll('form')].find((f) =>
+				[...new FormData(f).values()].includes(holding)
+			);
+			if (!form) return false;
+			const body = new FormData(form);
+			for (const key of [...body.keys()]) {
+				// Kit names fields `<key>/<form id>`.
+				const field = key.split('/')[0];
+				if (field in overrides) body.set(key, overrides[field]);
+			}
+			await fetch(form.action, {
+				method: 'POST',
+				body,
+				redirect: 'manual',
+				headers: { accept: 'text/html' }
+			});
+			return true;
+		},
+		[holding, overrides] as const
+	);
+	expect(found, `no form on the page holds ${holding}`).toBe(true);
 }
 
 test.describe('schedule items', () => {
@@ -197,16 +234,85 @@ test.describe('schedule descriptions are sanitized', () => {
 	test('a description posted around the editor is stored without markup it does not allow', async ({
 		page
 	}) => {
+		const itemId = await insertScheduleItem(eventId, ITEM_NAME, '');
 		await openSchedulePage(page, eventId);
-		await page.getByRole('button', { name: 'Add Schedule Item' }).click();
-		await fillItemForm(page, ITEM_NAME, '09:00', '11:00');
-		// What a hand-crafted POST does: replace the editor's hidden HTML field.
-		await page
-			.locator('form:has(#schedule-name) input[type="hidden"][name*="description"]')
-			.evaluate((input, html) => ((input as HTMLInputElement).value = html), PAYLOAD);
-		await page.getByRole('button', { name: 'Add item' }).click();
-		await page.waitForLoadState('networkidle');
+		await page.getByRole('button', { name: `Edit ${ITEM_NAME}` }).click();
+		await postOverriding(page, itemId, { description: PAYLOAD });
 
 		await expect.poll(() => getScheduleDescriptions(eventId)).toEqual(['<p>Bring water</p>']);
+	});
+});
+
+/**
+ * Item and venue ids travel in hidden form fields, so a manager of one event can
+ * post any id they like. These tests send that hand-crafted request — the real
+ * form's fields with one value swapped — and check the other event is untouched.
+ */
+test.describe('schedule writes stay inside the authorised event', () => {
+	let ownEventId: string;
+	let ownItemId: string;
+	let otherUserId: string;
+	let otherEventId: string;
+	let otherItemId: string;
+	let otherVenueId: number;
+
+	test.beforeEach(async () => {
+		const userId = await getTestUserId(TEST_USER.email);
+		ownEventId = await createTestEvent(userId, { name: 'Scoping Spec Own Event' });
+		await setOrganizing(ownEventId, userId);
+		ownItemId = await insertScheduleItem(ownEventId, ITEM_NAME, '');
+
+		otherUserId = await createTestUser(`scoping-${Date.now()}@playwright.local`, 'Other Organizer');
+		otherEventId = await createTestEvent(otherUserId, { name: 'Scoping Spec Other Event' });
+		otherItemId = await insertScheduleItem(otherEventId, 'Not Yours', '');
+		otherVenueId = await insertVenue(otherEventId, 'Their Venue');
+	});
+
+	test.afterEach(async () => {
+		await deleteTestEvent(ownEventId);
+		await deleteTestEvent(otherEventId);
+		await deleteTestUser(otherUserId);
+	});
+
+	test.afterAll(async () => {
+		await closeDb();
+	});
+
+	test("editing cannot rename another event's item", async ({ page }) => {
+		expectConsoleErrors(page);
+		await openSchedulePage(page, ownEventId);
+		await page.getByRole('button', { name: `Edit ${ITEM_NAME}` }).click();
+		await page.locator('#schedule-name').fill('Hijacked');
+		await postOverriding(page, ownItemId, { id: otherItemId });
+
+		expect((await getScheduleItem(otherItemId))?.name).toBe('Not Yours');
+	});
+
+	test("deleting cannot remove another event's item", async ({ page }) => {
+		expectConsoleErrors(page);
+		await openSchedulePage(page, ownEventId);
+		await page.getByRole('button', { name: `Delete ${ITEM_NAME}` }).click();
+		await postOverriding(page, ownItemId, { id: otherItemId });
+
+		expect(await getScheduleItem(otherItemId)).not.toBeNull();
+	});
+
+	test("an item cannot be pointed at another event's venue", async ({ page }) => {
+		expectConsoleErrors(page);
+		await openSchedulePage(page, ownEventId);
+		await page.getByRole('button', { name: `Edit ${ITEM_NAME}` }).click();
+		await postOverriding(page, ownItemId, { locationId: String(otherVenueId) });
+
+		expect((await getScheduleItem(ownItemId))?.locationId).toBeNull();
+	});
+
+	test("deleting cannot remove another event's venue", async ({ page }) => {
+		expectConsoleErrors(page);
+		const ownVenueId = await insertVenue(ownEventId, 'Own Venue');
+		await openSchedulePage(page, ownEventId);
+		await page.getByRole('button', { name: 'Delete Own Venue' }).click();
+		await postOverriding(page, String(ownVenueId), { id: String(otherVenueId) });
+
+		expect(await venueExists(otherVenueId)).toBe(true);
 	});
 });

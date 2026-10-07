@@ -12,7 +12,7 @@ scope:
   - src/routes/events/[id]/admin/schedule
   - src/routes/events/[id]/+page.server.ts
 status: stable
-confirmed_commit: e40d7f59c6400113acd643dbc1f8ee91278d8f29
+confirmed_commit: 56353dfd85d3c3ad78867f49e74e8f12eb070b82
 ---
 
 # Rich text is sanitized on read, not on write

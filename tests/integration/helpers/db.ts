@@ -159,13 +159,36 @@ export async function insertScheduleItem(
 	eventId: string,
 	name: string,
 	description: string
-): Promise<void> {
+): Promise<string> {
+	const id = ulid().toLowerCase();
 	const start = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 	const end = new Date(start.getTime() + 60 * 60 * 1000);
 	await sql()`
 		INSERT INTO schedules (id, event_id, name, start_date, end_date, description, created_at, updated_at)
-		VALUES (${ulid().toLowerCase()}, ${eventId}, ${name}, ${start}, ${end}, ${description}, now(), now())
+		VALUES (${id}, ${eventId}, ${name}, ${start}, ${end}, ${description}, now(), now())
 	`;
+	return id;
+}
+
+export async function getScheduleItem(
+	id: string
+): Promise<{ eventId: string; name: string; locationId: number | null } | null> {
+	const [row] = await sql()<{ event_id: string; name: string; location_id: number | null }[]>`
+		SELECT event_id, name, location_id FROM schedules WHERE id = ${id}
+	`;
+	return row ? { eventId: row.event_id, name: row.name, locationId: row.location_id } : null;
+}
+
+export async function insertVenue(eventId: string, name: string): Promise<number> {
+	const [row] = await sql()<{ id: number }[]>`
+		INSERT INTO schedule_locations (event_id, name) VALUES (${eventId}, ${name}) RETURNING id
+	`;
+	return row.id;
+}
+
+export async function venueExists(id: number): Promise<boolean> {
+	const rows = await sql()`SELECT id FROM schedule_locations WHERE id = ${id}`;
+	return rows.length > 0;
 }
 
 export async function getScheduleDescriptions(eventId: string): Promise<(string | null)[]> {

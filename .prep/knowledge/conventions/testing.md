@@ -52,6 +52,18 @@ semantics, seed suppression included.
 - Mailgun, Turnstile and R2 are blank so they fall back. Verification links are
   read from the console log.
 
+## Testing a hostile request
+
+To prove a remote function rejects tampered input (another event's id,
+disallowed markup), post the real form with fields overridden. See
+`postOverriding` in `tests/integration/schedule.test.ts`: build `FormData` from
+the rendered form, override fields by key (Kit names them
+`<key>/<form id>`), and `fetch(form.action)` with `accept: text/html`. Without
+that header Kit answers 405. **Editing the hidden inputs in the DOM and clicking
+submit does not work**: Kit submits from its own field state, so such a test
+passes against vulnerable code. Run every security test once against the
+unfixed code and watch it fail.
+
 ## Rules that prevent flakes
 
 - `await page.waitForLoadState('networkidle')` after `goto` (hydration) and

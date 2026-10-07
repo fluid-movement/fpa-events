@@ -13,7 +13,7 @@ scope:
   - src/routes/settings/privacy
   - src/lib/server/utils/events.ts
 status: stable
-confirmed_commit: e40d7f59c6400113acd643dbc1f8ee91278d8f29
+confirmed_commit: 56353dfd85d3c3ad78867f49e74e8f12eb070b82
 ---
 
 # RSVP, attendee lists and privacy

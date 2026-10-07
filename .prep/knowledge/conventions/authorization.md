@@ -46,8 +46,11 @@ outsiders to the public page. Child loads rely on that layout guard, but
 **remote functions must guard themselves**: they are callable endpoints, and
 the layout does not run for them. After guarding, scope every write to the
 authorised event id. Checking `data.eventId` and then updating by a row id
-alone lets the caller touch another event's rows (tracked as a bug for
-schedules and venues).
+alone lets the caller touch another event's rows. `schedule.remote.ts` and
+`locations.remote.ts` show the pattern: `where(and(eq(row.id, id),
+eq(row.eventId, eventId)))` with `.returning()`, and `error(404)` when nothing
+matched. A referenced row (a schedule item's venue) must be checked against the
+same event too.
 
 There is no `/admin` area and no admin UI for roles; `role` is set in the
 database.

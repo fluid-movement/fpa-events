@@ -46,8 +46,9 @@ optional address and an optional position picked with `VenueLocationPicker`
 `event_location`.
 
 Schedule descriptions are sanitized on write and on read (see
-`/pitfalls/rich-text-sanitizing.md`). Known gap: the update/delete writes are
-not scoped to the event (tracked as a security bug).
+`/pitfalls/rich-text-sanitizing.md`). Every schedule and venue update/delete is
+scoped to the authorised event, and an item's venue must belong to the same
+event (see `/conventions/authorization.md`).
 
 ## Co-organizer invites
 
