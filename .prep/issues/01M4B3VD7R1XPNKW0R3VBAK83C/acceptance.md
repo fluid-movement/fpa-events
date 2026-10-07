@@ -1,0 +1,1 @@
+- [x] npm run test:integration passes in full with fpa-api reachable

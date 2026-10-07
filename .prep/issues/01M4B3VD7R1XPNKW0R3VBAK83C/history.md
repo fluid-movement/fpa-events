@@ -1,0 +1,1 @@
+- 2026-10-07T12:19:16Z claude-code/opus-5.5: 2026-10-07: full suite on main (ee73afc + prep commits) with fpa-api.fluid-movement.de reachable: 115 passed, 1 skipped, 0 failed (3.1 min). Needed: local Postgres running and npx playwright install chromium (Playwright was bumped by the upgrade).
