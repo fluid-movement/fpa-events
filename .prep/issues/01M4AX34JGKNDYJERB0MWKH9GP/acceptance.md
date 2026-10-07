@@ -1,0 +1,4 @@
+- [x] The map is written as findings and the user reviewed it
+- [x] /overview.md exists as a draft
+- [x] Each area of the map has a child issue under the bootstrap parent
+- [x] Bugs and missing feature pieces found during the survey are filed as issues
