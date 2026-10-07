@@ -5,6 +5,7 @@ import { schedules } from '#lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { ulid } from 'ulid';
 import { requireEventManager } from '#lib/server/authz';
+import { sanitizeRichText } from '#lib/utils/html';
 
 const scheduleSchema = v.object({
 	eventId: v.string(),
@@ -28,7 +29,8 @@ function scheduleValues(data: ScheduleInput) {
 		startDate,
 		endDate,
 		locationId: data.locationId ? parseInt(data.locationId, 10) : null,
-		description: data.description?.trim() || null
+		// Rendered with {@html} on the public page, so never store raw markup.
+		description: sanitizeRichText(data.description?.trim() ?? '') || null
 	};
 }
 

@@ -9,8 +9,10 @@ scope:
   - src/lib/utils/html.ts
   - src/lib/components/RichContent.svelte
   - src/lib/components/schedule
+  - src/routes/events/[id]/admin/schedule
+  - src/routes/events/[id]/+page.server.ts
 status: stable
-confirmed_commit: ee73afc64738434fd6f496fd50caf09ce5470f63
+confirmed_commit: e40d7f59c6400113acd643dbc1f8ee91278d8f29
 ---
 
 # Rich text is sanitized on read, not on write
@@ -23,16 +25,18 @@ pre and hr, with no attributes.
 
 Where it is done today:
 
-- public event detail: `src/routes/events/[id]/+page.server.ts`
-- manage area: `getEvent` in `event-details.remote.ts`, which also stops a
-  co-organizer from attacking the owner
-
-Where it is **missing**: schedule item descriptions, rendered through
-`ScheduleItemCard` on the public page and in the manage area. This is a stored
-XSS (tracked as a critical bug).
+- event descriptions: on read only, in the public event load
+  (`src/routes/events/[id]/+page.server.ts`) and the manage area's `getEvent`
+  (`event-details.remote.ts`, which also stops a co-organizer from attacking the
+  owner). Create and update store them as submitted.
+- schedule descriptions: on write in `scheduleValues` (`schedule.remote.ts`) and
+  on read in both loads that return schedule items (public event page, admin
+  schedule tab). The read side covers rows stored before the write check, and
+  migrated legacy rows. `tests/integration/schedule.test.ts` proves both: a
+  stored `<img onerror>` renders inert, and one posted around the editor is
+  stored stripped.
 
 When adding a new place that renders stored HTML, sanitize in its load or
-query. Better still, sanitize on write as well. AGENTS.md says "on the way in",
-which the code does not yet do. Plain-text fields need nothing, because Svelte
-escapes them. The one hand-built HTML string (Leaflet popups) uses
-`escapeHtml`.
+query, and sanitize on write too, as AGENTS.md asks ("on the way in"). Plain-text
+fields need nothing, because Svelte escapes them. The one hand-built HTML string
+(Leaflet popups) uses `escapeHtml`.

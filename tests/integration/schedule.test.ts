@@ -5,6 +5,8 @@ import {
 	deleteTestEvent,
 	setOrganizing,
 	getScheduleCount,
+	getScheduleDescriptions,
+	insertScheduleItem,
 	getLocationCoords,
 	closeDb
 } from './helpers/db';
@@ -155,5 +157,56 @@ test.describe('event locations', () => {
 		await page.waitForLoadState('networkidle');
 
 		await expect.poll(() => getLocationCoords(eventId, LOCATION)).toBeNull();
+	});
+});
+
+/**
+ * Schedule descriptions are rendered with {@html}. Any signed-in user can create
+ * an event, so an unsanitized description was a stored XSS on the public page.
+ */
+test.describe('schedule descriptions are sanitized', () => {
+	const PAYLOAD = '<p>Bring water</p><img src="x" onerror="window.__xss = true">';
+	let eventId: string;
+
+	test.beforeEach(async () => {
+		const userId = await getTestUserId(TEST_USER.email);
+		eventId = await createTestEvent(userId, { name: 'Sanitize Spec Event' });
+		await setOrganizing(eventId, userId);
+	});
+
+	test.afterEach(async () => {
+		await deleteTestEvent(eventId);
+	});
+
+	test.afterAll(async () => {
+		await closeDb();
+	});
+
+	test('an already-stored malicious description renders inert', async ({ page }) => {
+		await insertScheduleItem(eventId, ITEM_NAME, PAYLOAD);
+
+		await page.goto(`/events/${eventId}`);
+		await page.waitForLoadState('networkidle');
+		await page.getByRole('tab', { name: 'Schedule' }).click();
+
+		await expect(page.getByText('Bring water')).toBeVisible();
+		await expect(page.locator('img[onerror]')).toHaveCount(0);
+		expect(await page.evaluate(() => (window as { __xss?: boolean }).__xss)).toBeUndefined();
+	});
+
+	test('a description posted around the editor is stored without markup it does not allow', async ({
+		page
+	}) => {
+		await openSchedulePage(page, eventId);
+		await page.getByRole('button', { name: 'Add Schedule Item' }).click();
+		await fillItemForm(page, ITEM_NAME, '09:00', '11:00');
+		// What a hand-crafted POST does: replace the editor's hidden HTML field.
+		await page
+			.locator('form:has(#schedule-name) input[type="hidden"][name*="description"]')
+			.evaluate((input, html) => ((input as HTMLInputElement).value = html), PAYLOAD);
+		await page.getByRole('button', { name: 'Add item' }).click();
+		await page.waitForLoadState('networkidle');
+
+		await expect.poll(() => getScheduleDescriptions(eventId)).toEqual(['<p>Bring water</p>']);
 	});
 });

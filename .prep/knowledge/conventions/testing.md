@@ -12,7 +12,7 @@ scope:
   - tests/integration
   - .env.test
 status: stable
-confirmed_commit: ee73afc64738434fd6f496fd50caf09ce5470f63
+confirmed_commit: e40d7f59c6400113acd643dbc1f8ee91278d8f29
 ---
 
 # Testing

@@ -45,9 +45,9 @@ optional address and an optional position picked with `VenueLocationPicker`
 `location` text as a map-centre fallback when the event has no
 `event_location`.
 
-Known gaps: schedule descriptions are rendered unsanitized, and the
-update/delete writes are not scoped to the event (both tracked as security
-bugs).
+Schedule descriptions are sanitized on write and on read (see
+`/pitfalls/rich-text-sanitizing.md`). Known gap: the update/delete writes are
+not scoped to the event (tracked as a security bug).
 
 ## Co-organizer invites
 

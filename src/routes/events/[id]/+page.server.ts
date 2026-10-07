@@ -64,7 +64,12 @@ export const load = (async ({ params, locals }) => {
 			...event,
 			description: event.description ? sanitizeRichText(event.description) : null
 		},
-		schedules: eventSchedules,
+		// Sanitized here as well as on write: rows stored before the write-side
+		// check, and migrated legacy rows, never went through it.
+		schedules: eventSchedules.map((item) => ({
+			...item,
+			description: item.description ? sanitizeRichText(item.description) : null
+		})),
 		attendeeCount: attendeeCounts[0]?.count ?? 0,
 		attendeePeek: namedAttendees.slice(0, ATTENDEE_PEEK_LIMIT),
 		allAttendees: namedAttendees,

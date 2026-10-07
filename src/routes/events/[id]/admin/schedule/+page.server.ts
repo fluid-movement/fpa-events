@@ -1,6 +1,7 @@
 import { db } from '#lib/server/db';
 import { events, schedules, eventLocations } from '#lib/server/db/schema';
 import { autocomplete } from '#lib/geocoding';
+import { sanitizeRichText } from '#lib/utils/html';
 import { eq } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
@@ -49,5 +50,13 @@ export const load = (async ({ params }) => {
 		}
 	}
 
-	return { schedules: eventSchedules, eventLat, eventLng };
+	return {
+		// Rendered as HTML in the schedule list; see the public event page's load.
+		schedules: eventSchedules.map((item) => ({
+			...item,
+			description: item.description ? sanitizeRichText(item.description) : null
+		})),
+		eventLat,
+		eventLng
+	};
 }) satisfies PageServerLoad;

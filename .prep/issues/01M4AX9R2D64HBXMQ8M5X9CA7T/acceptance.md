@@ -1,0 +1,3 @@
+- [x] A schedule description containing script-bearing markup is stored and rendered without it
+- [x] Both loads that return schedule items sanitize descriptions
+- [x] An integration test proves the public event page renders a malicious description inert

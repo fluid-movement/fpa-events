@@ -151,6 +151,30 @@ export async function getScheduleCount(eventId: string): Promise<number> {
 	return rows.length;
 }
 
+/**
+ * Insert a schedule item straight into the table, bypassing the remote
+ * function — stands in for rows stored before write-side checks existed.
+ */
+export async function insertScheduleItem(
+	eventId: string,
+	name: string,
+	description: string
+): Promise<void> {
+	const start = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+	const end = new Date(start.getTime() + 60 * 60 * 1000);
+	await sql()`
+		INSERT INTO schedules (id, event_id, name, start_date, end_date, description, created_at, updated_at)
+		VALUES (${ulid().toLowerCase()}, ${eventId}, ${name}, ${start}, ${end}, ${description}, now(), now())
+	`;
+}
+
+export async function getScheduleDescriptions(eventId: string): Promise<(string | null)[]> {
+	const rows = await sql()<{ description: string | null }[]>`
+		SELECT description FROM schedules WHERE event_id = ${eventId}
+	`;
+	return rows.map((r) => r.description);
+}
+
 export async function eventExists(eventId: string): Promise<boolean> {
 	const rows = await sql()`SELECT id FROM events WHERE id = ${eventId}`;
 	return rows.length > 0;
