@@ -16,3 +16,6 @@ skills-lock.json
 
 # Vendored — third-party skill definitions, kept byte-for-byte as published
 /.agents/
+
+# prep owns its own canonical format (`prep fmt`); Prettier rewriting it makes `prep check` fail
+/.prep/
