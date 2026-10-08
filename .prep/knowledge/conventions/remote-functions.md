@@ -11,7 +11,7 @@ scope:
   - src/lib/server/utils
   - src/lib/server/eventForm.ts
 status: stable
-confirmed_commit: d1dc6ae660448a0d8fe2f7fb78df0fe849178f94
+confirmed_commit: b3a01b067266156d49b3ac0851d36e0dccf3df58
 ---
 
 # Remote functions and shared helpers
