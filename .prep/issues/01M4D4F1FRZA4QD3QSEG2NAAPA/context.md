@@ -1,0 +1,5 @@
+- `src/routes/legal-notice/+page.svelte` — deleted. The legacy site had no legal notice, so no outside link points at `/legal-notice`; it simply 404s afterwards, no redirect.
+- `src/lib/components/AppSidebar.svelte` — the footer keeps only the "Privacy" link.
+- `src/lib/config/pageTitle.ts` — drop the `/legal-notice` entry.
+- `tests/integration/public-pages.test.ts` — "the legal pages render" covers `/privacy-policy` only.
+- `src/routes/privacy-policy/+page.svelte` — controller block: "Freestyle Players Association" and `events@freestyledisc.org` (no address); the same address in section 6; section 7 rewritten to the visitor's own supervisory authority. Remove the `TODO` comments.

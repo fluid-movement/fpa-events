@@ -1,0 +1,3 @@
+- [x] /legal-notice is gone and nothing links to it
+- [x] The privacy policy names the Freestyle Players Association as controller with events@freestyledisc.org and contains no placeholder
+- [x] Section 7 points to the supervisory authority in the visitor's EU country, not the BfDI

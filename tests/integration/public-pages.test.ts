@@ -79,11 +79,9 @@ test.describe('public pages', () => {
 		await expect(page).toHaveTitle(new RegExp(String(lastYear)));
 	});
 
-	test('the legal pages render', async ({ page }) => {
-		for (const path of ['/legal-notice', '/privacy-policy']) {
-			await page.goto(path);
-			await page.waitForLoadState('networkidle');
-			await expect(page.locator('h1')).toBeVisible();
-		}
+	test('the privacy policy renders', async ({ page }) => {
+		await page.goto('/privacy-policy');
+		await page.waitForLoadState('networkidle');
+		await expect(page.locator('h1')).toBeVisible();
 	});
 });

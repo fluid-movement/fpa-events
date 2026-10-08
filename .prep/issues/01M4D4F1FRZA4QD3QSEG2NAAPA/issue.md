@@ -1,5 +1,5 @@
 ---
-title: Fill in the operator details on the legal notice and privacy policy
+title: Name the FPA as operator and drop the legal notice
 kind: code
 parent: 01M4D4F1CRK1FA4AZ2QDPV303T
 tags:
@@ -7,10 +7,17 @@ tags:
 priority: critical
 ---
 
-Source: project sweep, 2026-10-08; `TODO` comments in `src/routes/legal-notice/+page.svelte` and `src/routes/privacy-policy/+page.svelte`.
+Source: project sweep, 2026-10-08; `TODO` comments in `src/routes/legal-notice/+page.svelte` and `src/routes/privacy-policy/+page.svelte`; user, 2026-10-08.
 
-Both pages still render placeholders to visitors: `[OPERATOR NAME]`, `[STREET ADDRESS]`, `[CITY, POSTAL CODE, COUNTRY]` and `[CONTACT EMAIL]` (also as a `mailto:` link) in the legal notice, and the controller block and the data-subject-rights contact in the privacy policy. A German site without a complete Impressum is open to warning letters, and the GDPR requires a named controller with a reachable contact.
+Both pages still render placeholders to visitors: `[OPERATOR NAME]`, `[STREET ADDRESS]`, `[CITY, POSTAL CODE, COUNTRY]` and `[CONTACT EMAIL]` (also as a `mailto:` link).
+
+The operator is the Freestyle Players Association, a California nonprofit (501(c)(3)). The German Impressum duty (§ 5 DDG, § 18 MStV) binds providers established in Germany; a non-commercial US association is not one, and where the server sits (Hetzner) does not change that. The user chose to carry only what is required:
+
+- The legal notice page goes, together with its sidebar link, its page title entry and its integration-test path. Its "§ 5 DDG" heading claimed an obligation that does not apply, and the liability and copyright boilerplate has no legal effect.
+- The privacy policy stays, because the GDPR reaches a non-EU controller offering a service to people in the EU (Art. 3(2)). Its controller block names the Freestyle Players Association with `events@freestyledisc.org` as contact (the user creates that mailbox), and the data-subject-rights contact uses the same address. No street address is needed.
+- Section 7 names the BfDI, which supervises only federal public bodies; it should point to the supervisory authority in the visitor's EU country of residence.
+- No EU representative (Art. 27) is designated: a deliberate, accepted risk given a small non-commercial site.
+
+The rest of the policy's content (wrong and missing processing) is the separate privacy-policy issue.
 
 ## Open questions
-
-- Who is the operator and controller (the FPA as an association, or a named person), and which postal address and contact email go on both pages?

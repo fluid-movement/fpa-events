@@ -13,12 +13,9 @@
 			General Data Protection Regulation (GDPR) is:
 		</p>
 		<p class="text-sm">
-			<!-- TODO: Replace with operator name -->
-			<strong>[OPERATOR NAME]</strong><br />
-			<!-- TODO: Replace with address -->
-			[ADDRESS]<br />
-			<!-- TODO: Replace with contact email -->
-			Email: <a href="mailto:[CONTACT EMAIL]" class="underline">[CONTACT EMAIL]</a>
+			<strong>Freestyle Players Association</strong><br />
+			Email:
+			<a href="mailto:events@freestyledisc.org" class="underline">events@freestyledisc.org</a>
 		</p>
 	</section>
 
@@ -134,17 +131,15 @@
 		</ul>
 		<p class="text-sm text-muted-foreground">
 			To exercise any of these rights, contact us at
-			<!-- TODO: Replace with contact email -->
-			<a href="mailto:[CONTACT EMAIL]" class="underline">[CONTACT EMAIL]</a>.
+			<a href="mailto:events@freestyledisc.org" class="underline">events@freestyledisc.org</a>.
 		</p>
 	</section>
 
 	<section class="space-y-3">
 		<h2>7. Right to Lodge a Complaint</h2>
 		<p class="text-sm text-muted-foreground">
-			You have the right to lodge a complaint with a data protection supervisory authority. The
-			competent authority in Germany is the Bundesbeauftragte für den Datenschutz und die
-			Informationsfreiheit (BfDI).
+			You have the right to lodge a complaint with a data protection supervisory authority, in
+			particular the one in the EU country where you live.
 		</p>
 	</section>
 </PageShell>

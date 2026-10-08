@@ -54,11 +54,6 @@
 				class="text-xs text-muted-foreground hover:text-foreground"
 				onclick={() => sidebar.setOpenMobile(false)}>Privacy</a
 			>
-			<a
-				href={resolve('/legal-notice')}
-				class="text-xs text-muted-foreground hover:text-foreground"
-				onclick={() => sidebar.setOpenMobile(false)}>Legal Notice</a
-			>
 		</div>
 	</Sidebar.Footer>
 </Sidebar.Root>

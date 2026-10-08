@@ -19,7 +19,6 @@ const STATIC_TITLES: Record<string, string> = {
 	'/organizing': 'Organizing',
 	'/settings': 'Settings',
 	'/privacy-policy': 'Privacy policy',
-	'/legal-notice': 'Legal notice',
 	'/sign-in': 'Sign in',
 	'/sign-up': 'Create account',
 	'/forget-password': 'Reset password',
