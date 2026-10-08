@@ -1,13 +1,21 @@
 ---
-title: Choose an error-tracking service
+title: Choose where error tracking runs
 kind: decision
-parent: 01M4B368MKSHRQWYJ2XMZD7TXV
+parent: 01M4B36G3YXMS9BWXT4XSZAC0S
 tags:
   - observability
+priority: high
 ---
 
-Source: TODO.md, "Observability".
+Source: TODO.md, "Observability"; user, 2026-10-08: error tracking is a must before go-live, otherwise bugs in production go unnoticed.
 
-Coolify logs are lost on redeploy, have no alerting and never see client-side errors. Decide between `@sentry/sveltekit` on Sentry's EU region with `sendDefaultPii: false` (free tier 5k events/month) and self-hosted GlitchTip on the Hetzner box (Sentry-compatible, one more container and Postgres to maintain), or neither for now. GDPR care elsewhere in the app weighs on where the data lives.
+Coolify logs are lost on redeploy, have no alerting and never see client-side errors. The `handleError` hook already gives each unexpected server error a reference id, which is where a tracker plugs in. "Neither" is no longer an option; the choice is where the Sentry-protocol events go:
+
+- `@sentry/sveltekit` on Sentry's EU region with `sendDefaultPii: false`: free tier 5k events/month, alerting and source-map upload included, nothing to operate.
+- Self-hosted GlitchTip on the Hetzner box (Sentry-API compatible, a Coolify one-click service): the data stays on our server, but it is one more container and Postgres to maintain and back up.
+
+The same SDK serves both, so the integration issue does not depend on the answer except for the DSN. GDPR care elsewhere in the app (EU-only processors, privacy policy listing each one) weighs on where the data lives.
 
 ## Open questions
+
+- Sentry SaaS (EU region) or self-hosted GlitchTip?
