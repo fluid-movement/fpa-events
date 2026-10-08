@@ -1,0 +1,5 @@
+- [x] No mention of profile images
+- [x] Mailgun, Cloudflare Turnstile and the OpenStreetMap tile servers are listed, and Photon is said to receive the visitor's IP
+- [x] Event pictures, the public attendee list with its opt-out, the calendar feed and server logs are described
+- [x] The cookies section names the sidebar localStorage entry
+- [x] Nothing claims more than the code does (all data deleted, images stored in the EU)

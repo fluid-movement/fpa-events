@@ -4,13 +4,14 @@
 </script>
 
 <PageShell width="form" class="space-y-8">
-	<PageHeader title="Privacy Policy" description="Last updated: June 2026" class="pb-0" />
+	<PageHeader title="Privacy Policy" description="Last updated: October 2026" class="pb-0" />
 
 	<section class="space-y-3">
-		<h2>1. Controller</h2>
+		<h2>1. Who is responsible</h2>
 		<p class="text-sm text-muted-foreground">
-			The controller responsible for data processing on this website within the meaning of the
-			General Data Protection Regulation (GDPR) is:
+			This site is run by the Freestyle Players Association (FPA), a nonprofit based in the United
+			States. The FPA is the controller for the personal data processed here under the General Data
+			Protection Regulation (GDPR):
 		</p>
 		<p class="text-sm">
 			<strong>Freestyle Players Association</strong><br />
@@ -20,126 +21,176 @@
 	</section>
 
 	<section class="space-y-3">
-		<h2>2. Data We Collect</h2>
+		<h2>2. What we collect and why</h2>
 
 		<div class="space-y-4 text-sm text-muted-foreground">
 			<div>
-				<h3 class="font-medium text-foreground">Account data</h3>
+				<h3 class="font-medium text-foreground">Your account</h3>
 				<p>
-					When you register, we collect your name and email address. This data is necessary to
-					create and manage your account. The legal basis is the performance of a contract (GDPR
-					Art. 6(1)(b)).
+					When you sign up we store your name, your email address and your password. The password is
+					only stored as a one-way hash; nobody can read it. We use your email address to verify
+					your account, to let you reset your password, and to sign you in. Accounts moved over from
+					the previous events site keep the name, email address and password hash they had there.
+					Legal basis: providing the service you signed up for (GDPR Art. 6(1)(b)).
 				</p>
 			</div>
 
 			<div>
-				<h3 class="font-medium text-foreground">Profile image</h3>
+				<h3 class="font-medium text-foreground">Events you create</h3>
 				<p>
-					You may optionally upload a profile image. Images are stored on Cloudflare R2 object
-					storage. The legal basis is your consent (GDPR Art. 6(1)(a)), which you can withdraw at
-					any time by removing the image from your profile.
+					Everything you enter for an event — its name, dates, location, description, schedule,
+					venues and the event picture you upload — is published on the event page and visible to
+					everyone. Event pictures are stored with Cloudflare R2. Legal basis: Art. 6(1)(b).
 				</p>
 			</div>
 
 			<div>
-				<h3 class="font-medium text-foreground">Event participation</h3>
+				<h3 class="font-medium text-foreground">RSVPs and attendee lists</h3>
 				<p>
-					When you RSVP to or organize events, we store your participation status. Your name and
-					profile image are shown to other users on event attendee lists. The legal basis is the
-					performance of a contract (GDPR Art. 6(1)(b)).
+					When you RSVP to an event we store your status. If you are attending, your name appears on
+					the event page, which anyone can see, including visitors who are not signed in. You can
+					turn this off under Settings → Privacy: you are then still counted, but not named. The
+					event's organizers always see who has signed up. Legal basis: Art. 6(1)(b).
 				</p>
 			</div>
 
 			<div>
-				<h3 class="font-medium text-foreground">Session and security data</h3>
+				<h3 class="font-medium text-foreground">Calendar feed</h3>
 				<p>
-					When you log in, we create a session record that includes your IP address and browser user
-					agent. This is used to maintain your login and to detect unauthorized access. The legal
-					basis is our legitimate interest in securing the service (GDPR Art. 6(1)(f)). Sessions
-					expire automatically and are deleted when you log out.
+					Your Dashboard and Attending pages offer a personal calendar link listing the events you
+					are attending. The link contains a secret code, and anyone who has it can read the feed
+					without signing in, so keep it to yourself. Generating a new link makes the old one stop
+					working. Legal basis: Art. 6(1)(b).
+				</p>
+			</div>
+
+			<div>
+				<h3 class="font-medium text-foreground">Sign-in and security</h3>
+				<p>
+					When you sign in we store a session with your IP address and browser type, to keep you
+					signed in and to spot misuse of your account. Legal basis: our legitimate interest in a
+					secure service (Art. 6(1)(f)).
+				</p>
+			</div>
+
+			<div>
+				<h3 class="font-medium text-foreground">Server logs</h3>
+				<p>
+					When something goes wrong, our server logs the page, the time and your user ID so we can
+					find and fix the error. When the site sends you an email, the log records the address it
+					went to. Legal basis: our legitimate interest in running the service reliably (Art.
+					6(1)(f)).
 				</p>
 			</div>
 		</div>
 	</section>
 
 	<section class="space-y-3">
-		<h2>3. Cookies</h2>
+		<h2>3. Cookies and local storage</h2>
 		<p class="text-sm text-muted-foreground">
-			This website uses only strictly necessary cookies for authentication (session token). These
-			cookies are essential for the login functionality and are exempt from consent requirements
-			under the ePrivacy Directive. We do not use analytics, tracking, or advertising cookies.
+			We set one cookie, which keeps you signed in, and your browser remembers whether you collapsed
+			the sidebar (local storage, <code>sidebar:state</code>). Both are needed for the features you
+			use, so they need no consent. We use no analytics, tracking or advertising.
 		</p>
 	</section>
 
 	<section class="space-y-3">
-		<h2>4. Third-Party Services</h2>
+		<h2>4. Services we use</h2>
 
 		<div class="space-y-4 text-sm text-muted-foreground">
 			<div>
-				<h3 class="font-medium text-foreground">Hetzner (Hosting)</h3>
+				<h3 class="font-medium text-foreground">Hetzner (hosting)</h3>
 				<p>
-					This website is hosted on servers operated by Hetzner Online GmbH, Industriestr. 25, 91710
-					Gunzenhausen, Germany. All data is stored within the European Union. Hetzner acts as a
-					data processor under a Data Processing Agreement (GDPR Art. 28). See Hetzner's privacy
-					policy at <a href="https://www.hetzner.com/legal/privacy-policy" class="underline"
-						>hetzner.com</a
+					The site and its database run on servers of Hetzner Online GmbH in Germany, which
+					processes the data on our behalf. See
+					<a href="https://www.hetzner.com/legal/privacy-policy" class="underline"
+						>Hetzner's privacy policy</a
 					>.
 				</p>
 			</div>
 
 			<div>
-				<h3 class="font-medium text-foreground">Cloudflare R2 (Image Storage)</h3>
+				<h3 class="font-medium text-foreground">Mailgun (email)</h3>
 				<p>
-					Profile images and event photos are stored using Cloudflare R2 object storage, operated by
-					Cloudflare, Inc. Images are stored in EU regions. See Cloudflare's privacy policy at
-					<a href="https://www.cloudflare.com/privacypolicy/" class="underline">cloudflare.com</a>.
+					Account emails (verification and password reset) are sent through Mailgun Technologies,
+					Inc., from its EU region. Mailgun receives your email address and the message. See
+					<a href="https://www.mailgun.com/legal/privacy-policy/" class="underline"
+						>Mailgun's privacy policy</a
+					>.
 				</p>
 			</div>
 
 			<div>
-				<h3 class="font-medium text-foreground">Komoot Photon (Geocoding)</h3>
+				<h3 class="font-medium text-foreground">Cloudflare (image storage and spam protection)</h3>
 				<p>
-					When searching for event locations, we send your search query to the Komoot Photon API
-					(photon.komoot.io) to suggest city and place names. No personal data beyond the search
-					text is transmitted. See Komoot's privacy policy at
-					<a href="https://www.komoot.com/privacy" class="underline">komoot.com</a>.
+					Event pictures are stored with Cloudflare R2. The sign-up, sign-in, password reset and
+					event forms use Cloudflare Turnstile to tell people from bots: your browser loads it from
+					Cloudflare, which receives your IP address and technical details about your browser. It
+					sets no tracking cookies. Cloudflare, Inc. is based in the United States. See
+					<a href="https://www.cloudflare.com/privacypolicy/" class="underline"
+						>Cloudflare's privacy policy</a
+					>.
+				</p>
+			</div>
+
+			<div>
+				<h3 class="font-medium text-foreground">OpenStreetMap (maps)</h3>
+				<p>
+					Maps are drawn from tiles your browser loads directly from the OpenStreetMap Foundation's
+					servers, which receive your IP address. See the
+					<a href="https://osmfoundation.org/wiki/Privacy_Policy" class="underline"
+						>OpenStreetMap privacy policy</a
+					>.
+				</p>
+			</div>
+
+			<div>
+				<h3 class="font-medium text-foreground">Komoot Photon (place search)</h3>
+				<p>
+					When you search for a city or venue, your browser sends the search text to Komoot's Photon
+					service (photon.komoot.io), which also receives your IP address. See
+					<a href="https://www.komoot.com/privacy" class="underline">Komoot's privacy policy</a>.
 				</p>
 			</div>
 		</div>
-	</section>
-
-	<section class="space-y-3">
-		<h2>5. Data Retention</h2>
 		<p class="text-sm text-muted-foreground">
-			Account data is retained for as long as your account exists. Sessions are deleted on logout or
-			when they expire. Password reset tokens expire automatically within a short period. You can
-			delete your account at any time from your account settings, which permanently removes all
-			personal data associated with your account.
+			Where data reaches a provider in the United States, the transfer relies on the EU–US Data
+			Privacy Framework or the European Commission's standard contractual clauses.
 		</p>
 	</section>
 
 	<section class="space-y-3">
-		<h2>6. Your Rights</h2>
-		<p class="text-sm text-muted-foreground">Under GDPR, you have the right to:</p>
+		<h2>5. How long we keep it</h2>
+		<p class="text-sm text-muted-foreground">
+			Your account data stays for as long as your account exists. Sessions end when you sign out or
+			after a week without use. Verification and password-reset links expire after a short time.
+			Server logs are deleted, at the latest, when the site is next updated. You can delete your
+			account at any time under Settings → Account; this removes your account, your sessions, your
+			RSVPs and the events you created.
+		</p>
+	</section>
+
+	<section class="space-y-3">
+		<h2>6. Your rights</h2>
+		<p class="text-sm text-muted-foreground">Under the GDPR you have the right to:</p>
 		<ul class="list-inside list-disc space-y-1 text-sm text-muted-foreground">
-			<li>Access your personal data (Art. 15)</li>
-			<li>Correct inaccurate data (Art. 16)</li>
-			<li>Request deletion of your data (Art. 17) — available directly via account settings</li>
-			<li>Restrict or object to processing (Art. 18, 21)</li>
-			<li>Data portability (Art. 20)</li>
-			<li>Withdraw consent at any time, where processing is based on consent</li>
+			<li>see the data we hold about you (Art. 15)</li>
+			<li>have wrong data corrected (Art. 16)</li>
+			<li>have your data deleted (Art. 17) — you can delete your account yourself</li>
+			<li>restrict or object to processing (Art. 18, 21)</li>
+			<li>get your data in a portable format (Art. 20)</li>
 		</ul>
 		<p class="text-sm text-muted-foreground">
-			To exercise any of these rights, contact us at
+			To use any of these rights, email us at
 			<a href="mailto:events@freestyledisc.org" class="underline">events@freestyledisc.org</a>.
 		</p>
 	</section>
 
 	<section class="space-y-3">
-		<h2>7. Right to Lodge a Complaint</h2>
+		<h2>7. Complaints</h2>
 		<p class="text-sm text-muted-foreground">
-			You have the right to lodge a complaint with a data protection supervisory authority, in
-			particular the one in the EU country where you live.
+			You can complain to a data protection supervisory authority, in particular the one in the EU
+			country where you live.
 		</p>
 	</section>
 </PageShell>

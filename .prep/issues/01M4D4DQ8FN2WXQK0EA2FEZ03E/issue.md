@@ -23,4 +23,6 @@ R2 images are not covered by database backups; whether the bucket needs its own 
 
 Knowledge: /architecture/build-and-deploy.md; memory: the production DB ports are firewalled, so DB work runs from the Coolify terminal.
 
+The privacy policy's retention section (`src/routes/privacy-policy/+page.svelte`) states how long backups are kept.
+
 ## Open questions

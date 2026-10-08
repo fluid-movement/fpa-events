@@ -25,4 +25,6 @@ What the integration has to respect:
 
 Knowledge: /architecture/build-and-deploy.md (Errors in production).
 
+The privacy policy (`src/routes/privacy-policy/+page.svelte`) gains a section for the tracker: what an event contains, where it is stored, the processor, and its retention.
+
 ## Open questions
