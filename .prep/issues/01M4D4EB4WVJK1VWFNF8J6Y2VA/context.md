@@ -1,0 +1,3 @@
+- CSP: Kit's `csp` option in `svelte-options.js` (`mode: 'auto'`, so Kit nonces its inline hydration script). Hosts come from the code: Turnstile (`src/lib/components/Turnstile.svelte`), Photon in the browser (`src/lib/geocoding.ts`), OSM tiles and Leaflet icons (`src/lib/leaflet.ts`), R2 images, and `blob:` previews (`ImageUpload`).
+- Other headers: `withSecurityHeaders` in `src/hooks.server.ts`.
+- Deploy notes: [Build, quality gates and deploy](/architecture/build-and-deploy.md).

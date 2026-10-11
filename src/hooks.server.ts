@@ -23,8 +23,38 @@ export const handle: Handle = async ({ event, resolve }) => {
 		event.locals.role = record?.role ?? 'user';
 	}
 
-	return svelteKitHandler({ event, resolve, auth, building });
+	const response = await svelteKitHandler({ event, resolve, auth, building });
+	return withSecurityHeaders(response);
 };
+
+/**
+ * Headers every response carries. The CSP itself is Kit's (`csp` in
+ * `svelte-options.js`), because only Kit knows the nonce of its inline script.
+ */
+const SECURITY_HEADERS: Record<string, string> = {
+	'x-content-type-options': 'nosniff',
+	// Invite and calendar-feed URLs carry tokens in the path: never let the full
+	// URL leave the site in a Referer.
+	'referrer-policy': 'strict-origin-when-cross-origin',
+	// `frame-ancestors 'none'` covers current browsers; this covers the rest.
+	'x-frame-options': 'DENY',
+	// No `includeSubDomains`: other freestyledisc.org hosts are not ours.
+	'strict-transport-security': 'max-age=31536000',
+	'permissions-policy': 'camera=(), microphone=(), geolocation=(), payment=()'
+};
+
+function withSecurityHeaders(response: Response): Response {
+	for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
+		// Some responses (redirects from `fetch`, static files) are immutable.
+		try {
+			if (!response.headers.has(name)) response.headers.set(name, value);
+		} catch {
+			const copy = new Response(response.body, response);
+			return withSecurityHeaders(copy);
+		}
+	}
+	return response;
+}
 
 /**
  * Unexpected errors only: each gets a short reference that is logged with the

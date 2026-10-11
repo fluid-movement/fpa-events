@@ -1,0 +1,3 @@
+- [x] Every response carries a CSP with a script nonce plus nosniff, Referrer-Policy, frame protection, HSTS and Permissions-Policy
+- [x] The integration suite passes with the policy on (its console guard fails on CSP violations)
+- [x] The production build serves the same policy

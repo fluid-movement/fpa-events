@@ -92,3 +92,28 @@ production build (2026-10-07), the app's frames already name source files
 (`src/routes/+page.server.ts:14:43`) without any flag. Setting
 `NODE_OPTIONS=--enable-source-maps` in Coolify additionally maps framework and
 dependency frames and prints absolute paths; it is optional.
+
+## Health check
+
+`GET /healthz` (`src/routes/healthz/+server.ts`) answers 200 `ok` when Postgres
+answers `select 1` within 3 s, and 503 `unavailable` otherwise. It is
+`no-store`, unauthenticated and says nothing more. It deliberately ignores
+fpa-api, Mailgun and R2, which have their own fallbacks. Use it for Coolify's
+container health check and for the external uptime monitor.
+
+## Security headers
+
+The CSP is Kit's: the `csp` option in `svelte-options.js` with `mode: 'auto'`,
+so Kit puts a nonce on its own inline script. It lists exactly what the browser
+loads: Turnstile (script and frame from `challenges.cloudflare.com`), Photon
+(`connect-src`), and images from any `https:` origin (R2's host is an env var,
+and OSM tiles use several subdomains). Styles allow `'unsafe-inline'`, because
+Svelte, bits-ui and Leaflet write style attributes, and Kit adds no style nonce
+in that case. **A new third-party script, frame or fetch target must be added
+there**, or the browser blocks it. The integration suite's console guard then
+fails on the violation.
+
+`withSecurityHeaders` in `src/hooks.server.ts` adds `nosniff`,
+`Referrer-Policy: strict-origin-when-cross-origin` (invite and calendar-feed URLs
+carry tokens), `X-Frame-Options: DENY`, HSTS without `includeSubDomains` (other
+freestyledisc.org hosts are not ours), and a Permissions-Policy.
