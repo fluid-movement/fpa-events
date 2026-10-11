@@ -84,4 +84,28 @@ export interface PlayerProfileView {
 	rankings: PlayerRanking[];
 	ratings: PlayerRating[];
 	career: CareerEntry[];
+	/** fpa-profiles enrichment, or null — which is most players. See `toPlayerBio`. */
+	bio: PlayerBio | null;
+}
+
+export interface PlayerBioLink {
+	url: string;
+	/** The upstream label, or the URL's host when there is none. */
+	label: string;
+	kind: 'website' | 'sponsor' | 'social' | 'other';
+}
+
+/** One story field. `text` keeps its line breaks; render it `whitespace-pre-line`. */
+export type PlayerBioSection = { key: string; label: string } & (
+	{ kind: 'text'; text: string } | { kind: 'names'; names: string[] }
+);
+
+export interface PlayerBio {
+	nickname: string | null;
+	headline: string | null;
+	playingSince: string | null;
+	/** The Markdown `bio`, rendered and sanitized on the server. */
+	bioHtml: string | null;
+	sections: PlayerBioSection[];
+	links: PlayerBioLink[];
 }

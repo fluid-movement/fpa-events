@@ -4,7 +4,9 @@ import { fpaApiGet, FpaApiError } from '#lib/server/fpa-api/client';
 import type { PlayerProfile } from '#lib/server/fpa-api/types';
 import type { ApiResult } from '#lib/rankings/types';
 import { collapsePlacements } from '#lib/results/career';
-import type { PlayerProfileView } from '#lib/results/types';
+import { toPlayerBio } from '#lib/results/bio';
+import type { PlayerBio, PlayerProfileView } from '#lib/results/types';
+import { renderMarkdown } from '#lib/server/markdown';
 
 /**
  * Player profiles from fpa-api.
@@ -23,6 +25,19 @@ async function attempt<T>(fn: () => Promise<T>): Promise<ApiResult<T>> {
 			return { ok: false, message: error.message };
 		}
 		throw error;
+	}
+}
+
+/**
+ * The enrichment is supplementary: if anything about it goes wrong, the page
+ * renders without it rather than losing the results it already has.
+ */
+function playerBio(raw: unknown): PlayerBio | null {
+	try {
+		return toPlayerBio(raw, renderMarkdown);
+	} catch (error) {
+		console.warn('[players] ignoring unreadable profile enrichment', error);
+		return null;
 	}
 }
 
@@ -49,7 +64,8 @@ export const getPlayerProfile = query(
 				// Collapsed here rather than in the browser: an active player has
 				// ~130 placements across ~80 event-and-division finishes, and the
 				// rounds we drop are never rendered.
-				career: collapsePlacements(profile.placements)
+				career: collapsePlacements(profile.placements),
+				bio: playerBio(profile.profile)
 			};
 		})
 );

@@ -32,7 +32,7 @@ sign-in and no database.
 | `/rankings` (`?tab=ratings`, `?series=`, `?minMatches=`) | `RankingsPanel`, `RatingsPanel`        | `getSeries`, `getRankings`, `getRatings`, `getScoringResults` (row drill-down) |
 | `/results` (`?q=`, `?division=`, `?year=`, `?page=`)     | `ResultsPanel`, `ResultsFilters`       | `getResultEvents`                                                              |
 | `/results/[eventId]`                                     | `EventResultsPanel`, `DivisionResults` | `getEventResults`                                                              |
-| `/players/[playerId]`                                    | `PlayerProfilePanel`, `PlayerCareer`   | `getPlayerProfile` (accepts alias ids and returns the canonical one)           |
+| `/players/[playerId]`                                    | `PlayerProfilePanel`, `PlayerCareer`, `PlayerBio` | `getPlayerProfile` (accepts alias ids and returns the canonical one)           |
 
 Defaults: ranking series `ranking-open`, rating series `rating-open`, minimum
 match count 50 (`#lib/rankings/types`), and 50 results per page
@@ -54,6 +54,28 @@ pages are clamped, not 404'd. The API caps lists at 500 rows, so the UI compares
 - Pure transforms are unit-tested: `joinScoringResults`
   (`#lib/rankings/breakdown`), `collapsePlacements` (`#lib/results/career`),
   `RankingsTable`/`DivisionResults` filtering.
+
+## Player profile enrichment
+
+`GET /players/{id}` may carry `profile: { fields, updatedAt }`, which is historic data
+from the old FPA site edited in fpa-profiles. Most players have none. The query
+turns it into `PlayerProfileView.bio` with `toPlayerBio` (`#lib/results/bio`), which
+is the only reader of the raw value:
+
+- Fields are kept by **value shape**, not by key, because new keys arrive without an
+  API release: a string becomes text, a list of strings becomes names, and a list of
+  objects becomes links (http(s) only, labelled by host when there is no label).
+  Anything else is dropped. When nothing usable is left, the result is `null`.
+- Free text made only of several short lines without punctuation is read as names,
+  because mentors and partners are stored one per line.
+- `bio` is Markdown. It is rendered on the server by `renderMarkdown`
+  (`#lib/server/markdown`: `marked`, then `sanitize-html`, with headings demoted
+  to h3/h4 and links opened externally), so the parser never ships to the browser.
+- The query wraps the whole conversion in a try/catch, so bad enrichment costs only
+  the enrichment, never the page.
+- In the page, `nickname`, `headline` and `playingSince` go into the page header,
+  and everything else goes into an "About" section between "Current standing" and
+  "Results". The section is absent when there is nothing to show in it.
 
 Integration specs (`rankings.test.ts`, `results.test.ts`) run against the real
 API and assert behaviour, not specific players.

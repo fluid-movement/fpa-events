@@ -3,6 +3,7 @@
 	import Section from '#lib/components/layout/Section.svelte';
 	import ServiceUnavailable from '#lib/components/layout/ServiceUnavailable.svelte';
 	import { Badge } from '#lib/components/ui/badge';
+	import PlayerBio from './PlayerBio.svelte';
 	import PlayerCareer from './PlayerCareer.svelte';
 	import { getPlayerProfile } from '#lib/api/players.remote';
 	import { formatPoints } from '#lib/utils/numbers';
@@ -35,6 +36,7 @@
 {:else}
 	<PageHeader
 		title={profile.data.fullName}
+		description={profile.data.bio?.headline ?? undefined}
 		eyebrow="Player"
 		back={{ href: backHref, label: 'All results' }}
 	>
@@ -44,6 +46,12 @@
 			{/if}
 		{/snippet}
 		{#snippet meta()}
+			{#if profile.data.bio?.nickname}
+				<span data-testid="player-nickname">“{profile.data.bio.nickname}”</span>
+			{/if}
+			{#if profile.data.bio?.playingSince}
+				<span>Playing since {profile.data.bio.playingSince}</span>
+			{/if}
 			{#if activeRange}
 				<span>Active {activeRange}</span>
 			{/if}
@@ -88,6 +96,10 @@
 				{/each}
 			</ul>
 		</Section>
+	{/if}
+
+	{#if profile.data.bio}
+		<PlayerBio bio={profile.data.bio} />
 	{/if}
 
 	<Section title="Results">

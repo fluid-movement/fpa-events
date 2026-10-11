@@ -1,0 +1,1 @@
+- 2026-10-11T14:04:59Z claude-code/opus-5.5: Verified at 390px and 1280px with Playwright screenshots against the dev server on 5174: b36250bf (with profile) and ff38b0ca (no profile, unchanged), no console errors. Unit: bio.test.ts and markdown.test.ts. There's no integration spec, because real API data can't be relied on to keep a profile on any given player.

@@ -1,0 +1,5 @@
+- [x] A player with no profile (null/missing/malformed) renders exactly as before, with no empty section
+- [x] toPlayerBio is unit-tested for null, malformed values, unknown keys, bad links and empty results
+- [x] Bio Markdown is rendered sanitized; links open externally with rel=noopener
+- [x] Profile b36250bf-9def-4a9a-a716-e6d447d3cffd shows nickname, headline, playing since, story fields and links
+- [x] Layout checked at phone and desktop widths

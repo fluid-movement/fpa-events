@@ -188,6 +188,12 @@ export interface PlayerPlacement {
 
 export interface PlayerProfile {
 	player: Player;
+	/**
+	 * fpa-profiles enrichment, `{ fields, updatedAt }` or null. Left `unknown`
+	 * on purpose: new keys arrive without an API release and the data is old, so
+	 * it is only ever read through `toPlayerBio`, which validates every value.
+	 */
+	profile?: unknown;
 	stats: PlayerStats;
 	rankings: PlayerRanking[];
 	ratings: PlayerRating[];
