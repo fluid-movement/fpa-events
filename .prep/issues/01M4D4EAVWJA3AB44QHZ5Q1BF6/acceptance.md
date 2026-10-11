@@ -1,0 +1,3 @@
+- [x] /healthz answers 200 with a reachable database and 503 when the query fails or hangs
+- [x] The 503 body reveals nothing about the failure
+- [x] Coolify/uptime wiring filed as its own manual issue

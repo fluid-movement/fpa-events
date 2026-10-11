@@ -12,8 +12,8 @@ Source: project sweep, 2026-10-08.
 
 Error tracking reports errors the app manages to raise; it says nothing when the app is down, the container is restarting, or Postgres is unreachable. There is no health route today.
 
-- A cheap unauthenticated endpoint (e.g. `/healthz`) answers 200 when the app can query Postgres and 503 when it cannot, without exposing anything else. It does not depend on fpa-api, Mailgun or R2, which have their own fallbacks.
-- Coolify's container health check uses it, so a deploy whose container cannot reach the database is not swapped in for a working one.
-- An external uptime check (Uptime Kuma as a Coolify service, or a hosted monitor) polls the public domain and alerts the maintainer by email when it is down. It must not run on the same box only, or a dead Hetzner server stays silent.
+A cheap unauthenticated endpoint (`/healthz`) answers 200 when the app can query Postgres and 503 when it cannot, without exposing anything else. It does not depend on fpa-api, Mailgun or R2, which have their own fallbacks. A hung database must still get a timely 503.
+
+Wiring it into Coolify's health check and an external uptime monitor is tracked separately as a manual issue.
 
 ## Open questions

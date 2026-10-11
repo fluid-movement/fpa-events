@@ -1,0 +1,3 @@
+- `src/routes/healthz/+server.ts`: GET runs `select 1` through `db` (`#lib/server/db`), raced against a 3 s timer so a hung pool still answers 503. `cache-control: no-store`, plain-text body, no error detail.
+- It still passes through `handle` in `src/hooks.server.ts`; without a session cookie that is only a cookie check.
+- Deploy notes: [Build, quality gates and deploy](/architecture/build-and-deploy.md).
