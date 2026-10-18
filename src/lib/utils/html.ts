@@ -41,10 +41,29 @@ export function escapeHtml(value: string): string {
 	return value.replace(/[&<>"']/g, (char) => ESCAPES[char]);
 }
 
-/** Rich text reduced to a single line of plain text, for previews and excerpts. */
+/** Plain text for Svelte-rendered previews and excerpts; never inject as HTML. */
 export function stripHtml(html: string): string {
-	return html
-		.replace(/<[^>]*>/g, ' ')
+	let needsSpace = false;
+	const text = sanitizeHtml(html, {
+		allowedTags: [],
+		allowedAttributes: {},
+		onOpenTag: () => {
+			needsSpace = true;
+		},
+		onCloseTag: () => {
+			needsSpace = true;
+		},
+		textFilter: (text) => {
+			const prefix = needsSpace ? ' ' : '';
+			needsSpace = false;
+			return prefix + text;
+		}
+	});
+	// The parser decodes named/numeric entities, then re-escapes these three in text.
+	// Undo that once, after tag removal, so encoded markup remains literal text.
+	const entities: Record<string, string> = { '&amp;': '&', '&lt;': '<', '&gt;': '>' };
+	return text
+		.replace(/&(amp|lt|gt);/g, (entity) => entities[entity])
 		.replace(/\s+/g, ' ')
 		.trim();
 }

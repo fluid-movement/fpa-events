@@ -1,0 +1,1 @@
+- 2026-10-18T16:01:40Z codex: Implemented, ready for check: stripHtml now decodes entities into plain text, drops script/style contents, preserves spacing between tags, and has table-driven regression tests.
