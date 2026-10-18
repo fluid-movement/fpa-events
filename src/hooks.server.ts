@@ -5,7 +5,13 @@ import { eq } from 'drizzle-orm';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
 import { building } from '$app/env';
 import { type Handle, type HandleServerError } from '@sveltejs/kit/hooks';
+import * as Sentry from '@sentry/sveltekit';
+import { GLITCHTIP_DSN } from '$app/env/private';
+import { trackerOptions } from '#lib/error-tracking';
 import { describeServerError } from '#lib/server/errors';
+
+// A blank DSN leaves the SDK disabled (dev, tests).
+Sentry.init(trackerOptions(GLITCHTIP_DSN));
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const session = await auth.api.getSession({ headers: event.request.headers });
@@ -73,5 +79,14 @@ export const handleError: HandleServerError = ({ kind, error, event }) => {
 
 	console.error(report.logLine);
 	if (report.stack) console.error(report.stack);
+
+	// The route id, never `event.url`, and the user by id only.
+	Sentry.withScope((scope) => {
+		scope.setTag('errorId', report.errorId);
+		if (event.route.id) scope.setTransactionName(event.route.id);
+		const userId = event.locals.user?.id;
+		if (userId) scope.setUser({ id: userId });
+		Sentry.captureException(error);
+	});
 	return { message: 'Internal Error', errorId: report.errorId };
 };

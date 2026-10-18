@@ -82,6 +82,20 @@
 					6(1)(f)).
 				</p>
 			</div>
+
+			<div>
+				<h3 class="font-medium text-foreground">Error reports</h3>
+				<p>
+					When something unexpected breaks, in the server or in your browser, the site sends an
+					error report to an error tracker (GlitchTip) that we run ourselves on our own server at
+					Hetzner. It is not a third-party service. A report contains the error message and the
+					technical trace of where it happened, a short reference code, the page's route pattern
+					(for example <code>/invite/[token]</code>, never the actual address), your user ID if you
+					are signed in, and basic browser and system details. It contains no page address, no
+					cookies, no email address and no name. Reports are deleted after 90 days. Legal basis: our
+					legitimate interest in running the service reliably (Art. 6(1)(f)).
+				</p>
+			</div>
 		</div>
 	</section>
 

@@ -45,6 +45,10 @@ export const variables = defineEnvVars({
 		schema: (value) => value,
 		description: 'Blank disables captcha verification (verifyTurnstile returns true).'
 	},
+	GLITCHTIP_DSN: {
+		schema: (value) => value,
+		description: 'Server-side GlitchTip DSN. Blank disables server error reporting.'
+	},
 	FPA_API_URL: {
 		schema: (value) => value,
 		description: 'Read-only rankings/results API. Unset shows an "unavailable" notice.'
@@ -53,5 +57,12 @@ export const variables = defineEnvVars({
 		public: true,
 		schema: (value) => value,
 		description: 'Blank hides the Turnstile widget.'
+	},
+	PUBLIC_GLITCHTIP_DSN: {
+		public: true,
+		schema: (value) => value,
+		description:
+			'Browser GlitchTip DSN. Blank disables browser error reporting. Its origin is also ' +
+			'added to the CSP connect-src at build time, so set it as a build arg too.'
 	}
 });

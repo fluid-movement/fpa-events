@@ -6,6 +6,8 @@
  * path — the calendar feed and invite links carry their credential in it.
  */
 
+import { newErrorId } from '#lib/utils/error-id';
+
 type ErrorKind = 'app' | 'framework' | 'validation' | 'unknown';
 
 export type ServerErrorInput = {
@@ -25,10 +27,7 @@ export type ServerErrorReport = {
 	stack: string | undefined;
 };
 
-/** 8 hex characters: short enough to read out, plenty for this traffic. */
-export function newErrorId(): string {
-	return crypto.randomUUID().replace(/-/g, '').slice(0, 8);
-}
+export { newErrorId };
 
 /**
  * The report for an error, or null when the error is expected (thrown with

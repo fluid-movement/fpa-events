@@ -16,6 +16,7 @@ export const R2_ACCESS_KEY_ID: string | undefined = 'test-access-key-id';
 export const R2_SECRET_ACCESS_KEY: string | undefined = 'test-secret-key';
 export const R2_BUCKET_NAME: string | undefined = 'test-bucket';
 export const R2_PUBLIC_URL: string | undefined = 'https://test.r2.dev';
+export const GLITCHTIP_DSN: string | undefined = undefined;
 export let TURNSTILE_SECRET_KEY: string | undefined = undefined;
 export let FPA_API_URL: string | undefined = 'https://fpa-api.test';
 

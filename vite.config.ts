@@ -1,11 +1,32 @@
 import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vitest/config';
+import { sentrySvelteKit } from '@sentry/sveltekit/vite';
 import svelteOptions from './svelte-options.js';
+
+// Source maps go to GlitchTip at build time, when `SENTRY_AUTH_TOKEN` is set
+// (a Coolify build arg). Without it, dev and test builds skip the upload.
+// `SENTRY_URL` points the plugin at GlitchTip; the release name is the commit
+// Coolify is building and is injected into the bundles for the SDK to report.
+const uploadSourceMaps = Boolean(process.env.SENTRY_AUTH_TOKEN);
 
 export default defineConfig({
 	// Kit 3 takes what used to live in svelte.config.js as a plugin argument.
-	plugins: [tailwindcss(), sveltekit(svelteOptions)],
+	plugins: [
+		tailwindcss(),
+		// Must come before `sveltekit()`.
+		sentrySvelteKit({
+			autoUploadSourceMaps: uploadSourceMaps,
+			autoInstrument: false,
+			telemetry: false,
+			sentryUrl: process.env.SENTRY_URL,
+			org: process.env.SENTRY_ORG ?? 'fpa',
+			project: process.env.SENTRY_PROJECT ?? 'events-new',
+			authToken: process.env.SENTRY_AUTH_TOKEN,
+			release: { name: process.env.SENTRY_RELEASE ?? process.env.SOURCE_COMMIT }
+		}),
+		sveltekit(svelteOptions)
+	],
 	server: {
 		watch: {
 			// Playwright writes traces and its HTML report into the project while the
