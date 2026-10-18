@@ -1,0 +1,4 @@
+- [ ] Deleting an account releases the R2 picture of every event the user created, whether or not it has co-organizers
+- [ ] A picture still used by another user's event is left in the bucket
+- [ ] A failing R2 delete does not stop the account deletion
+- [ ] The existing deletion order and the password check are unchanged, and a test covers the release step

@@ -6,4 +6,4 @@ okf_version: "0.2"
 
 ## Directories
 
-* [decisions](/decisions/index.md) - 13 entries
+* [decisions](/decisions/index.md) - 14 entries
