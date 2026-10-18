@@ -7,6 +7,7 @@ import { account, events, user, verification } from '#lib/server/db/schema';
 import { and, eq } from 'drizzle-orm';
 import { requireSignedInRequest } from '#lib/server/authz';
 import { auth } from '#lib/server/auth';
+import { releaseEventPictures } from '#lib/server/eventForm';
 
 export const deleteAccount = form(
 	v.object({ _password: v.pipe(v.string(), v.minLength(1, 'Enter your password.')) }),
@@ -24,7 +25,13 @@ export const deleteAccount = form(
 		if (!ok) invalid(issue._password('Incorrect password.'));
 
 		// Events created by this user go first — events.userId has no cascade.
+		const ownedEvents = await db
+			.select({ id: events.id, picture: events.picture })
+			.from(events)
+			.where(eq(events.userId, signedIn.id));
 		await db.delete(events).where(eq(events.userId, signedIn.id));
+		// Release after all owned events are gone, including ones sharing a picture.
+		await releaseEventPictures(ownedEvents);
 		// Verification tokens are keyed by email, not by user id.
 		await db.delete(verification).where(eq(verification.identifier, signedIn.email));
 		// Deleting the user cascades to session, account and event_user.

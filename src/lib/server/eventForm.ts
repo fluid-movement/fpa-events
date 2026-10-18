@@ -117,6 +117,19 @@ export async function releasePicture(url: string | null, eventId: string): Promi
 	await deleteImage(url).catch(() => {});
 }
 
+/** Release pictures after deleting the event rows, without blocking account deletion. */
+export async function releaseEventPictures(
+	deletedEvents: { id: string; picture: string | null }[]
+): Promise<void> {
+	for (const event of deletedEvents) {
+		try {
+			await releasePicture(event.picture, event.id);
+		} catch {
+			// A failed reference check must not stop the remaining releases or account deletion.
+		}
+	}
+}
+
 /**
  * The shared city-level location the event maps to, deduplicated across events.
  *
