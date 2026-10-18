@@ -148,6 +148,7 @@ test.describe('settings — account deletion', () => {
 		await page.waitForLoadState('networkidle');
 		await page.getByTestId('open-delete-account').click();
 		await expect(page.getByTestId('delete-account-dialog')).toBeVisible();
+		await page.getByTestId('delete-account-password').fill(password);
 		await page.getByTestId('confirm-delete-account').click();
 		await page.waitForLoadState('networkidle');
 
@@ -155,6 +156,22 @@ test.describe('settings — account deletion', () => {
 		await expect
 			.poll(async () => (await sql()`SELECT id FROM "user" WHERE email = ${email}`).length)
 			.toBe(0);
+	});
+
+	test('a wrong password deletes nothing and shows an error', async ({ page, context }) => {
+		await signUpAndSignIn(page, context, { email, password });
+
+		await page.goto('/settings/account');
+		await page.waitForLoadState('networkidle');
+		await page.getByTestId('open-delete-account').click();
+		await page.getByTestId('delete-account-password').fill('not-the-password-1');
+		await page.getByTestId('confirm-delete-account').click();
+		await page.waitForLoadState('networkidle');
+
+		await expect(page.getByTestId('delete-account-error')).toHaveText('Incorrect password.');
+		await expect(page).toHaveURL(/settings\/account/);
+		const rows = await sql()`SELECT id FROM "user" WHERE email = ${email}`;
+		expect(rows.length).toBe(1);
 	});
 
 	test('the confirm dialog can be dismissed without deleting', async ({ page, context }) => {
