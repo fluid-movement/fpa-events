@@ -1,0 +1,18 @@
+---
+title: Allowlist the remaining fields of error reports
+kind: code
+parent: 01M4B36G3YXMS9BWXT4XSZAC0S
+tags:
+  - observability
+  - security
+  - privacy
+priority: high
+---
+
+Source: review of the redaction issue, 2026-10-18 (follow-ups logged on the security audit issue) and /decisions/01M57R12DXKFJBJPPTFW5G6M2B.md (allowlist, not redaction, for anything a user can write into).
+
+The scrubber (`src/lib/error-tracking.ts`) drops the request, breadcrumbs, extra, span data and frame variables, and allowlists database error text, but still passes through event tags other than `tags.url`, every `contexts` entry other than `trace.data`, and `exception.values[].mechanism.data`. In a test a Postgres-shaped `detail` placed in `mechanism.data` survived. Nothing in today's setup puts database or user text there, but anything a later SDK upgrade or integration adds would flow to GlitchTip unreviewed. An allowlist makes new fields opt-in.
+
+Keep only: tags `errorId`, `release`, `environment`, `os.name`, `server_name`, `runtime` and any tag the hooks set themselves; contexts `os`, `runtime`, `app`, `device` and `culture` (as seen in the live events) minus any field that can hold user text; `mechanism.data` reduced to its `code` when it is a short string of letters and digits. Everything else is dropped. Also make `scrubEvent` return a safe empty event instead of throwing when given a null or non-object, and drop non-string `transaction`, `release` and `environment` values. Stay fail-closed: a step that throws drops its field, never the event and never the original value.
+
+## Open questions

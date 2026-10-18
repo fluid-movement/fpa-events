@@ -1,0 +1,4 @@
+- [ ] stripHtml decodes the common named and numeric entities, so a description containing & shows as & in the home excerpt and the link-preview description
+- [ ] The text inside script and style elements is dropped, and tags are replaced by a space so words do not run together
+- [ ] Decoded entities that look like markup (&lt;b&gt;) stay plain text and are never turned into tags
+- [ ] html.test.ts covers these cases and the existing meta and html tests still pass
