@@ -4,6 +4,5 @@
 - [ ] Events contain no request URL, query string, cookies, breadcrumbs with URLs, email or name; covered by a unit test of the scrubbing function
 - [ ] A blank DSN disables the SDK; the DSN variables are declared in src/env.ts and absent from .env.test
 - [ ] The CSP connect-src allows the GlitchTip origin
-- [ ] Source maps are uploaded at build time and a test error on the deployed app shows readable frames in GlitchTip
-- [ ] A new issue in GlitchTip emails the maintainer
 - [ ] The privacy policy has a section for the tracker
+- [ ] Build-time source-map upload to GlitchTip is configured (GlitchTip URL, auth token and release from build env), skipped cleanly when unset, so dev and test builds still pass

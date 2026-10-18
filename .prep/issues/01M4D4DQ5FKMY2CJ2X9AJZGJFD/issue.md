@@ -30,4 +30,6 @@ The privacy policy (`src/routes/privacy-policy/+page.svelte`) gains a section fo
 
 Decided 2026-10-18: the tracker is self-hosted GlitchTip (/decisions/01M57G90Y5GDVT34B6CNE6M6XR.md), reached with the unchanged `@sentry/sveltekit` SDK and a GlitchTip DSN. Consequences for this issue: source maps are uploaded to GlitchTip, and a deliberately thrown server and browser error must be shown to render readable stack frames there (GlitchTip's SvelteKit source-map handling is unverified, so check it, don't assume). The privacy policy section describes a tracker on our own server, not a third-party processor. Alerting is GlitchTip's email notification for new issues.
 
+Scope update 2026-10-18: alert delivery (email, Telegram) is split into its own follow-up issue, so this issue no longer covers alerting. Reading readable frames on the deployed app can only be checked after a deploy, so it is a manual step done with the maintainer after merge; the implementation here must make it possible (source maps uploaded at build time, release name set).
+
 ## Open questions
