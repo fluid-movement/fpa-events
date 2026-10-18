@@ -1,0 +1,1 @@
+- 2026-10-18T16:03:31Z codex: Implemented, ready for check: Added named metadata allowlists, restricted mechanism data to short alphanumeric codes, and made malformed events fail closed with unit coverage.

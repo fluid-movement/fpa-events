@@ -1,4 +1,4 @@
-- [ ] Only allowlisted tags and contexts reach GlitchTip; every other tag, context and field is dropped, and the allowlists are named constants
-- [ ] mechanism.data is reduced to a short alphanumeric code, so a Postgres-shaped detail placed there is gone
-- [ ] scrubEvent returns a safe empty event for null or non-object input and drops non-string transaction, release and environment, and never throws
-- [ ] Unit tests cover the dropped, kept and malformed cases
+- [x] Only allowlisted tags and contexts reach GlitchTip; every other tag, context and field is dropped, and the allowlists are named constants
+- [x] mechanism.data is reduced to a short alphanumeric code, so a Postgres-shaped detail placed there is gone
+- [x] scrubEvent returns a safe empty event for null or non-object input and drops non-string transaction, release and environment, and never throws
+- [x] Unit tests cover the dropped, kept and malformed cases

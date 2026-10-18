@@ -17,11 +17,64 @@ export function scrubBreadcrumb(breadcrumb: Breadcrumb): Breadcrumb | null {
 const REDACTED = '[redacted]';
 const DATABASE_ERROR = '[database error: message dropped]';
 
+/** SDK metadata and the errorId tag set by both hooks; new tags need review. */
+const TAG_FIELDS = [
+	'errorId',
+	'release',
+	'environment',
+	'os.name',
+	'server_name',
+	'runtime',
+	'browser',
+	'browser.name'
+] as const;
+
+/** Machine metadata only: no device name, app paths, URLs or arbitrary data. */
+const CONTEXT_FIELDS = {
+	os: ['name', 'version', 'build', 'kernel_version'],
+	runtime: ['name', 'version', 'build'],
+	app: [
+		'app_identifier',
+		'app_version',
+		'app_build',
+		'app_start_time',
+		'build_type',
+		'app_memory',
+		'free_memory'
+	],
+	device: [
+		'family',
+		'model',
+		'model_id',
+		'arch',
+		'manufacturer',
+		'brand',
+		'screen_resolution',
+		'screen_height_pixels',
+		'screen_width_pixels',
+		'screen_density',
+		'screen_dpi',
+		'memory_size',
+		'processor_count'
+	],
+	culture: ['calendar', 'locale', 'is_24_hour_format', 'timezone'],
+	browser: ['name', 'version']
+} as const;
+
+/** Mechanisms may carry a SQL state, never error detail or arbitrary SDK data. */
+const MECHANISM_DATA_FIELDS = ['code'] as const;
+const MECHANISM_CODE = /^[a-zA-Z0-9]{1,32}$/;
+
+/** Browser labels are SDK names, not arbitrary strings or page URLs. */
+const BROWSER_NAME =
+	/^(?:Chrome|Chrome Mobile|Chrome Mobile iOS|Chromium|Firefox|Firefox Mobile|Firefox iOS|Safari|Mobile Safari|Edge|Edge Mobile|Opera|Opera Mobile|Opera Mini|Samsung Internet|Android|IE|HeadlessChrome)(?: \d+(?:\.\d+)*)?$/;
+const BROWSER_VERSION = /^\d+(?:\.\d+)*$/;
+
 /** Text shaped like a Postgres server error that reached us without a type. */
 const POSTGRES_SHAPE = /\)=\(|Failing row contains|\nDETAIL:|: "/;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-	return typeof value === 'object' && value !== null;
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 /**
@@ -42,57 +95,128 @@ export function redactErrorText(text: unknown, type?: unknown): string {
 	}
 }
 
-/** Runs one scrubbing step so a failure in it cannot drop the whole event. */
-function step(fn: () => void) {
+/** Remove first: if a transform throws, its field stays absent. */
+function scrubField<T extends object, K extends keyof T>(
+	target: T,
+	key: K,
+	transform: (value: T[K]) => T[K] | undefined
+) {
 	try {
-		fn();
+		const value = target[key];
+		delete target[key];
+		const clean = transform(value);
+		if (clean !== undefined) target[key] = clean;
 	} catch {
-		// Ignored: the step's own fallback already ran or the field is absent.
+		delete target[key];
 	}
+}
+
+/** Pick scalar metadata only; nested objects could contain arbitrary user text. */
+function pickMetadata(value: unknown, fields: readonly string[]) {
+	if (!isRecord(value)) return undefined;
+	const clean: Record<string, string | number | boolean> = {};
+	for (const key of fields) {
+		try {
+			const item = value[key];
+			if (
+				typeof item === 'string' ||
+				typeof item === 'boolean' ||
+				(typeof item === 'number' && Number.isFinite(item))
+			)
+				clean[key] = item;
+		} catch {
+			// A broken SDK field is omitted, never copied through.
+		}
+	}
+	return clean;
 }
 
 /**
  * Strips an event down to what is safe to send: no request (URL, query string,
  * cookies, headers, body), no breadcrumbs, and a user reduced to its id.
  */
-export function scrubEvent<T extends ErrorEvent>(event: T): T {
+export function scrubEvent<T extends ErrorEvent>(input: T): T;
+export function scrubEvent(input: unknown): ErrorEvent;
+export function scrubEvent(input: unknown): ErrorEvent {
+	// Work on a plain object so even frozen input and throwing getters are safe.
+	const event: ErrorEvent = { type: undefined };
+	try {
+		if (!isRecord(input)) return event;
+		for (const key of Object.keys(input)) {
+			try {
+				Object.defineProperty(event, key, {
+					value: input[key],
+					enumerable: true,
+					configurable: true,
+					writable: true
+				});
+			} catch {
+				// An unreadable field has no safe value to retain.
+			}
+		}
+	} catch {
+		return event;
+	}
 	delete event.request;
 	delete event.breadcrumbs;
-	step(() => {
-		if (event.user?.id !== undefined) event.user = { id: event.user.id };
-		else delete event.user;
-	});
+	scrubField(event, 'user', (user) => (user?.id !== undefined ? { id: user.id } : undefined));
 	// A transaction name must be a route id, never a URL.
-	step(() => {
-		const name = event.transaction;
-		if (name !== undefined && (typeof name !== 'string' || !name.startsWith('/'))) {
-			delete event.transaction;
-		} else if (name?.includes('://')) delete event.transaction;
-	});
-	// The browser SDK also puts the page URL in a few other places.
-	step(() => {
-		if (isRecord(event.tags)) delete event.tags.url;
-		if (isRecord(event.contexts) && isRecord(event.contexts.trace)) {
-			delete event.contexts.trace.data;
+	scrubField(event, 'transaction', (name) =>
+		typeof name === 'string' && name.startsWith('/') && !name.includes('://') ? name : undefined
+	);
+	for (const key of ['release', 'environment'] as const) {
+		scrubField(event, key, (value) => (typeof value === 'string' ? value : undefined));
+	}
+	scrubField(event, 'tags', (tags) => {
+		const clean = pickMetadata(tags, TAG_FIELDS);
+		if (!clean) return undefined;
+		for (const key of ['browser', 'browser.name']) {
+			if (typeof clean[key] !== 'string' || !BROWSER_NAME.test(clean[key])) delete clean[key];
 		}
+		return clean;
+	});
+	scrubField(event, 'contexts', (contexts) => {
+		if (!isRecord(contexts)) return undefined;
+		const clean: NonNullable<ErrorEvent['contexts']> = {};
+		for (const [key, fields] of Object.entries(CONTEXT_FIELDS)) {
+			scrubField(clean, key, () => {
+				const context = pickMetadata(contexts[key], fields);
+				if (key === 'browser' && context) {
+					if (typeof context.name !== 'string' || !BROWSER_NAME.test(context.name))
+						delete context.name;
+					if (typeof context.version !== 'string' || !BROWSER_VERSION.test(context.version))
+						delete context.version;
+				}
+				return context;
+			});
+		}
+		return clean;
 	});
 	// Exception text carries query values (Drizzle params, Postgres details).
-	step(() => {
-		if (event.message !== undefined) event.message = redactErrorText(event.message);
+	scrubField(event, 'message', (message) =>
+		message === undefined ? undefined : redactErrorText(message)
+	);
+	scrubField(event, 'logentry', (logentry) => {
+		if (!isRecord(logentry)) return undefined;
+		if (logentry.message !== undefined) logentry.message = redactErrorText(logentry.message);
+		delete logentry.params;
+		return logentry;
 	});
-	step(() => {
-		if (!isRecord(event.logentry)) return;
-		if (event.logentry.message !== undefined) {
-			event.logentry.message = redactErrorText(event.logentry.message);
-		}
-		delete event.logentry.params;
-	});
-	step(() => {
-		const exception = event.exception;
-		if (!isRecord(exception) || !Array.isArray(exception.values)) return;
+	scrubField(event, 'exception', (exception) => {
+		if (!isRecord(exception) || !Array.isArray(exception.values)) return undefined;
 		exception.values = exception.values.filter(isRecord);
 		for (const entry of exception.values) {
 			if (entry.value !== undefined) entry.value = redactErrorText(entry.value, entry.type);
+			scrubField(entry, 'mechanism', (mechanism) => {
+				if (!isRecord(mechanism)) return undefined;
+				scrubField(mechanism, 'data', (data) => {
+					const clean = pickMetadata(data, MECHANISM_DATA_FIELDS);
+					return typeof clean?.code === 'string' && MECHANISM_CODE.test(clean.code)
+						? { code: clean.code }
+						: undefined;
+				});
+				return mechanism;
+			});
 			const trace = entry.stacktrace;
 			if (!isRecord(trace) || !Array.isArray(trace.frames)) continue;
 			const frames = trace.frames.filter(isRecord);
@@ -100,14 +224,16 @@ export function scrubEvent<T extends ErrorEvent>(event: T): T {
 			// Local variables of a stack frame can hold anything a user typed.
 			for (const frame of frames) delete frame.vars;
 		}
+		return exception;
 	});
 	// Free-form data and span attributes (`drizzle.query.params`) never leave.
 	delete event.extra;
-	step(() => {
-		const loose = event as { spans?: unknown };
-		if (!Array.isArray(loose.spans)) return;
-		loose.spans = loose.spans.filter(isRecord);
-		for (const span of loose.spans as Array<Record<string, unknown>>) delete span.data;
+	const loose = event as { spans?: unknown };
+	scrubField(loose, 'spans', (spans) => {
+		if (!Array.isArray(spans)) return undefined;
+		const clean = spans.filter(isRecord);
+		for (const span of clean) delete span.data;
+		return clean;
 	});
 	return event;
 }
