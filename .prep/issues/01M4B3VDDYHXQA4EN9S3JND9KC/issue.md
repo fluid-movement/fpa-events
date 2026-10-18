@@ -11,4 +11,6 @@ Source: UPDATE.md, "Risk 3" and "Where it landed".
 
 better-auth 1.7.7 still declares a peer dependency on `@sveltejs/kit@^2.0.0`, so `package.json` carries an `overrides` entry pinning its Kit peer to the root Kit. Nothing breaks today; npm's resolver just needs telling. When a better-auth release peers Kit 3, upgrade better-auth and remove the override, re-running the auth integration specs.
 
+Update 2026-10-18: better-auth 1.7.10 (latest on npm) declares its @sveltejs/kit peer as ^2.0.0 || ^3.0.0, so the condition in this issue is met; the repo is on 1.7.7. Upgrade now.
+
 ## Open questions

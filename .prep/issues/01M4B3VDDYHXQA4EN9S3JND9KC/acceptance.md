@@ -1,0 +1,4 @@
+- [ ] better-auth is upgraded to a release whose peer range includes SvelteKit 3, and the overrides entry for it is gone from package.json
+- [ ] npm ci from a clean node_modules succeeds without the override and prints no peer-dependency warning about @sveltejs/kit
+- [ ] npm run check, npm run test and npm run build pass, and the full Playwright suite passes, including sign-up, sign-in, email verification, password reset and account deletion
+- [ ] The semver check against Node 22.19.0 from AGENTS.md reports no new engine conflict
