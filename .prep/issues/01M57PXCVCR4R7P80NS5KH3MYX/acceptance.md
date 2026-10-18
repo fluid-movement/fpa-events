@@ -1,0 +1,4 @@
+- [ ] A Drizzle query error reaches GlitchTip without its params: values, in every exception in the cause chain, the message and the title, with the SQL text and error type kept
+- [ ] Postgres error text and detail carry no value (Key (col)=(value) becomes a placeholder), with the error code kept
+- [ ] No event field (extra, contexts, span data, stack-frame variables) carries query parameters or user input; tracing and local variables stay off
+- [ ] Unit tests build real DrizzleQueryError and PostgresError objects and assert the scrubbed result
