@@ -4,6 +4,7 @@ import { eq, count, and, asc } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { sanitizeRichText } from '#lib/utils/html';
+import { eventMeta } from '#lib/utils/meta';
 import type { EventUserStatus } from '#lib/types/event';
 
 /** Names shown inline under the RSVP control before the "and N others" remainder. */
@@ -60,6 +61,7 @@ export const load = (async ({ params, locals }) => {
 	return {
 		// Drives the mobile top bar (see #lib/config/pageTitle).
 		title: event.name,
+		meta: eventMeta(event),
 		event: {
 			...event,
 			description: event.description ? sanitizeRichText(event.description) : null

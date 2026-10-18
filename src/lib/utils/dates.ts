@@ -183,3 +183,9 @@ export function formatApiDateRange(
 	if (!e) return format(s, s, locale);
 	return format(s, e, locale);
 }
+
+/** "January 5, 2024 – January 8, 2024 · Berlin" — the date-and-place line of a link preview. */
+export function formatDatesAtPlace(start: DateLike, end: DateLike, place: string): string {
+	const dates = formatFullDateRange(start, end);
+	return place.trim() ? `${dates} · ${place.trim()}` : dates;
+}

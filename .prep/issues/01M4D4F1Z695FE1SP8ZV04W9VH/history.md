@@ -1,0 +1,1 @@
+- 2026-10-18T15:31:10Z claude-code: Implemented, ready for check: MetaTags component in the layout emits og/twitter tags (site default, event override via load meta with plain-text date+place description and picture), with unit and integration tests.

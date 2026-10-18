@@ -4,15 +4,23 @@
 	import * as Sidebar from '#lib/components/ui/sidebar';
 	import AppSidebar from '#lib/components/AppSidebar.svelte';
 	import TopNavigation from '#lib/components/TopNavigation.svelte';
+	import MetaTags from '#lib/components/MetaTags.svelte';
+	import { page } from '$app/state';
+	import { DEFAULT_META, type PageMeta } from '#lib/utils/meta';
 	import MobileTabBar from '#lib/components/layout/MobileTabBar.svelte';
 
 	let { children } = $props();
+
+	// Pages that want a richer preview (events) return `meta` from their load.
+	const meta = $derived((page.data.meta as PageMeta | undefined) ?? DEFAULT_META);
 </script>
 
 <svelte:head>
 	<link rel="icon" href="/favicon.ico" />
 	<title>FPA Events</title>
 </svelte:head>
+
+<MetaTags {...meta} />
 
 <Sidebar.Provider>
 	<AppSidebar />

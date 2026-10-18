@@ -1,4 +1,4 @@
-- [ ] Event pages emit og:title, og:description (date and place), og:url and, when the event has a picture, og:image with twitter:card summary_large_image; other pages carry a site-wide default
-- [ ] Titles and descriptions containing quotes or markup are escaped and rich text is stripped to plain text
-- [ ] The tags are present in the server-rendered HTML (no JS needed)
-- [ ] A unit test covers the description and escaping logic, and an integration test fetches a seeded event page and finds the tags
+- [x] Event pages emit og:title, og:description (date and place), og:url and, when the event has a picture, og:image with twitter:card summary_large_image; other pages carry a site-wide default
+- [x] Titles and descriptions containing quotes or markup are escaped and rich text is stripped to plain text
+- [x] The tags are present in the server-rendered HTML (no JS needed)
+- [x] A unit test covers the description and escaping logic, and an integration test fetches a seeded event page and finds the tags
