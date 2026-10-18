@@ -1,0 +1,1 @@
+- 2026-10-18T14:42:28Z claude-code: 2026-10-18 on events-dev: POST /sign-in with Origin https://events-dev.fluid-movement.de passes SvelteKit's cross-site check (405, no POST handler), http:// and foreign origins get 403, so the app sees its public https origin. Still to do: a real signed-in form submission (sign-in, RSVP) and note the result in /architecture/build-and-deploy.md.
