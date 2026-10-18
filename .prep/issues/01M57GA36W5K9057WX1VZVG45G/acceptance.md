@@ -1,4 +1,3 @@
 - [ ] GlitchTip runs on Coolify over HTTPS with registration closed
 - [ ] An organisation and project exist and the DSN is kept for the app
-- [ ] Email notifications for new issues reach the maintainer
-- [ ] The built-in MCP server is enabled and an agent can list issues and read a stack trace through it
+- [x] The built-in MCP server is enabled and an agent can list issues and read a stack trace through it
