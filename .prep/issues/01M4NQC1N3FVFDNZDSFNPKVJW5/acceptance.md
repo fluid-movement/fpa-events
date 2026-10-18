@@ -1,0 +1,3 @@
+- [ ] Coolify's container health check polls /healthz on port 3000
+- [ ] An uptime check outside the Hetzner box polls https://events.freestyledisc.org/healthz and emails the maintainer when it is down
+- [ ] Taking the app down triggers an alert

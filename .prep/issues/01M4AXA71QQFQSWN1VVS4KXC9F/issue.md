@@ -16,6 +16,6 @@ Coolify logs are lost on redeploy, have no alerting and never see client-side er
 
 The same SDK serves both, so the integration issue does not depend on the answer except for the DSN. GDPR care elsewhere in the app (EU-only processors, privacy policy listing each one) weighs on where the data lives.
 
-## Open questions
+Decided 2026-10-18: self-hosted GlitchTip on the Hetzner/Coolify box (see the decision record).
 
-- Sentry SaaS (EU region) or self-hosted GlitchTip?
+## Open questions

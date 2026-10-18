@@ -4,6 +4,7 @@ kind: code
 parent: 01M4B36G3YXMS9BWXT4XSZAC0S
 depends_on:
   - 01M4AXA71QQFQSWN1VVS4KXC9F
+  - 01M57GA36W5K9057WX1VZVG45G
 tags:
   - observability
 priority: high
@@ -26,5 +27,7 @@ What the integration has to respect:
 Knowledge: /architecture/build-and-deploy.md (Errors in production).
 
 The privacy policy (`src/routes/privacy-policy/+page.svelte`) gains a section for the tracker: what an event contains, where it is stored, the processor, and its retention.
+
+Decided 2026-10-18: the tracker is self-hosted GlitchTip (/decisions/01M57G90Y5GDVT34B6CNE6M6XR.md), reached with the unchanged `@sentry/sveltekit` SDK and a GlitchTip DSN. Consequences for this issue: source maps are uploaded to GlitchTip, and a deliberately thrown server and browser error must be shown to render readable stack frames there (GlitchTip's SvelteKit source-map handling is unverified, so check it, don't assume). The privacy policy section describes a tracker on our own server, not a third-party processor. Alerting is GlitchTip's email notification for new issues.
 
 ## Open questions

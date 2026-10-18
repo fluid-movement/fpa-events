@@ -1,0 +1,2 @@
+- [ ] The session.ip_address recorded on the deployed instance is the visitor's real IP, not the proxy's
+- [ ] If not, advanced.ipAddress in src/lib/server/auth.ts is set to the header the proxy provides and re-verified

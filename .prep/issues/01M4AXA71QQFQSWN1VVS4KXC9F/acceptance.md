@@ -1,0 +1,1 @@
+- [x] The choice (self-hosted GlitchTip) is recorded as a decision and the integration and deploy issues reference it

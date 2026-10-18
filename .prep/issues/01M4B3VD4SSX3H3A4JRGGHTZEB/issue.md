@@ -11,6 +11,6 @@ Source: UPDATE.md, "Deployment notes"; /pitfalls/deploy-node-version.md.
 
 SvelteKit 3 raised `engines.node` to `>=22.17`. Coolify's `NIXPACKS_NODE_VERSION=22` currently resolves to 22.19.0, which clears it by only two patch releases, and the major-only pin moves underneath us. `NIXPACKS_NODE_VERSION` must be pinned to an exact version (or a deliberately chosen newer major) in Coolify before going live, and the knowledge entry updated to match. With the pin in place, `engine-strict` can return to `.npmrc` if wanted.
 
-## Open questions
+Decided 2026-10-18: pin an exact Node 22 release (the version the dev machines run, 22.22.x), not Node 24. Set NIXPACKS_NODE_VERSION to it in Coolify, update /pitfalls/deploy-node-version.md, and bring engine-strict back in .npmrc if wanted.
 
-- Pin an exact Node 22 release, or move the deploy to Node 24?
+## Open questions

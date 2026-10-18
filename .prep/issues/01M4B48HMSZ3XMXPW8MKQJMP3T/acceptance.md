@@ -1,0 +1,3 @@
+- [ ] events.freestyledisc.org points at the new app in Coolify with BETTER_AUTH_URL and the request origin matching the public domain
+- [ ] The smoke test passed and every other Go Live area is resolved before the switch
+- [ ] The Laravel app stays reachable read-only and is not deleted

@@ -1,0 +1,4 @@
+- [ ] Laravel is in maintenance mode before the final legacy dump is taken
+- [ ] migrate:pictures and geocode were run ahead of time and data/event-locations.json is committed
+- [ ] npm run migrate --dry-run was reviewed, then npm run migrate and migrate:pictures ran in the app container without errors
+- [ ] Row counts of users, events and RSVPs in the new database match the legacy dump

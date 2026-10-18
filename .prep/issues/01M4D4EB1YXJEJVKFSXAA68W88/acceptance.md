@@ -1,0 +1,3 @@
+- [ ] MAILGUN_DOMAIN is verified (EU) with SPF, DKIM and DMARC, and MAILGUN_FROM_EMAIL is on that domain
+- [ ] A verification and a password-reset email from the deployed app reach the inbox, not spam, of a Gmail and an Outlook address
+- [ ] Links in those emails point at the public domain
