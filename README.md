@@ -1,267 +1,202 @@
 # FPA Events
 
-A modern event management application built with SvelteKit 5, PostgreSQL, and Better Auth.
+A modern event management application built with SvelteKit 3, Svelte 5,
+PostgreSQL, Drizzle ORM and Better Auth.
 
 ## Stack
 
-### Frontend
+- **SvelteKit 3** (`@sveltejs/kit`) with Svelte 5 runes, deployed through `@sveltejs/adapter-node`
+- **PostgreSQL** with **Drizzle ORM** and generated migrations
+- **Better Auth** for sign-in and sessions
+- **TailwindCSS 4**, **bits-ui** and **Lucide** for the UI
+- **Cloudflare R2** for event images, **Mailgun** for email, **Turnstile** for bot protection
+- **Coolify** on a Hetzner VPS for deployment
 
-- **SvelteKit 3** - Full-stack framework with file-based routing
-- **Svelte 5** - Reactive UI framework
-- **TailwindCSS 4** - Utility-first CSS framework
-- **bits-ui** - Headless UI components
-- **Lucide Svelte** - Icon library
+SvelteKit 3 takes its options through the `sveltekit(...)` plugin in
+`vite.config.ts`, which reads `svelte-options.js`. There is no `svelte.config.js`.
 
-### Backend & Database
+## Getting started
 
-- **PostgreSQL** - Relational database
-- **Drizzle ORM** - Type-safe database toolkit
-
-### Authentication
-
-- **Better Auth** - Modern authentication library
-
-### Deployment
-
-- **Coolify** - Self-hosted VPS deployment
-- **@sveltejs/adapter-node** - Node.js server adapter
-
-### Development
-
-- **Vite+ (`vp`)** - Local toolchain: dev server, tests, task running, dependency management
-- **Vite 8 / Rolldown** - Bundler (Rolldown is the default in Vite 8)
-- **npm** - Package manager, driven through `vp`
-- **TypeScript** - Type safety
-- **ESLint & Prettier** - Code quality and formatting
-
-**`vp` is for local development only. The production build deliberately does
-not involve it.** `build` is plain `vite build`, so the artifact Coolify deploys
-is produced by the same bundler it always was, and a broken or missing `vp`
-can never take the deploy down.
-
-What `vp` does own locally: `dev` → `vp dev`, `test` → `vp test run`,
-`dev:test` → `vp dev --mode test`, plus dependency management.
-
-For dependencies, `vp` really is a wrapper: `packageManager` is `npm@11.12.1`,
-and `vp install` / `add` / `remove` delegate to npm. The lockfile stays a normal
-`package-lock.json`, so nothing that expects npm is affected. For `dev` and
-`test` it is not a wrapper — it runs its own Rolldown-based Vite and its own
-bundled Vitest, which is why those are scoped to local work.
-
-Formatting and linting also stay off `vp`: `vp fmt` / `vp lint` would replace
-Prettier and ESLint with oxfmt/oxlint, and oxfmt does not yet format `.svelte`
-components (only `.svelte.ts` files), so it would silently skip almost the
-entire UI.
-
-## Quick Start
-
-### Prerequisites
-
-- [Node.js](https://nodejs.org/) 22.12+
-- A running PostgreSQL instance
-- [Vite+](https://viteplus.dev/guide/) (`vp`) — optional for the first install,
-  see below
-
-### Local Development
+Requires Node.js 22.17 or newer (the `engines` field in `package.json`) and a
+running PostgreSQL instance.
 
 ```bash
-# Clone the repository
-git clone <your-repo-url>
-cd fpa-events
-
-# Install dependencies. `npm install` bootstraps vp itself, so it works on a
-# fresh clone with no global install; use `vp install` once you have vp.
-npm install
-
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your PostgreSQL connection string
-
-# Apply database schema
-vp run db:push
-
-# Start development server
-vp dev
+npm install                  # also installs the git hooks (husky)
+cp .env.example .env         # then fill in DATABASE_URL and BETTER_AUTH_SECRET
+export DATABASE_URL=...      # drizzle-kit reads it from the shell, not from .env
+npm run db:reset             # apply migrations, then seed development data
+npm run dev                  # http://localhost:5173
 ```
 
-The app will be available at `http://localhost:5173`
+`db:reset` runs `db:migrate` followed by `db:seed`. Run `npm run db:migrate`
+alone to apply migrations without seeding.
 
-## Environment Variables
+## Environment variables
 
-```env
-DATABASE_URL=postgresql://user:password@localhost:5432/fpa_events
+Every variable is declared in `src/env.ts`. All are read at runtime except the
+two marked as build-time below. Blank or unset values fall back to each
+service's development behaviour.
 
-BETTER_AUTH_SECRET=your-secret-key
-BETTER_AUTH_URL=http://localhost:5173
-```
+| Variable                    | Purpose                                                                                                    |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`              | Postgres connection string. Required; `src/lib/server/db/index.ts` throws without it.                      |
+| `BETTER_AUTH_SECRET`        | Signs Better Auth sessions.                                                                                |
+| `BETTER_AUTH_URL`           | Origin Better Auth validates requests against. Must match the port the app is served on.                   |
+| `MAILGUN_API_KEY`           | Mailgun key. Blank logs emails to the console instead of sending them.                                     |
+| `MAILGUN_DOMAIN`            | Mailgun sending domain.                                                                                    |
+| `MAILGUN_FROM_EMAIL`        | Sender address for outgoing email.                                                                         |
+| `R2_ACCOUNT_ID`             | Cloudflare account that holds the R2 image bucket.                                                         |
+| `R2_ACCESS_KEY_ID`          | R2 API access key id.                                                                                      |
+| `R2_SECRET_ACCESS_KEY`      | R2 API secret.                                                                                             |
+| `R2_BUCKET_NAME`            | R2 bucket for event images.                                                                                |
+| `R2_PUBLIC_URL`             | Public base URL that serves images from the R2 bucket.                                                     |
+| `TURNSTILE_SECRET_KEY`      | Server-side Turnstile secret. Blank skips captcha verification.                                            |
+| `PUBLIC_TURNSTILE_SITE_KEY` | Browser Turnstile site key. Blank hides the widget.                                                        |
+| `FPA_API_URL`               | Read-only rankings and results API. Unset shows an "unavailable" notice on the rankings pages.             |
+| `GLITCHTIP_DSN`             | Server-side GlitchTip DSN. Blank disables server error reporting.                                          |
+| `PUBLIC_GLITCHTIP_DSN`      | Browser GlitchTip DSN. Blank disables browser error reporting. Also needed at build time (see Deployment). |
 
-## Project Structure
+`.env.example` lists the same variables with comments. `.env.test` is committed
+and blanks the external services on purpose; see Testing.
+
+## Project structure
 
 ```
 fpa-events/
 ├── src/
-│   ├── lib/
+│   ├── env.ts                     # Declared environment variables
+│   ├── hooks.server.ts            # Server initialization
+│   ├── app.d.ts                   # TypeScript definitions
+│   ├── lib/                       # Imported as #lib/...
 │   │   ├── api/                   # Remote functions shared by several routes
-│   │   ├── components/
-│   │   │   ├── layout/            # The shared page kit — PageShell, Section,
-│   │   │   │                      #   DataList, ConfirmSubmit, EmptyState …
-│   │   │   ├── rankings/          # Leaderboard tables and panels
-│   │   │   ├── schedule/          # Schedule list, cards and item form
-│   │   │   └── ui/                # Vendored shadcn-svelte primitives
+│   │   ├── components/            # layout/, rankings/, schedule/, ui/ (vendored shadcn-svelte)
 │   │   ├── config/                # Navigation and page-title tables
 │   │   ├── hooks/                 # Rune-based helpers (.svelte.ts)
-│   │   ├── server/                # Server-only code — never imported by the browser
-│   │   │   ├── db/
-│   │   │   │   ├── schema.ts      # Database schema
-│   │   │   │   ├── index.ts       # DB connection
-│   │   │   │   ├── seed.ts        # Development seed data
-│   │   │   │   └── migrations/    # Auto-generated migrations
+│   │   ├── server/                # Server-only code; never imported by the browser
+│   │   │   ├── db/                # schema.ts, index.ts, seed.ts, migrations/
 │   │   │   ├── authz.ts           # Session and event-permission guards
-│   │   │   ├── fpa-api/           # Client for the external rankings service
-│   │   │   └── utils/             # Shared queries (events, calendar tokens)
+│   │   │   ├── fpa-api/           # Client for the rankings service
+│   │   │   └── utils/             # Shared queries (events, calendar)
 │   │   ├── types/                 # Shapes shared between server and browser
-│   │   └── utils/                 # Pure helpers — dates, html, collections
-│   ├── routes/                    # SvelteKit routes; *.remote.ts sits with its route
-│   ├── app.d.ts                   # TypeScript definitions
-│   └── hooks.server.ts            # Server initialization
+│   │   └── utils/                 # Pure helpers: dates, html
+│   └── routes/                    # SvelteKit routes; *.remote.ts sits beside its route
 ├── tests/integration/             # Playwright specs
-├── docs/                          # Documentation
-└── drizzle.config.ts              # Drizzle Kit configuration
+├── drizzle.config.ts              # Drizzle Kit configuration
+├── vite.config.ts                 # Vite, Tailwind, Sentry and Kit plugins
+└── svelte-options.js              # Kit 3 options passed to sveltekit(...)
 ```
 
-## Available Commands
+## Commands
 
-`vp <command>` runs a built-in Vite+ command; `vp run <script>` runs a script
-from `package.json`.
+All commands are npm scripts from `package.json`.
 
 ```bash
 # Development
-vp dev                   # Start dev server
-vp run build             # Build for production (plain `vite build`, no vp)
-vp run preview           # Build, then serve with the Node adapter
+npm run dev              # Vite dev server on port 5173
+npm run dev:test         # Dev server in test mode on port 5174
+npm run build            # Production build (vite build) into build/
+npm run preview          # Build, then serve with the Node adapter
+npm run check            # svelte-kit sync and svelte-check (type check)
+npm run format           # Prettier, write
+npm run lint             # Prettier --check and ESLint
 
-# Database
-vp run db:generate       # Generate migrations from schema
-vp run db:push           # Apply schema to database
-vp run db:studio         # Open Drizzle Studio
-vp run db:seed           # Seed database with test data
-
-# Code Quality
-vp run lint              # Lint code (Prettier + ESLint)
-vp run format            # Format code (Prettier)
-vp run check             # Type check (svelte-check)
+# Database (drizzle-kit; DATABASE_URL must be set in the environment)
+npm run db:generate      # Generate a migration from src/lib/server/db/schema.ts
+npm run db:migrate       # Apply generated migrations
+npm run db:studio        # Open Drizzle Studio
+npm run db:seed          # Seed development data
+npm run db:reset         # db:migrate, then db:seed
 
 # Tests
-vp test run              # Unit tests (Vitest), single run
-vp test watch            # Unit tests, watch mode
-vp test related          # Unit tests related to changed files
-vp run test:integration  # Integration tests (Playwright)
+npm run test             # Runs `vp test run`: unit tests (Vitest), single run
+npm run test:watch       # Runs `vp test watch`: unit tests, watch mode
+npm run test:integration # Playwright integration tests
 ```
 
-### Dependency Management
-
-`vp` wraps npm, so the lockfile stays a normal `package-lock.json` and anything
-that expects npm keeps working.
-
-```bash
-vp install               # Install everything (alias: vp i)
-vp add <pkg>             # Add a dependency
-vp add -D <pkg>          # Add a devDependency
-vp remove <pkg>          # Remove a dependency
-vp outdated              # Show outdated packages
-vp update                # Update packages to their latest versions
-vp dedupe                # Remove duplicate versions
-vp why <pkg>             # Explain why a package is installed
-```
-
-Prefer these over their `npm` equivalents so the toolchain stays in charge of
-resolution and the task cache stays valid.
+Never run `db:push` against production. Schema changes go through generated
+migrations (see Deployment).
 
 ## Testing
 
-Unit tests run against mocked modules and need nothing set up. The integration
-suite drives a real browser against a real database, so it gets its own:
+Unit tests need nothing set up. The integration suite drives a real browser
+against a real database, so it gets its own:
 
 ```bash
 createdb fpa_events_test
-vp run db:reset:test      # migrate + seed the test database
-vp run test:integration
+npm run db:reset:test     # migrate and seed the test database
+npm run test:integration
 ```
 
-`.env.test` is committed and deliberately contains no secrets — the Mailgun,
-Turnstile and R2 keys are blank so each service falls back to its dev behaviour
-and the suite never touches a real external service. Put machine-specific
-overrides (different Postgres credentials, say) in `.env.test.local`, which is
-gitignored.
+`.env.test` is committed and contains no secrets. The Mailgun, Turnstile and R2
+keys are blank so each service falls back to its development behaviour. Put
+machine-specific overrides, such as different Postgres credentials, in
+`.env.test.local`, which is gitignored. Playwright serves the app on port 5174
+through `npm run dev:test`, so it never runs against the dev database on 5173.
 
-The suite serves the app on port **5174** (`vp run dev:test`), separate from the
-dev server's 5173, so it can never accidentally run against your dev database.
+## Quality gates and workflow
 
-### Quality gates
+There is no CI. Git hooks in `.husky/` are the only checks before code reaches
+production, since Coolify deploys every push to `main`.
 
-There is no CI: git hooks are the only thing between a commit and a production
-deploy, since Coolify deploys every push.
+| Hook         | Runs                                                                               | Roughly |
+| ------------ | ---------------------------------------------------------------------------------- | ------- |
+| `pre-commit` | lint-staged (Prettier and ESLint on staged files), `npm run check`, `npm run test` | 20s     |
+| `pre-push`   | `npm run build`, `npm run db:migrate:test`, `npm run test:integration`             | 2-4 min |
 
-| Hook         | Runs                                                                   | Roughly |
-| ------------ | ---------------------------------------------------------------------- | ------- |
-| `pre-commit` | Prettier + ESLint on staged files, `npm run check`, `npm run test`     | 20s     |
-| `pre-push`   | `npm run build`, `npm run db:migrate:test`, `npm run test:integration` | 2-4 min |
+Bypass a hook with `--no-verify` only when you genuinely need to.
 
-The hooks call `npm run` rather than `vp run` so they work regardless of whether
-`vp` is on `PATH` in the hook's environment. This also means `pre-push` builds
-with the same plain `vite build` that Coolify runs, which is the point of the
-gate — it catches broken deploys, so it must exercise the production path.
-
-Both are installed by husky on install (`vp install` or `npm install`). Bypass
-with `--no-verify` when you genuinely need to.
+Commits go directly to `main`; see `AGENTS.md` for the full git workflow and
+code conventions.
 
 ## Deployment (Coolify)
 
-1. **Create a PostgreSQL database** in Coolify or use an external managed DB
-2. **Set environment variables** in Coolify:
-   - `DATABASE_URL`
-   - `BETTER_AUTH_SECRET`
-   - `BETTER_AUTH_URL`
-3. **Apply schema** to production database:
+Production runs on a Hetzner VPS managed by Coolify, and its database ports are
+firewalled, so production database work runs inside the Coolify terminal.
+
+1. **Set environment variables** in Coolify: at least `DATABASE_URL`,
+   `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL`, plus the other variables from the
+   table above that the deployment uses.
+2. **Set the public GlitchTip DSN as a build argument** as well as a runtime
+   variable. `PUBLIC_GLITCHTIP_DSN`'s origin is added to the Content Security
+   Policy at build time (`svelte-options.js`). Source-map upload to GlitchTip
+   runs only when `SENTRY_AUTH_TOKEN` is set at build time (`vite.config.ts`).
+3. **Apply database migrations** from the Coolify terminal, with
+   `DATABASE_URL` set in that environment:
    ```bash
-   DATABASE_URL=<prod-url> npm run db:push
+   npm run db:migrate
    ```
-4. **Push to git** — Coolify builds and deploys automatically
+   Schema changes ship as generated migrations committed under
+   `src/lib/server/db/migrations/`. Never run `db:push` against production.
+4. **Push to `main`.** Coolify builds and deploys automatically.
 
 Coolify build settings:
 
 - Build command: `npm run build`
 - Start command: `node build`
 
-Neither involves `vp`. `npm run build` is plain `vite build` and `node build`
-runs the adapter-node output, so the deploy depends only on npm, Vite and Node —
-exactly as before Vite+ was introduced locally.
+The Node version is pinned in Coolify through `NIXPACKS_NODE_VERSION`; see the
+deployment decisions via `prep knowledge find deploy`.
 
-## Documentation
+## Project knowledge
 
-- [docs/SETUP.md](docs/SETUP.md) - Detailed setup guide
-- [docs/STACK.md](docs/STACK.md) - Architecture overview
-- [docs/REFERENCE.md](docs/REFERENCE.md) - Quick reference
-- [docs/POSTGRES-SETUP.md](docs/POSTGRES-SETUP.md) - PostgreSQL setup guide
+Decisions and findings for this project are recorded in prep. Use:
+
+- `prep knowledge list` to see every entry
+- `prep knowledge find <topic>` to search by topic, for example `prep knowledge find glitchtip`
+- `prep knowledge show <entry>` to read one entry
+
+`AGENTS.md` holds the rules for working in this repository.
 
 ## Troubleshooting
 
-- **"DATABASE_URL is not set"**: Check your `.env` file
-- **"relation does not exist"**: Run `vp run db:push` to apply schema
-- **"Authentication failed"**: Verify `BETTER_AUTH_SECRET` is set
-- **Corrupted dependencies**: Run `rm -rf node_modules .svelte-kit && vp install`
-- **Stale build after changing deps**: `vp cache` manages the task cache; a
-  dev server started with `vp dev` re-optimizes automatically when the lockfile
-  changes
-
-## License
-
-[MIT](LICENSE)
+- **"Missing required environment variable: DATABASE_URL"**: export `DATABASE_URL` in your shell before running a `db:` script.
+- **Missing tables or columns**: run `npm run db:migrate` (or `npm run db:reset` for a fresh local database).
+- **Sign-in or session problems**: check that `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL` are set and match the port you serve on.
+- **Corrupted dependencies**: `rm -rf node_modules .svelte-kit && npm install`.
 
 ## Resources
 
-- [SvelteKit Documentation](https://svelte.dev/docs/kit)
-- [Vite+ Documentation](https://viteplus.dev/guide/)
-- [Drizzle ORM Documentation](https://orm.drizzle.team/)
-- [Better Auth Documentation](https://better-auth.com/)
-- [Coolify Documentation](https://coolify.io/docs/)
+- [SvelteKit documentation](https://svelte.dev/docs/kit)
+- [Drizzle ORM documentation](https://orm.drizzle.team/)
+- [Better Auth documentation](https://better-auth.com/)
+- [Coolify documentation](https://coolify.io/docs/)
