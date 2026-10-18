@@ -7,6 +7,4 @@ documentation:
     - /conventions/authorization.md
     - /features/event-management.md
     - /conventions/testing.md
-dod:
-  - prep check passes
 ---

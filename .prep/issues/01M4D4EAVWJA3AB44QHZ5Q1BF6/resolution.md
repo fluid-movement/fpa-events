@@ -5,6 +5,4 @@ at: 2026-10-11T15:03:52Z
 documentation:
   entries:
     - /architecture/build-and-deploy.md
-dod:
-  - prep check passes
 ---

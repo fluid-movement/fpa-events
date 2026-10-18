@@ -10,8 +10,6 @@ documentation:
     - /conventions/testing.md
     - /pitfalls/deploy-node-version.md
     - /overview.md
-dod:
-  - prep check passes
 ---
 
 Entries written as drafts from the code they scope; awaiting user review under the bootstrap parent.

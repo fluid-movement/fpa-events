@@ -6,6 +6,4 @@ documentation:
   entries:
     - /components/auth.md
     - /features/event-management.md
-dod:
-  - prep check passes
 ---

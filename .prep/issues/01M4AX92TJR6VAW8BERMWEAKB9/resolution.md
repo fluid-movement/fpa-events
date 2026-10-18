@@ -7,8 +7,6 @@ documentation:
     - /components/fpa-api.md
     - /features/rankings-and-results.md
     - /overview.md
-dod:
-  - prep check passes
 ---
 
 Entries written as drafts from the code they scope; awaiting user review under the bootstrap parent.

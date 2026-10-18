@@ -7,6 +7,4 @@ documentation:
     - /components/database.md
     - /features/rsvp-and-attendance.md
     - /features/legacy-migration.md
-dod:
-  - prep check passes
 ---

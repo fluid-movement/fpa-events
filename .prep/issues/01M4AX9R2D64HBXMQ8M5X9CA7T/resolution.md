@@ -6,6 +6,4 @@ documentation:
   entries:
     - /pitfalls/rich-text-sanitizing.md
     - /features/event-management.md
-dod:
-  - prep check passes
 ---

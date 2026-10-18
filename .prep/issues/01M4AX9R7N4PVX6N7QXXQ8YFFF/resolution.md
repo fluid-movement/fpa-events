@@ -6,6 +6,4 @@ documentation:
   entries:
     - /features/events.md
     - /conventions/testing.md
-dod:
-  - prep check passes
 ---
