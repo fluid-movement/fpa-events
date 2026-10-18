@@ -1,4 +1,5 @@
-- [ ] A Drizzle query error reaches GlitchTip without its params: values, in every exception in the cause chain, the message and the title, with the SQL text and error type kept
-- [ ] Postgres error text and detail carry no value (Key (col)=(value) becomes a placeholder), with the error code kept
-- [ ] No event field (extra, contexts, span data, stack-frame variables) carries query parameters or user input; tracing and local variables stay off
-- [ ] Unit tests build real DrizzleQueryError and PostgresError objects and assert the scrubbed result
+- [x] A Drizzle query error reaches GlitchTip without its params: values, in every exception in the cause chain, the message and the title, with the SQL text and error type kept
+- [x] No event field (extra, contexts, span data, stack-frame variables) carries query parameters or user input; tracing and local variables stay off
+- [x] Unit tests build real DrizzleQueryError and PostgresError objects and assert the scrubbed result
+- [x] The scrubber never throws on null, non-object or non-string entries in exception.values, stack frames, spans or messages
+- [x] A PostgresError reaches GlitchTip with its type, stack and any state code the event carries kept and its message and detail dropped, whatever the message contains (quotes, parentheses, newlines); the constraint name is not kept

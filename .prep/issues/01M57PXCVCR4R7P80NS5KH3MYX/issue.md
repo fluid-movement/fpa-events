@@ -24,4 +24,6 @@ No exception text, title or message that reaches GlitchTip may contain a query p
 
 The scrubbing decision is /decisions/01M57N612M4A7WRSDN0HW0EMY2.md.
 
+Decided 2026-10-18 (see the decision record): redacting by pattern is replaced by an allowlist. For a PostgresError keep only the error type, the SQL state code, the constraint name and the stack; drop its message and detail entirely. For a DrizzleQueryError keep the SQL text up to the params: tail and drop the tail. A failing redaction step falls back to a fixed placeholder, never the original text. The scrubber must not throw on null, non-object or non-string entries anywhere in the event (exception.values, stack frames, spans).
+
 ## Open questions
