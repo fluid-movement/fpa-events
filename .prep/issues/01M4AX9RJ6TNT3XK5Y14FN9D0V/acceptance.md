@@ -1,0 +1,4 @@
+- [ ] No command in the README uses db:push against production; migrations are described as run server-side from the Coolify terminal
+- [ ] Every env var in src/env.ts appears with its purpose, and none that does not exist
+- [ ] Every file or path the README links exists, and the docs/ folder and its four links are gone
+- [ ] The README points to the project knowledge entry and states SvelteKit 3 / the real dev and build commands, each checked against package.json

@@ -1,0 +1,4 @@
+- [ ] The delete-account form asks for the current password, and the submit button shows the pending label while it runs
+- [ ] A wrong password deletes nothing and shows an error on the form
+- [ ] The right password deletes the account as before, including for an account whose password is a legacy bcrypt hash
+- [ ] An integration test covers the wrong-password and right-password paths with a throwaway account
