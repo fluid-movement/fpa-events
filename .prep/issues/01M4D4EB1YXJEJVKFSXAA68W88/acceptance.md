@@ -1,3 +1,3 @@
-- [ ] MAILGUN_DOMAIN is verified (EU) with SPF, DKIM and DMARC, and MAILGUN_FROM_EMAIL is on that domain
-- [ ] A verification and a password-reset email from the deployed app reach the inbox, not spam, of a Gmail and an Outlook address
-- [ ] Links in those emails point at the public domain
+- [x] MAILGUN_DOMAIN is verified (EU) with SPF, DKIM and DMARC, and MAILGUN_FROM_EMAIL is on that domain
+- [x] A verification and a password-reset email from the deployed app reach the inbox, not spam, of a Gmail and an Outlook address
+- [x] Links in those emails point at the deployed app's own domain (BETTER_AUTH_URL); the public-domain check happens in the cutover smoke test

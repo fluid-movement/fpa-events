@@ -1,0 +1,1 @@
+- 2026-10-19T12:53:02Z claude-code: Also check on events.freestyledisc.org: a verification and a password-reset email arrive with links pointing at the public domain (moved here from the Mailgun delivery issue 01M4D4EB1YXJEJVKFSXAA68W88).

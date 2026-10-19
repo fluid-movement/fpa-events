@@ -1,1 +1,3 @@
 - 2026-10-18T14:42:28Z claude-code: 2026-10-18 on events-dev: POST /sign-in with Origin https://events-dev.fluid-movement.de passes SvelteKit's cross-site check (405, no POST handler), http:// and foreign origins get 403, so the app sees its public https origin. Still to do: a real signed-in form submission (sign-in, RSVP) and note the result in /architecture/build-and-deploy.md.
+
+- 2026-10-19T12:42:19Z claude-code: Verified on events-dev 2026-10-19: sign-in, reset, verification and an RSVP all succeed behind Coolify's proxy (HOST_HEADER/PROTOCOL_HEADER set). See decision 01M5A2XJ7R7G055E9GYKMS8CC7.

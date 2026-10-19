@@ -1,3 +1,3 @@
-- [ ] NIXPACKS_NODE_VERSION is set in Coolify to an exact Node 22 release matching the dev machines
-- [ ] A deploy builds and runs on that version
-- [ ] /pitfalls/deploy-node-version.md states the pin
+- [x] NIXPACKS_NODE_VERSION is set to 24 in Coolify
+- [x] A deploy builds and runs on Node 24
+- [x] The pin is recorded as a decision

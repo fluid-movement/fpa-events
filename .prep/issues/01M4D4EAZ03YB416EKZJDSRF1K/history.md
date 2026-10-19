@@ -1,0 +1,1 @@
+- 2026-10-19T12:42:19Z claude-code: Verified on events-dev 2026-10-19: stored session.ip_address 2001:0a61:04be:7f01:: (/64) matches the visitor's 2001:a61:4be:7f01:25a8:5756:c07c:44f1. No config change needed, so criterion 2 is not applicable. See decision 01M5A2XJC28ZGAW405A88YKK8E.

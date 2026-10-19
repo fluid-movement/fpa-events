@@ -1,3 +1,3 @@
-- [ ] On the deployed instance the app sees its public https origin, via paths.origin or confirmed proxy headers
-- [ ] Sign-in and an RSVP form submission succeed on the deployed instance
-- [ ] The outcome and any config change is written into /architecture/build-and-deploy.md
+- [x] On the deployed instance the app sees its public https origin, via paths.origin or confirmed proxy headers
+- [x] Sign-in and an RSVP form submission succeed on the deployed instance
+- [x] The outcome is recorded as a decision

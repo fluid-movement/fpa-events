@@ -1,0 +1,3 @@
+- [ ] npm audit for the app and tools/migrate is reviewed and each advisory is fixed or accepted with a reason
+- [ ] The built image is checked for dev-only code and tools that should not ship
+- [ ] A rule for keeping dependencies current is recorded or the reason none is needed

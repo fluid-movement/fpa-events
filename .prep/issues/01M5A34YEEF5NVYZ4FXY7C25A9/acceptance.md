@@ -1,0 +1,3 @@
+- [ ] Rich text, uploads and Leaflet popups are tested with hostile input and the findings are fixed or filed
+- [ ] Calendar and invite tokens are checked for entropy, rotation and leakage
+- [ ] Malformed path and query input (null bytes, oversize, wrong type) yields a 4xx, not a 500

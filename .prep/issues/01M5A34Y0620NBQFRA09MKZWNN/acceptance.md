@@ -1,0 +1,3 @@
+- [ ] A table of every remote function and server load with its guard is reviewed and gaps are fixed or filed
+- [ ] Cross-user access (another user's event, RSVP, profile, privacy setting) is tried and refused
+- [ ] dev-only routes are confirmed unreachable on the production build

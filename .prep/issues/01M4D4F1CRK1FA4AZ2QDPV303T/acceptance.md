@@ -1,0 +1,1 @@
+- [x] The legal notice names the FPA as operator and the privacy policy matches what the app processes (both children done)

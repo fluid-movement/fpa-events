@@ -1,0 +1,1 @@
+- 2026-10-19T12:53:02Z claude-code: 2026-10-19: user confirmed on events-dev that verification and password-reset mail is delivered; logs showed [email] Sent for both. Public-domain links are checked in the cutover smoke test (01M4B48HHPX6ACYDHQV887AGTE).
