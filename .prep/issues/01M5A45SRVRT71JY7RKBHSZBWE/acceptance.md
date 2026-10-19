@@ -1,0 +1,4 @@
+- [ ] Page data, query results and the calendar feed are compared against the UI for each role and every leak is filed
+- [ ] Email-sending and unthrottled features are checked for abuse and every finding is filed
+- [ ] Cross-site state changes are tried against remote functions and the upload endpoint and the result recorded
+- [ ] A 'Lock in the verified defenses' child lists every attack vector tried that held

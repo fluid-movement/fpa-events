@@ -1,0 +1,3 @@
+- [ ] Legacy content imported by tools/migrate is checked for script, unsafe URLs and markup on every path it is rendered, and every finding is filed before the final migration runs
+- [ ] fpa-api data is checked for escaping, URL validation and request bounds, and every finding is filed
+- [ ] A 'Lock in the verified defenses' child lists every attack vector tried that held

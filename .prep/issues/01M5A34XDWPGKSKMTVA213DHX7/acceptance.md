@@ -1,3 +1,4 @@
-- [ ] Every sign-in, sign-up, reset and verify path is reviewed and the findings are fixed or filed
 - [ ] Cookie flags, session lifetime and rate-limit settings are checked against the deployed behaviour
 - [ ] Account enumeration through responses or timing is checked and the result recorded
+- [ ] Every sign-in, sign-up, reset and verify path is reviewed and every finding is filed
+- [ ] A 'Lock in the verified defenses' child lists every attack vector tried that held

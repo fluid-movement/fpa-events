@@ -1,3 +1,4 @@
-- [ ] Rich text, uploads and Leaflet popups are tested with hostile input and the findings are fixed or filed
 - [ ] Calendar and invite tokens are checked for entropy, rotation and leakage
 - [ ] Malformed path and query input (null bytes, oversize, wrong type) yields a 4xx, not a 500
+- [ ] Rich text, uploads, Leaflet popups and error handling are tested with hostile input and every finding is filed
+- [ ] A 'Lock in the verified defenses' child lists every attack vector tried that held
