@@ -1,0 +1,2 @@
+- [ ] The legacy database is no longer publicly available in Coolify (is_public false, no 0.0.0.0 port mapping); any ad-hoc access goes through an SSH tunnel or a 127.0.0.1 mapping
+- [ ] The legacy import still reaches it over the internal network, and an external TCP connect to the server on 5432 (IPv4 and IPv6) fails

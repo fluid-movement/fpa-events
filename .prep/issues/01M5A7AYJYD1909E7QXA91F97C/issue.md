@@ -4,6 +4,7 @@ kind: code
 parent: 01M5A34Z75BVD5BE4AZWWEDCPA
 tags:
   - security
+priority: low
 ---
 
 Deployment audit, 2026-10-19, parent 01M5A34Z75BVD5BE4AZWWEDCPA.

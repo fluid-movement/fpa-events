@@ -1,0 +1,5 @@
+- [ ] Both npm audits (root and tools/migrate) return only advisories that are filed or listed as accepted, with reason, in this issue's table; the check is written into the dependency-review rule the user adopts
+- [ ] Lock sync and source check passes for both locks: every package.json range satisfied by the lock, every entry from https://registry.npmjs.org/ with sha512 integrity, both manifests private: true
+- [ ] AGENTS.md engines one-liner passes for the Node version in the latest deploy log, and the install-script inventory matches the one recorded here (or new scripts are reviewed)
+- [ ] On a clean npm ci tree (no lock drift), rerun the authentication lock-in's offline cookie, reset and rate-limit checks against Better Auth 1.7.8+ and record the result there
+- [ ] No new unit or integration test is added for these supply-chain properties (AGENTS.md: packaging and third-party code are not app logic); existing check, unit and build gates pass after any dependency change

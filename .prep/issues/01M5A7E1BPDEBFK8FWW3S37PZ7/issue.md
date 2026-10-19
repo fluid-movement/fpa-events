@@ -39,4 +39,45 @@ Already owned elsewhere, not refiled:
 
 Review completion must distinguish repository lock, installed node_modules, existing build, and deployed image. Thirteen app installed versions differ from the lock, including Better Auth1.7.7 vs1.7.8; earlier auth runtime observations apply to the former. Actual image/Node/secret checks remain with the parent/deployment reviewer. Do not turn absence of an accessible image into a passed defense.
 
+## Second pass (Claude, 2026-10-19)
+
+Re-ran the read-only checks against the same locks (SHA256 root 985daa23..., tools/migrate 31ec44bd..., both unchanged since the first pass) and extended the list. Same limits: no install into the repo, no build, no Coolify. Better Auth, better-call and @better-auth/utils tarballs were fetched with `npm pack --ignore-scripts` into the audit scratch directory for a diff only.
+
+### Advisory disposition (complete as of this pass)
+
+`npm audit` root: 11 package records, 5 advisory-package pairs, 4 unique GHSAs. tools/migrate: 0. Each is filed or accepted:
+
+| Advisory | Package (locked) | Disposition |
+| --- | --- | --- |
+| GHSA-82fw-gwwq-j7x9 | vitest, @vitest/mocker 4.1.10 (also propagates to @vitest/browser, @vitest/browser-preview, vite-plus) | Filed: 01M5A7A6EDVH5PV2Z7SMKRSKG6 |
+| GHSA-5gmw-xhrv-c9v3 | tinypool 2.1.0 via oxfmt via vite-plus | Filed: 01M5A7A6EDVH5PV2Z7SMKRSKG6 |
+| GHSA-85c8-ppgw-ccpr | tinypool 2.1.0 via oxfmt via vite-plus | Filed: 01M5A7A6EDVH5PV2Z7SMKRSKG6 |
+| GHSA-67mh-4wv8-2f99 | esbuild 0.18.20 via @esbuild-kit/core-utils, esm-loader, drizzle-kit | Accepted: only the esbuild `serve` dev server is affected; core-utils calls transform/transformSync only, and drizzle-kit runs as a CLI (including `npm run db:migrate` in the Coolify terminal, README.md:163-167), never as a server. Do not take npm's suggested drizzle-kit 0.18.1 downgrade. Revisit when drizzle-kit changes or a caller of esbuild.serve appears. Recorded in /findings/01M5A7BX6WXMQ29BP3BK8DSN93.md |
+
+`npm audit --omit=dev` still reports 8 moderate records because Better Auth's optional peers (drizzle-kit, vitest) make the lock mark them non-dev; that is not the runtime inventory.
+
+### Further vectors checked that held
+
+10. **The deploy installing something other than the reviewed lock.** package.json and package-lock.json are in sync for the root and tools/migrate (every declared range satisfied by the lock, root lock entries equal to the manifest), and there is no workspace or registry override (.npmrc holds only comments). With a lock present, nixpacks installs with `npm ci`, which refuses an out-of-sync manifest instead of resolving anew. So the deploy runs exactly the lock, including Better Auth 1.7.8, not the 1.7.7 found in local node_modules. Pin: the sync one-liner below on every dependency change; confirming the install command in the deploy log belongs to the deployment audit.
+
+11. **Engines floors the deployed Node cannot meet.** No package in either lock fails its engines range at 22.19.0, 22.22.1, 24.11.0 or 24.22.0. At 24.0.0 only vite-plus and @voidzero-dev/vite-plus-core 0.2.9 fail; both are dev-only and not used by `vite build` or `node build`. Kit 3.0.0 needs >=22.17, matching package.json engines. The AGENTS.md text naming Node 22.19.0 is stale against decision 01M59PK8QMF1B7Z8BMMDMD6PH5 and is filed as 01M5A7WXXZEQD73V6QKVF2J6HT.
+
+12. **Dev tooling executing in the running app.** The built server (build/server, local build of 2026-10-18) imports externally only runtime packages: @sveltejs/kit, svelte, cookie, valibot, ulid, postgres, sanitize-html, marked, mailgun.js, ical-generator, bcryptjs, leaflet, @sentry/sveltekit, @aws-sdk/client-s3 and node: builtins. The tooling is on disk in the image (filed as 01M5A7WXTDVVKVSFJZ1ETPYF0F) but never loaded by `node build`.
+
+13. **Install-time scripts beyond the inventory.** Lock entries with hasInstallScript: root esbuild 0.28.2, 0.25.12 (drizzle-kit), 0.18.20 (core-utils) and optional fsevents 2.3.3; tools/migrate esbuild 0.28.1 and fsevents. Root lifecycle: only `prepare` (`svelte-kit sync || echo ''; husky || true`). Nothing else runs on `npm ci`. Which env those scripts see in the Coolify build is deployment audit 01M5A34Z75BVD5BE4AZWWEDCPA.
+
+14. **SvelteKit 3 peer ranges.** `npm ls --package-lock-only --all` reports only the two optional runed 0.35.1 peers asking for Kit ^2.21.0 (the app imports no runed/kit subpath) and five missing optional Tailwind wasm32-wasi packages. Better Auth 1.7.8 declares `@sveltejs/kit ^2.0.0 || ^3.0.0`, which is why the old override could be dropped in 9e6b14b. npm ci does not fail on an invalid optional peer already recorded in the lock.
+
+15. **Local install drift invalidating the auth audit.** Diffing 1.7.8 against the installed 1.7.7: the captcha plugin and rate limiter are unchanged; reset-password and change-password became transactional; magic-link and email-otp changed but the app does not load them; better-call 1.4.2 refactored cookie serialisation. Finding 01M5A6NTZZ25Z46EJQ6F23G7B1 still holds on 1.7.8 (revocation still gated by revokeSessionsOnPasswordReset). Recorded as a finding on the parent. The auth lock-in's cookie and reset observations should be rerun on a clean `npm ci` tree.
+
+### Repeatable checks this lock-in should keep
+
+No new unit or integration tests: these are packaging and supply-chain properties, not app logic (AGENTS.md, Testing). Keep them as commands in the dependency-review rule the user decides on (proposal recorded as a finding on the parent). Each runs read-only from the repo root:
+
+- Advisories: `npm audit` and `(cd tools/migrate && npm audit)`; every advisory appears in the table above or in a filed issue.
+- Lock sync and sources: every package.json range is satisfied by its lock entry, and every lock entry resolves to `https://registry.npmjs.org/` with a `sha512-` integrity.
+- Engines: the AGENTS.md one-liner, run with the Node version from the latest deploy log.
+- Install scripts: list lock entries with `hasInstallScript`; any new one is reviewed.
+- Drift: compare each lock entry's version with `node_modules/<pkg>/package.json` before running any audit or probe against installed code.
+
 ## Open questions

@@ -51,4 +51,30 @@ Installed Better Auth and @better-auth/core are 1.7.7 while package-lock.json pi
 
 Parent criterion 1 remains unchecked because open SSH/admin access policies and complete port mappings are not verified. Criterion 2 remains unchecked because key scopes, build artifacts, database roles and backup controls were inaccessible. Criterion 3 remains unchecked because the final domain is pre-cutover; the requirement explicitly makes that header recheck non-blocking. Criterion 4 is satisfied by this lock-in. The audit is ready for review, not completed or a blanket go-live approval. New findings: 01M5A7AYJYD1909E7QXA91F97C (medium, conditional configuration hazard), 01M5A7AYSP4BYF7T63NA98ERQJ (low HSTS gap). Verify the unresolved security-critical deployment configuration before granting deployment sign-off.
 
+## Continuation with Coolify and GlitchTip access (Opus, 2026-10-19)
+
+Method: read-only Coolify MCP calls (overview, applications, env key names and flags, databases, backups and executions, services, team members, server domains, deployments with log summary, container logs) and read-only GlitchTip MCP calls (organizations, projects, alerts, issues, two latest events), plus passive GETs and two TCP connect-and-close checks (6001, 6002). No deploy, control, update or login. Values were never returned or recorded. Several unanswered questions above are now answered below; the remainder moved to the owner question issue 01M5A7ZANWK8D315ZE8FD47HJZ.
+
+### More vectors checked that held
+
+10. **The new app's database is not reachable from outside.** events-postgres (nr234g3tapphcp539wvuocvp) is `is_public: false` and mapped only to 127.0.0.1:5501; GlitchTip's postgres and redis service databases are not public and publish no ports; the app container publishes no host port (ports_mappings null, exposes 3000 to the proxy network only). Enforcement: Coolify resource settings. Pin: a repeatable read-only check of `get_database`/`get_service_database` flags after infrastructure changes, plus the external connect checks of vector 3. The legacy database does NOT hold this: 01M5A7ZA3CE2CD7A5KDQVB6N90.
+
+11. **Coolify access is one owner.** `list_team_members`: one member, role owner; registration redirects to /login. Pin: re-list members when access changes. Dashboard exposure itself is 01M5A7ZAEBDP706QYZDYBQBGH2.
+
+12. **GlitchTip is closed to strangers.** Public /api/settings/ reports enableUserRegistration false, enableOrganizationCreation false, no social login; anonymous /api/0/organizations/ returns 401. One organization (fpa) with two projects (events-new, events-old). Enforcement: GlitchTip ENABLE_USER_REGISTRATION and its auth. Pin: passive GET of /api/settings/ in the same deployment header check as 01M5A7AYSP4BYF7T63NA98ERQJ. Membership and tokens are owner questions (01M5A7ZANWK8D315ZE8FD47HJZ q7).
+
+13. **Stored GlitchTip events carry no request data, query parameters or personal data.** The latest event of the only events-new issue (EVENTS-NEW-1, a Drizzle query failure from a NUL-byte id) has the route id as transaction, the Postgres message replaced by "[database error: message dropped]", the Drizzle params removed, no request, no user, no breadcrumbs, no IP, only stack frames and runtime context; tags are errorId, release, environment, server_name, os. The events-old test event holds only deprecation breadcrumbs. Enforcement: src/lib/error-tracking.ts beforeSend/beforeBreadcrumb, pinned by src/lib/error-tracking.test.ts (vector 7). Pin: reuse those tests; re-sample a recent event after changes to the scrubber. Note the container *log* still prints the failed query line (01M5A5KMZWSA69YYR47S0R916E).
+
+14. **Mail is delivered, not logged.** MAILGUN_API_KEY exists and the container log shows "[email] Sent ..." lines and no console-fallback block, so the live deployment is not in the dev fallback of 01M5A7AYJYD1909E7QXA91F97C. Pin: that finding's unit regressions; the Turnstile half still needs the owner's confirmation.
+
+15. **Origin comes from proxy headers as intended.** HOST_HEADER and PROTOCOL_HEADER are set on the app, ORIGIN is not, matching decision 01M5A2XJC28ZGAW405A88YKK8E; the proxy is Traefik 3.7.14, which by default overwrites client-supplied X-Forwarded-* headers. Whether the proxy config adds forwardedHeaders.insecure/trustedIPs is not visible (owner question q6). Pin: record the proxy entry-point config after any proxy change.
+
+### Answers to the earlier open questions
+
+- Env keys: all runtime secrets are also build variables (01M5A7ZA0AMVQW9D2J1FY6ANW4). BODY_SIZE_LIMIT is not set (logged on 01M5A5KN8H0S977JQ72P7C1AAH). All five LEGACY_* keys are present (expected before cutover; removal is 01M4B48HQM4538H4JMG7942N2Y).
+- Database role: almost certainly the `postgres` superuser, and migrations run at container start (01M5A7ZAASTQDDDGXYAXMHPFZD).
+- Backups: the new database has no Coolify schedule (decision: Hetzner VPS backups, status asked in q2); the legacy database's daily backups are empty 1 KB dumps (01M5A7ZA6Y0T3BR6W6X10XFWMY).
+- GlitchTip: no alert rules (01M5A7ZAJ4BCYMN7P6R804HKZP).
+- R2 public host: not determinable read-only (q4).
+
 ## Open questions

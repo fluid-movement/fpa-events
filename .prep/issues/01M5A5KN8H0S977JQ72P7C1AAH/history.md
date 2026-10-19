@@ -1,0 +1,1 @@
+- 2026-10-19T14:10:42Z claude-code: Deployment audit (Opus): confirmed BODY_SIZE_LIMIT is NOT set on the Coolify app tfneo1jlnfvhzyshhwcovplf (env key list, 2026-10-19), so production runs adapter-node's 512K default and the bug is live.

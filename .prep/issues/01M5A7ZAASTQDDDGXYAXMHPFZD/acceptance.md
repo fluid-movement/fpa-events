@@ -1,0 +1,3 @@
+- [ ] The role in the deployed DATABASE_URL is confirmed (rolsuper, rolcreaterole, rolcreatedb recorded, no secret values)
+- [ ] The app runs as a dedicated non-superuser role without CREATEROLE/CREATEDB, owning only the app's schema; migrations still apply on deploy
+- [ ] The role setup and migration privilege choice are recorded as a decision

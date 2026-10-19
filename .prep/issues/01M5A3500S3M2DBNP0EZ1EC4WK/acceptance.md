@@ -1,4 +1,4 @@
-- [ ] The built image is checked for dev-only code and tools that should not ship
+- [x] The built image is checked for dev-only code and tools that should not ship
 - [ ] A rule for keeping dependencies current is recorded or the reason none is needed
-- [ ] npm audit for the app and tools/migrate is reviewed and each advisory is filed or accepted with a reason
-- [ ] A 'Lock in the verified defenses' child lists every attack vector tried that held
+- [x] npm audit for the app and tools/migrate is reviewed and each advisory is filed or accepted with a reason
+- [x] A 'Lock in the verified defenses' child lists every attack vector tried that held

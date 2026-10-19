@@ -1,0 +1,3 @@
+- [ ] The legacy database's scheduled backup dumps the Laravel database and the next execution has a plausible size
+- [ ] One dump is restored into a scratch database and its tables and row counts match the source
+- [ ] Who can read the backup S3 bucket is recorded; a verified full dump exists before the import/cutover runs

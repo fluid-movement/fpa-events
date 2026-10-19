@@ -1,0 +1,2 @@
+- [ ] AGENTS.md Quality gates and the .npmrc comment describe the Node 24 decision (01M59PK8QMF1B7Z8BMMDMD6PH5) instead of the Node 22.19.0 build
+- [ ] The engines one-liner takes the deployed Node version as input and passes for the version shown by the latest deploy log; no test needed (documentation)

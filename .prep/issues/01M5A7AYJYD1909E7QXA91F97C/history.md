@@ -1,0 +1,3 @@
+- 2026-10-19T14:10:42Z edited by claude-code: priority
+
+- 2026-10-19T14:10:42Z claude-code: Deployment audit (Opus, Coolify read-only): TURNSTILE_SECRET_KEY and MAILGUN_API_KEY both exist on the app (tfneo1jlnfvhzyshhwcovplf), runtime and build. MAILGUN_API_KEY is nonblank: the container log shows '[email] Sent ...', which only the Mailgun path prints, and no console-fallback lines. Turnstile secret nonblank could not be confirmed (values are never returned; asked in 01M5A7ZANWK8D315ZE8FD47HJZ). Rated low: the live deployment is not in the fallback; this remains hardening against a future misconfiguration. Criterion 3 stays open until the Turnstile answer.

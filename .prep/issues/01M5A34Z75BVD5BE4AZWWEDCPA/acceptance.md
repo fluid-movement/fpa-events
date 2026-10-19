@@ -1,4 +1,4 @@
 - [ ] Open ports and publicly reachable admin surfaces are listed and each is justified or closed
 - [ ] Secrets are checked for scope and exposure, including build-time ones baked into the image
 - [ ] Production response headers and the CSP are verified on the live domain after cutover
-- [ ] A 'Lock in the verified defenses' child lists every attack vector tried that held
+- [x] A 'Lock in the verified defenses' child lists every attack vector tried that held

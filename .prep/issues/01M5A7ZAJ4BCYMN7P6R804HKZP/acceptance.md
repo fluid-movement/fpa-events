@@ -1,0 +1,3 @@
+- [ ] An alert rule on project events-new notifies the owner of new issues
+- [ ] An uptime monitor checks the app's /healthz
+- [ ] A deliberate test event triggers the notification once (then resolve it)
