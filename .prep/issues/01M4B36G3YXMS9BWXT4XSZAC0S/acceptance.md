@@ -1,0 +1,1 @@
+- [x] Production deploy is correct and its failures diagnosable: origin, Node pin, health check, error reports and mail delivery verified (all children resolved)
