@@ -1,0 +1,2 @@
+- [ ] The legacy database is read through a role with SELECT only, and the legacy bucket through an R2 token with read-only access; the README runbook says so
+- [ ] After the final migration the LEGACY_* variables are removed from the event app in Coolify and the read-only role and token are revoked (cutover runbook step 4)

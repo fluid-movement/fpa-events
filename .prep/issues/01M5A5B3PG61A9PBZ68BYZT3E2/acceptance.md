@@ -1,0 +1,4 @@
+- [ ] Integration (privacy.test.ts): the public event page's serialized data contains neither an opted-out attendee's name nor any attendee email, for a signed-out and a signed-in non-manager viewer
+- [ ] Unit (src/lib/server/email.test.ts): verification and reset messages carry only the URL — a user name containing markup appears in neither subject nor body
+- [ ] svelte-options.js keeps Kit's csrf origin check on (no csrf.checkOrigin: false); the cross-site remote/upload 403s were verified on a production build and are re-checked by hand after a Kit upgrade, since dev mode skips both checks
+- [ ] Every vector whose test is named as existing still has that test; the rest are covered above or by 01M5A4W5GTV7RNJ8T4MHFVTAKJ and the findings of this audit

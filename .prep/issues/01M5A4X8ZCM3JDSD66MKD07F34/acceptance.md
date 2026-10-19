@@ -1,0 +1,3 @@
+- [ ] migrate:pictures copies only objects whose content type is in the app's upload allowlist (jpeg, png, webp, gif, avif) and lists every skipped object with its type in its summary
+- [ ] migrate.ts treats a blank or whitespace-only legacy picture as no picture, matching the filter in pictures.ts
+- [ ] No new automated test (one-off tool); the summary of a run against the legacy bucket is reviewed before the final migration

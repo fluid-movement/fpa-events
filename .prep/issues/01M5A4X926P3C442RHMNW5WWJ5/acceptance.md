@@ -1,0 +1,2 @@
+- [ ] The calendar name in feed.ics has control characters (CR, LF and the rest of C0) replaced or removed before it reaches ical-generator
+- [ ] A unit test pins that a user name containing CR/LF produces no extra lines in the generated feed, and that an event name and location containing CR/LF stay escaped inside SUMMARY and LOCATION

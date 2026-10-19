@@ -1,0 +1,2 @@
+- [ ] Loading /invite/<token> signed in writes nothing; it shows the event and an Accept button backed by a remote form() that creates the organizing seat (expiry and the sign-in redirect unchanged)
+- [ ] Integration test in organizing.test.ts or invite-sign-in.test.ts: opening a valid invite link as a signed-in user leaves event_user unchanged (expect.poll), and pressing Accept creates the organizing row; the existing magic-link tests are updated to press Accept

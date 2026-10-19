@@ -1,0 +1,3 @@
+- [ ] The upload endpoint checks the file's leading bytes against the format it claims (JPEG, PNG, GIF, WebP, AVIF signatures) and refuses a mismatch with a 400; the stored ContentType and extension come from the detected format
+- [ ] Unit test of the signature check (logic that can be wrong): each allowed format passes, and HTML, SVG and an empty or truncated file labelled image/png are refused
+- [ ] Integration test next to 'the upload endpoint refuses SVG': a non-image file declared as image/png is refused with 400

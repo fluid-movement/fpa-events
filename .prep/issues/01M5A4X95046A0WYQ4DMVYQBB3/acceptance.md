@@ -1,0 +1,3 @@
+- [ ] getPlayerProfile, getEventResults and getScoringResults validate their id argument (a non-empty id without dot-only values, or the id format fpa-api documents) and reject anything else before building the upstream path
+- [ ] The message returned to the browser for an upstream failure no longer includes the upstream path; the detail stays in the server log
+- [ ] A unit test pins that '.' and '..' are rejected and no fetch is made

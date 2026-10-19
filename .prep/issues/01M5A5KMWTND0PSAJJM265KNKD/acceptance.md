@@ -1,0 +1,6 @@
+- [ ] Coordinates from the event form are accepted only when finite and in range (latitude -90..90, longitude -180..180); anything else is a validation issue and no event_locations row is written
+- [ ] A client cannot decide the coordinates of a shared city that other events use: e.g. the location is keyed or verified so a first writer cannot pin a city for everyone (server-side geocode of the chosen city, or per-event coordinates with the shared row only used for grouping) - choose and record the approach
+- [ ] city and country have length limits
+- [ ] EventsMap skips (and does not throw on) a group whose coordinates are not finite, so one bad row cannot blank the map
+- [ ] Unit tests: the coordinate parsing rejects NaN, Infinity and out-of-range values; findOrCreateEventLocation (or its replacement) cannot be made to move an existing city's position
+- [ ] Before go-live, check the production event_locations table for non-finite or out-of-range rows

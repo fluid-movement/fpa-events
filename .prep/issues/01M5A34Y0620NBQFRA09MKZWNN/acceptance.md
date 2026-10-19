@@ -1,4 +1,4 @@
-- [ ] Cross-user access (another user's event, RSVP, profile, privacy setting) is tried and refused
-- [ ] dev-only routes are confirmed unreachable on the production build
-- [ ] A table of every remote function, endpoint and server load with its guard is reviewed and every gap is filed
-- [ ] A 'Lock in the verified defenses' child lists every attack vector tried that held
+- [x] Cross-user access (another user's event, RSVP, profile, privacy setting) is tried and refused
+- [x] dev-only routes are confirmed unreachable on the production build
+- [x] A table of every remote function, endpoint and server load with its guard is reviewed and every gap is filed
+- [x] A 'Lock in the verified defenses' child lists every attack vector tried that held

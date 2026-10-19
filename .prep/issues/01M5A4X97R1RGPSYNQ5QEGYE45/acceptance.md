@@ -1,0 +1,3 @@
+- [ ] fpaApiGet refuses a body over a fixed byte limit (declared Content-Length or bytes streamed) and does not follow redirects, both as FpaApiError
+- [ ] The top-level shape each caller depends on (items arrays, player, event, results) is checked, and a mismatch becomes FpaApiError so the page shows the unavailable notice instead of a 500
+- [ ] client.test.ts gains cases for an oversized body, a redirect, and a wrong-shape body, each ending as FpaApiError

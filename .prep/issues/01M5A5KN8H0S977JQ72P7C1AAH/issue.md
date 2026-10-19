@@ -1,0 +1,25 @@
+---
+title: Picture uploads over 512 KB fail in production unless BODY_SIZE_LIMIT is set; upload errors are not JSON
+kind: code
+parent: 01M5A34YEEF5NVYZ4FXY7C25A9
+tags:
+  - security
+priority: high
+---
+
+Finding from the input and output handling audit (01M5A34YEEF5NVYZ4FXY7C25A9).
+
+**Problem.** The upload endpoint advertises and enforces a 10 MB limit (`src/routes/api/events/upload-image/+server.ts:5,27-29`). In the production server the request never gets that far: adapter-node limits every request body to `BODY_SIZE_LIMIT`, which defaults to **512K** (`node_modules/@sveltejs/adapter-node/src/handler.js:27`). Nothing in the repository sets it. I could not see whether Coolify sets it, because listing the app's environment keys was refused in this session.
+
+With the default:
+- any picture over 512 KB (most phone photos) fails;
+- `request.formData()` rejects with Kit's 413 (`Content-length of N exceeds limit of 524288 bytes`, checked with Kit's `getRequest` in a scratch harness);
+- the endpoint does not catch that, so the response is not the endpoint's own `{ error }` JSON, and `ImageUpload.svelte:69-70` shows a generic "Upload failed" rather than the size message.
+
+The endpoint also reads and buffers the whole body (`formData()`, then `file.arrayBuffer()` in `r2.ts:45`) before checking the size. So whatever the limit is set to is also the per-request memory cost of an upload. (Upload volume and rate limiting belong to the abuse audit, 01M5A45SRVRT71JY7RKBHSZBWE.)
+
+**Reproduce.** Start `node build` without `BODY_SIZE_LIMIT`, sign in, and upload a 1 MB JPEG from the event form. The upload fails. Not run end to end (no sign-in). The 413 behaviour of `getRequest` + `formData()` was confirmed in a scratch script.
+
+**Severity:** low as security (it is a limit, just a smaller one than intended). It is a likely functional break of picture upload in production. **Blocks go-live:** yes if Coolify does not set `BODY_SIZE_LIMIT`, because organizers could not add normal photos. It is a configuration check, not a code change.
+
+## Open questions

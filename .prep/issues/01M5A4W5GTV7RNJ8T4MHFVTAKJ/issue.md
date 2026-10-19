@@ -1,0 +1,73 @@
+---
+title: 'Lock in the verified defenses: authorization'
+kind: code
+parent: 01M5A34Y0620NBQFRA09MKZWNN
+tags:
+  - security
+---
+
+## Requirement
+
+From the authorization audit (01M5A34Y0620NBQFRA09MKZWNN), 2026-10-19. These vectors were tried and held. Pin each one so a later change cannot reopen it quietly. Where a test already covers a vector it is named; otherwise the test to add is named (per AGENTS.md: authorization and destructive flows are "rules that must hold").
+
+How they were tried: every remote-function handler was driven in a scratch Vitest harness (outside the repo, with `$app/server` and the db mocked) as an anonymous caller, a signed-in user with no rights on the event, a co-organizer and an admin, recording whether any insert/update/delete was issued; unauthenticated HTTP probes ran against a dev server on its own port; the production build in `build/` and the deployed events-dev host were checked for the dev route.
+
+### Guard table (acceptance 1 and 3)
+
+Remote functions — guard is the first statement unless noted.
+
+| Remote function | File | Who may call | Guard / what refuses others | Test that pins it |
+|---|---|---|---|---|
+| `deleteEvent` | events/[id]/admin/delete-event.remote.ts | owner, admin | `requireEventOwner(eventId)`: 403 non-owner and co-organizer | none real (admin-role tests are dead, see 01M5A4TMS5RCVCN77GMG8HNH5V); add there |
+| `getEvent` (query) | events/[id]/admin/event-details.remote.ts | owner, admin, co-organizer | `requireEventManager(id)` | admin-role "regular user cannot reach the details form…" (page level only); add unit test of `requireEventManager` (01M5A4TE7KPBQEDTVNCYXKX1GN) |
+| `updateEvent` | same | manager | `requireEventManager(params.id)` before Turnstile and the write; `params.id` comes from the client-set `x-sveltekit-pathname`, so it is attacker-chosen, but it is exactly the id the guard checks | add integration: non-manager submit to `updateEvent` for another event leaves it unchanged |
+| `generateLink`, `regenerateLink` | events/[id]/admin/invites/magic-links.remote.ts | manager | `requireEventManager(eventId)` | add integration: non-manager regenerate leaves the owner's link intact |
+| `listEventLocations` (query), `createEventLocation`, `deleteEventLocation` | events/[id]/admin/schedule/locations.remote.ts | manager | `requireEventManager(eventId)`; delete also matches `eventId` | schedule.test.ts "deleting cannot remove another event's venue" |
+| `addSchedule`, `updateSchedule`, `deleteSchedule` | events/[id]/admin/schedule/schedule.remote.ts | manager | `requireEventManager(eventId)`; item writes match `(id, eventId)`; venue must belong to the event | schedule.test.ts "editing cannot rename…", "deleting cannot remove another event's item", "an item cannot be pointed at another event's venue"; anonymous/non-manager add: dead test, see 01M5A4TMS5RCVCN77GMG8HNH5V |
+| `toggleRsvp` | events/[id]/data.remote.ts | any signed-in user, on their own row | `requireSignedInRequest()`; only ever reads/writes the row for `(params.id, signedIn.id)` — no user id accepted from input; organizer seat cannot be toggled off | rsvp.test.ts (attend/un-attend, unauthenticated sees sign-in link, "a stale RSVP button cannot give an organizer a second row") |
+| `createEvent` | events/create/data.remote.ts | any signed-in user | `requireSignedInRequest()`; owner is `signedIn.id`, never input | event-create.test.ts "redirects an anonymous visitor to sign-in" (page); add: anonymous direct submit creates nothing |
+| `getPrivacySettings` (query), `setShowAttendance` | settings/privacy/data.remote.ts | self | `requireSignedInRequest()`; reads/writes `where user.id = signedIn.id`, no id from input | privacy.test.ts "the privacy switch persists…" |
+| `updateProfile` | settings/profile/data.remote.ts | self | `requireSignedInRequest()`; forwards to Better Auth `update-user` with the caller's own cookie | settings.test.ts "updates the display name" |
+| `deleteAccount` | settings/account/data.remote.ts | self, with current password | `requireSignedInRequest()` + password verify; deletes only `signedIn.id`'s rows | settings.test.ts "deletes the user…", "a wrong password deletes nothing…" |
+| `sendTestEmailForm` | dev/emails/data.remote.ts | dev only | `if (!import.meta.env.DEV) error(404)` — compiled to an unconditional 404 in the production build | none; reasoned from build output, a test is not worth a browser |
+
+Endpoints (`+server.ts`):
+
+| Endpoint | Who | Defense | Test |
+|---|---|---|---|
+| `POST /api/events/upload-image` | signed-in | `if (!locals.user) 401` before reading the body | event-picture.test.ts "the upload endpoint refuses SVG" (signed-in only); add: anonymous POST is 401 |
+| `GET /api/calendar/[token]/feed.ics` | holder of the token | token is `crypto.randomUUID()`; unknown token 404; serves only that token owner's `attending` rows | calendar-feed.test.ts (unknown token 404, reachable without session, regenerate kills old token) |
+| `GET /healthz` | public by design | returns only ok/unavailable | src/routes/healthz/healthz.test.ts |
+
+Server loads:
+
+| Load | Who | Guard | Test |
+|---|---|---|---|
+| `+layout.server.ts` (root), `+page.server.ts` (home), `events/+page.server.ts`, `events/past/[year]`, `events/[id]/+page.server.ts` | public | none needed; user-specific bits keyed on `locals.user` | out of scope here (data-exposure audit) |
+| `events/[id]/admin/+layout.server.ts` | manager | `requireSignedIn` then `canManageEvent`, else redirect to the public page | admin-role.test.ts "regular user is redirected away…", "unauthenticated user is redirected…", "admin can access…"; event-manage.test.ts "without an organizing seat the manage area is closed", "an invited co-organizer can open the manage area" |
+| `events/[id]/admin/schedule/+page.server.ts` | manager | **gap**: relies on the layout, bypassable with a leaf-only data request — 01M5A4T2FTPAV4Y429PTTQZKJ7 | — |
+| `settings/+layout.server.ts`, `settings/profile/+page.server.ts` | self | `requireSignedIn` in both, so a leaf-only request is still refused (verified: 307 to sign-in) | settings.test.ts "redirects an anonymous visitor to sign-in" |
+| `settings/+page.server.ts` | — | redirect only, no data | — |
+| `dashboard`, `attending`, `organizing`, `events/create` page loads | self | `requireSignedIn` in each leaf (verified `organizing` leaf-only: 307) | event-create.test.ts anonymous redirect; add one anonymous-redirect assertion per page to an existing spec if not present |
+| `invite/[token]/+page.server.ts` | holder of the link | token lookup, expiry, then sign-in; writes only the caller's own `event_user` row | organizing.test.ts "accepting a magic link…", invite-sign-in.test.ts |
+| `dev/+layout.ts` (universal) | dev only | `if (!import.meta.env.DEV) error(404)` — compiled to an unconditional 404 in `build/` | none; see below |
+
+### Vectors tried that held
+
+1. **Another user's event, every manager write and query** (acceptance 1): signed-in user B against event A on all eleven manager remote functions → 403 before any write; anonymous → refused before any write (as a 500, filed as 01M5A4TE7KPBQEDTVNCYXKX1GN). Defense: `requireEventAccess` in `src/lib/server/authz.ts`.
+2. **Co-organizer deleting the event**: refused 403 by `requireEventOwner`; admin passes. Pin: unit test in 01M5A4TE7KPBQEDTVNCYXKX1GN and integration in 01M5A4TMS5RCVCN77GMG8HNH5V. `isEventManager` co-organizer denial already pinned in authz.test.ts.
+3. **Naming another event's schedule item or venue from a form you may manage**: writes scoped by `(id, eventId)`. Pinned by the four cross-event tests in schedule.test.ts.
+4. **Steering `updateEvent` by spoofing the route** (`x-sveltekit-pathname` is client-set): the guard checks the same id the write uses. Pin: integration test named in the table.
+5. **Another user's RSVP**: `toggleRsvp` takes no user id; it can only touch the caller's row. Pinned by rsvp.test.ts.
+6. **Another user's profile / privacy setting / account**: none of `updateProfile`, `setShowAttendance`, `getPrivacySettings`, `deleteAccount` accepts a user id; all key on `signedIn.id`. Pinned by settings.test.ts and privacy.test.ts. (Better Auth's own `/api/auth/*` endpoints belong to the authentication audit.)
+7. **Stale admin role**: `locals.role` is read from the database on every request in `hooks.server.ts`. Pinned by admin-role.test.ts "revoking admin role takes effect on the very next request".
+8. **Leaf-only `__data.json` against self-guarded loads** (`organizing`, `settings/profile`): still redirected. Pin: one integration assertion alongside the schedule regression test of 01M5A4T2FTPAV4Y429PTTQZKJ7, covering a second leaf so the pattern is held generally.
+9. **Calendar feed without a session / with an unknown token**: 404 for unknown token, only the owner's attending rows. Pinned by calendar-feed.test.ts.
+10. **Anonymous image upload**: 401 before the body is read. Add the anonymous case to event-picture.test.ts.
+11. **Dev-only route in production** (acceptance 2): `src/routes/dev/+layout.ts` and `sendTestEmailForm` both gate on `import.meta.env.DEV`, which Vite replaces with `false` in a build; in `build/` the layout load is `function d(){l(404,"Not found")}` and the remote function's body starts with an unconditional `error(404)`. Passive GET on the deployed events-dev host: `/dev/emails` → 404. Only the page's static template preview component ships in the client bundle; it holds no data. No test asked for: a build-mode check would cost a production build per run for one line of code; keep the two `import.meta.env.DEV` guards and re-check by hand if the dev route grows.
+
+## Acceptance
+
+See criteria.
+
+## Open questions

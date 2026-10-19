@@ -1,0 +1,2 @@
+- [ ] describeServerError builds its log line from the redacted error text (redactErrorText from #lib/error-tracking, or the same rule), so neither a Drizzle params tail nor a Postgres message reaches the log; the doc comment matches
+- [ ] Unit test in src/lib/server/errors.test.ts: a Drizzle 'Failed query ... params: <token>' error and a PostgresError produce a log line without the parameter values

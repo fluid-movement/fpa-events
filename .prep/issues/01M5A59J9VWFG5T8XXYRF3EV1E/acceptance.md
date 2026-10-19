@@ -1,0 +1,2 @@
+- [ ] The user has chosen one of the options and the choice is recorded as a decision
+- [ ] If emails are restricted: integration test that a co-organizer's manage-area data carries no attendee email while the owner's does; if disclosed instead: copy change only, no test (presentational)

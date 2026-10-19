@@ -1,0 +1,37 @@
+---
+title: Attendee emails reach every co-organizer and the privacy copy does not say so
+kind: code
+parent: 01M5A45SRVRT71JY7RKBHSZBWE
+tags:
+  - security
+priority: low
+---
+
+Found by the data-exposure and abuse audit (01M5A45SRVRT71JY7RKBHSZBWE), 2026-10-19.
+
+## Vulnerability
+
+Every attendee's email address goes to every manager of the event, co-organizers included, and nothing tells the attendee. `src/routes/events/[id]/admin/+layout.server.ts` lines 33-43 select `user.email` for every event_user row, including people who opted out of being shown (`showAttendance = false`); `AttendeeList.svelte` line 18 and `InviteSection.svelte` line 31 render it.
+
+This is deliberate (the comment in `AttendeeList.svelte` says organizers need a way to contact attendees, and privacy.test.ts "organizers still see opted-out attendees in the manage area" asserts the email is shown). The gap is disclosure and reach:
+
+- The privacy setting's copy (`src/routes/settings/privacy/+page.svelte` line 30) says "Event organizers can always see who has signed up". It does not say they see your email address.
+- "Organizer" includes anyone who redeemed the event's invite link, which is reusable by anyone holding it for 48 hours. An RSVP therefore discloses the attendee's address to an open-ended set of people the owner chose to forward a link to.
+
+## How to reproduce
+
+RSVP to an event as user B with "Show my name on event pages" off. Any co-organizer of the event (anyone who opened its invite link) sees B's name and email on the Attendees tab.
+
+## Severity
+
+Low: works as designed, but the design is undisclosed. It is also what makes the invite-link finding filed alongside this one worth exploiting.
+
+Blocks go-live: no, but it is a product decision the user should make before members start RSVPing on the new domain.
+
+## Options (user decides)
+
+1. Keep it, and say so: the privacy copy and the RSVP control state that organizers see your name and email.
+2. Show emails to the owner (and admins) only; co-organizers see names.
+3. Hide emails entirely and add a contact path later.
+
+## Open questions

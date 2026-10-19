@@ -1,0 +1,25 @@
+---
+title: Any signed-in user can plant or poison shared city coordinates and blank the public events map
+kind: code
+parent: 01M5A34YEEF5NVYZ4FXY7C25A9
+tags:
+  - security
+priority: high
+---
+
+Finding from the input and output handling audit (01M5A34YEEF5NVYZ4FXY7C25A9).
+
+**Vulnerability.** `event_locations` is a global table shared by every event, deduplicated by `(city, country)`, and the first writer wins. `findOrCreateEventLocation` (`src/lib/server/db/eventLocations.ts:5-22`) returns the existing row if one exists and otherwise inserts the caller's coordinates. Those coordinates come from hidden form fields (`EventLocationInput`), and `resolveEventLocationId` (`src/lib/server/eventForm.ts:139-150`) only `parseFloat`s them. There is no finiteness or range check (compare `optionalCoordinate` in `locations.remote.ts`, which does check finiteness).
+
+So any signed-in user who creates an event can:
+
+1. **Plant a city.** Send a city/country pair that no event uses yet, with arbitrary coordinates. Every later event, by any organizer, whose geocoder pick has that city and country is pinned to the planted position. There is no update path, and deleting the attacker's event does not remove or correct the row.
+2. **Break the public map.** `NaN` (and `Infinity`) pass `parseFloat`, and Postgres `real` stores them (checked: `SELECT 'NaN'::real` succeeds through postgres-js). The home page sends them to `EventsMap.svelte`, and `L.marker([NaN, NaN])` throws `Invalid LatLng object` inside the `loadLeaflet().then` callback (`EventsMap.svelte:79-86`). The map stays blank for every visitor, and each visit raises a client error report. Out-of-range values such as latitude 1000 are also accepted.
+
+City and country are also unbounded free text.
+
+**Reproduce.** I did not reproduce this end to end, because it needs a signed-in account and creating rows was out of bounds. Steps: submit createEvent with the four location fields set by hand (a fresh city/country and `latitude=NaN`), then open `/`. The Postgres and Leaflet behaviour was confirmed separately.
+
+**Severity:** medium. Any new account can deface the map for all visitors and corrupt other organizers' event locations persistently, and the fix needs a database cleanup. **Blocks go-live:** I recommend fixing it before go-live. The validation half is a few lines.
+
+## Open questions

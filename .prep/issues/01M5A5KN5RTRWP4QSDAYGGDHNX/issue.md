@@ -1,0 +1,20 @@
+---
+title: Upload endpoint trusts the declared content type and stores any bytes as an image
+kind: code
+parent: 01M5A34YEEF5NVYZ4FXY7C25A9
+tags:
+  - security
+priority: low
+---
+
+Finding from the input and output handling audit (01M5A34YEEF5NVYZ4FXY7C25A9).
+
+**Vulnerability.** The upload endpoint trusts the type the browser declares. `src/routes/api/events/upload-image/+server.ts:23` checks `file.type`, which is the multipart part's `Content-Type` header and fully client-controlled, against the raster allowlist. `uploadImage` (`src/lib/server/r2.ts:38-49`) then stores the bytes unexamined, with that type as `ContentType` and an extension derived from it. Nothing reads the magic bytes, so any file (HTML, a script, an archive, an executable) labelled `image/png` is accepted and published at `R2_PUBLIC_URL/events/<ulid>.png`.
+
+What held: SVG and other non-allowlisted *declared* types are refused (`tests/integration/event-picture.test.ts` "the upload endpoint refuses SVG"). The stored `Content-Type` is always one of the five raster types, and browsers do not sniff an `image/*` response into HTML, so the uploaded file cannot run as a page. The impact is that the bucket becomes free hosting for arbitrary content under our domain's image URLs (malware or polyglot staging, abuse reports against our R2 account), plus broken images when the bytes are not an image. If the production bucket host is ever a subdomain of the app's own site, mislabelled content becomes more interesting (see 01M5A4X8ZCM3JDSD66MKD07F34 on the bucket host).
+
+**Reproduce.** While signed in, POST a multipart body whose `file` part has `Content-Type: image/png` and non-image bytes. The endpoint answers 200 with a URL. Not run: the audit makes no uploads to real R2, and dev has no R2 keys. It follows from the code above.
+
+**Severity:** low. **Blocks go-live:** no.
+
+## Open questions

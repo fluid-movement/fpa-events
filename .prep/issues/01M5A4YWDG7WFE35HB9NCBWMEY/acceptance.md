@@ -1,0 +1,6 @@
+- [ ] Integration test: an event description stored with an img-onerror payload renders inert on /events/[id] and /events/[id]/admin
+- [ ] Integration test: an expired invite link does not grant an organizer seat
+- [ ] markdown.test.ts covers mixed-case, entity-encoded and data: link schemes
+- [ ] Unit test: getRankings/getScoringResults with an unknown series fall back to the default and make no upstream request for the unknown name
+- [ ] eventIndex.test.ts: when total never matches what is returned, the loader stops after MAX_PAGES requests
+- [ ] Every other vector in the list stays pinned by the existing test it names; none are removed
