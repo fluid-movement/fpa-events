@@ -1,0 +1,3 @@
+- [ ] Incorrect sign-in attempts for unknown users, missing credentials, scrypt users and supported legacy bcrypt variants use a documented bounded equalization policy while retaining identical public error responses and existing captcha/rate limits.
+- [ ] Unit regression tests exercise the equalization policy with controlled clock/hash-cost stubs across unknown, scrypt and bcrypt branches; no brittle wall-clock latency assertions in CI. Include bounds so hostile inputs cannot select unbounded extra work, and retain password.test.ts compatibility tests.
+- [ ] A small isolated synthetic timing experiment documents residual distinguishability across supported bcrypt work factors; do not probe production or use real account emails for this experiment.
