@@ -1,0 +1,2 @@
+- [ ] GlitchTip HTTPS root and login responses send HSTS with a reviewed positive max-age, and HTTP still redirects to HTTPS; scope the policy to this host unless its subdomains have also been reviewed.
+- [ ] Record a repeatable passive deployment header check and its result for both pages, so proxy/service redeploys can be checked without authentication or attack traffic. No Svelte rendering test or database integration test is required for this external configuration.

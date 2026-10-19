@@ -1,0 +1,3 @@
+- [ ] Replace the credential-bearing npm install runbook with a concrete npm ci preparation step in an environment without app/legacy database or bucket credentials; inject narrowly scoped migration credentials only for execution.
+- [ ] Validate required binary/lifecycle preparation still works without secrets and a manifest-lock mismatch fails closed. Use an environment allowlist or harmless canary, not real credentials or a real migration.
+- [ ] Keep existing cleanup/read-only-credential issues as the owners of those tasks. No new browser or component test and no DB reset, seed or migration is needed for this install-boundary change.

@@ -1,0 +1,3 @@
+- [ ] Update or remove the affected toolchain coherently: every retained Vitest/mocker copy is outside GHSA-82fw-gwwq-j7x9 and every Tinypool copy is at least 2.1.2 or otherwise outside both advisory ranges; do not leave the exact vite-plus pins behind.
+- [ ] Coordinate the package choice with 01M4B3VDAV4VWMP44FB39Y77MQ; do not use forced audit fixes or downgrade drizzle-kit to clear the accepted esbuild advisory.
+- [ ] Review full npm audits for both lockfiles and run the existing check, unit-test and build gates for the chosen update. No new test of third-party code is required under AGENTS.md; recheck Kit production-origin defenses if Kit changes.
