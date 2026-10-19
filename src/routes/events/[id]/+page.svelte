@@ -8,6 +8,7 @@
 	import { toggleRsvp } from './data.remote';
 	import type { PageProps } from './$types';
 	import { formatDateRange } from '#lib/utils/dates';
+	import { heroLayout } from '#lib/utils/heroLayout';
 	import { attendeeSummary, firstName } from '#lib/utils/attendees';
 	import * as Dialog from '#lib/components/ui/dialog';
 	import PageShell from '#lib/components/layout/PageShell.svelte';
@@ -47,6 +48,8 @@
 		optimisticCount = data.attendeeCount;
 	});
 
+	const layout = $derived(heroLayout(event.pictureWidth, event.pictureHeight));
+
 	const dateRange = $derived(formatDateRange(event.startDate, event.endDate));
 	const isPast = $derived(new Date(event.startDate) < new Date());
 
@@ -84,105 +87,120 @@
 	{/snippet}
 	{#if event}
 		<PageShell width="content">
-			<!-- Cover image hero -->
-			{#if event.picture}
-				<div class="relative mb-6 w-full overflow-hidden rounded-xl">
+			<!-- Cover image hero: the picture is never cropped. A banner sits above the
+			     header; a split picture sits beside it on md+ and below it otherwise. -->
+			<div
+				class={layout === 'split'
+					? 'md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,20rem)] md:items-start md:gap-8'
+					: undefined}
+			>
+				{#if event.picture && layout === 'banner'}
 					<img
 						src={event.picture}
 						alt={event.name}
 						width={event.pictureWidth ?? undefined}
 						height={event.pictureHeight ?? undefined}
-						class="max-h-56 w-full object-cover md:max-h-80"
+						class="mb-6 h-auto w-full rounded-xl"
 					/>
-					<!-- Gradient overlay for readability -->
-					<div
-						class="absolute inset-0 bg-linear-to-t from-background/60 via-transparent to-transparent"
-					></div>
-				</div>
-			{/if}
+				{/if}
 
-			<PageHeader
-				title={event.name}
-				back={{ href: resolve('/events'), label: 'All events' }}
-				class="pb-4"
-			>
-				{#snippet meta()}
-					<span class="flex items-center gap-2">
-						<CalendarIcon class="size-4 shrink-0" />
-						{dateRange}
-					</span>
-					<span class="flex items-center gap-2">
-						<MapPinIcon class="size-4 shrink-0" />
-						{event.location}
-					</span>
-				{/snippet}
-				{#snippet actions()}
-					{#if canManage}
-						<Button
-							href={resolve('/events/[id]/admin', { id: event.id })}
-							variant="outline"
-							size="sm"
-							data-testid="manage-event-link"
-						>
-							<PencilIcon />
-							Manage event
-						</Button>
-					{/if}
-				{/snippet}
-			</PageHeader>
-
-			<div class="mb-6">
-				<!-- RSVP + attendee peek -->
-				<div class="flex flex-col items-start gap-2">
-					{#if data.userStatus === 'organizing'}
-						<div class="flex items-center gap-2">
-							<Badge variant="secondary" data-testid="organizing-badge">
-								<StarIcon data-icon="inline-start" />
-								Organizing
-							</Badge>
-						</div>
-					{:else if !isPast}
-						{#if userId}
-							<form {...toggleRsvp}>
-								<!-- Attending is the settled state, so it steps back to outline and
-								     lets the filled heart carry the signal; Attend stays the CTA. -->
+				<div class="min-w-0">
+					<PageHeader
+						title={event.name}
+						back={{ href: resolve('/events'), label: 'All events' }}
+						class="pb-4"
+					>
+						{#snippet meta()}
+							<span class="flex items-center gap-2">
+								<CalendarIcon class="size-4 shrink-0" />
+								{dateRange}
+							</span>
+							<span class="flex items-center gap-2">
+								<MapPinIcon class="size-4 shrink-0" />
+								{event.location}
+							</span>
+						{/snippet}
+						{#snippet actions()}
+							{#if canManage}
 								<Button
-									type="submit"
-									variant={attending ? 'outline' : 'default'}
-									data-testid="rsvp-button"
-									class={attending ? 'text-primary' : ''}
-									onclick={() => {
-										attending = !attending;
-										optimisticCount += attending ? 1 : -1;
-									}}
+									href={resolve('/events/[id]/admin', { id: event.id })}
+									variant="outline"
+									size="sm"
+									data-testid="manage-event-link"
 								>
-									<HeartIcon class={attending ? 'fill-primary' : ''} />
-									{#if attending}
-										Attending · {optimisticCount}
-									{:else}
-										Attend · {optimisticCount}
-									{/if}
+									<PencilIcon />
+									Manage event
 								</Button>
-							</form>
-						{:else}
-							<Button href={resolve('/sign-in')} data-testid="rsvp-sign-in-link">
-								<HeartIcon />
-								Attend · {optimisticCount}
-							</Button>
-						{/if}
-					{/if}
-					{#if attendeePeekLabel}
-						<Button
-							variant="link"
-							size="sm"
-							class="h-auto px-0 text-xs text-muted-foreground hover:text-foreground"
-							onclick={() => (showAttendeesModal = true)}
-						>
-							{attendeePeekLabel}
-							<ChevronRightIcon class="size-3 shrink-0" />
-						</Button>
-					{/if}
+							{/if}
+						{/snippet}
+					</PageHeader>
+
+					<div class="mb-6">
+						<!-- RSVP + attendee peek -->
+						<div class="flex flex-col items-start gap-2">
+							{#if data.userStatus === 'organizing'}
+								<div class="flex items-center gap-2">
+									<Badge variant="secondary" data-testid="organizing-badge">
+										<StarIcon data-icon="inline-start" />
+										Organizing
+									</Badge>
+								</div>
+							{:else if !isPast}
+								{#if userId}
+									<form {...toggleRsvp}>
+										<!-- Attending is the settled state, so it steps back to outline and
+								     lets the filled heart carry the signal; Attend stays the CTA. -->
+										<Button
+											type="submit"
+											variant={attending ? 'outline' : 'default'}
+											data-testid="rsvp-button"
+											class={attending ? 'text-primary' : ''}
+											onclick={() => {
+												attending = !attending;
+												optimisticCount += attending ? 1 : -1;
+											}}
+										>
+											<HeartIcon class={attending ? 'fill-primary' : ''} />
+											{#if attending}
+												Attending · {optimisticCount}
+											{:else}
+												Attend · {optimisticCount}
+											{/if}
+										</Button>
+									</form>
+								{:else}
+									<Button href={resolve('/sign-in')} data-testid="rsvp-sign-in-link">
+										<HeartIcon />
+										Attend · {optimisticCount}
+									</Button>
+								{/if}
+							{/if}
+							{#if attendeePeekLabel}
+								<Button
+									variant="link"
+									size="sm"
+									class="h-auto px-0 text-xs text-muted-foreground hover:text-foreground"
+									onclick={() => (showAttendeesModal = true)}
+								>
+									{attendeePeekLabel}
+									<ChevronRightIcon class="size-3 shrink-0" />
+								</Button>
+							{/if}
+						</div>
+					</div>
 				</div>
+
+				{#if event.picture && layout !== 'banner'}
+					<img
+						src={event.picture}
+						alt={event.name}
+						width={event.pictureWidth ?? undefined}
+						height={event.pictureHeight ?? undefined}
+						class={layout === 'split'
+							? 'mb-6 h-auto max-h-[70vh] w-full rounded-xl bg-muted object-contain md:mb-0 md:max-h-[32rem] md:self-start md:justify-self-end md:bg-transparent'
+							: 'mb-6 h-auto max-h-[70vh] w-full rounded-xl bg-muted object-contain'}
+					/>
+				{/if}
 			</div>
 
 			<Dialog.Root bind:open={showAttendeesModal}>
