@@ -1,0 +1,4 @@
+- [ ] The legacy import stores picture_width and picture_height for every event picture whose size can be read
+- [ ] Pictures whose size cannot be read keep null sizes and appear in the migration report
+- [ ] Already-imported events can get their sizes filled in by a re-run or a backfill, without duplicating pictures
+- [ ] The size reading has a unit test with a landscape, a portrait and an unreadable file

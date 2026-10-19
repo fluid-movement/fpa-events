@@ -1,0 +1,5 @@
+- [ ] A picture with ratio ≥ 1.4 renders as a full-width uncropped banner; below 1.4 as the split layout with the picture uncropped at its natural ratio
+- [ ] Below md: banners stay above the details and split pictures sit below the title and date block, uncropped and height-capped
+- [ ] The hero image always has its real width and height (or aspect ratio) in the server-rendered HTML, so loading it causes no layout shift
+- [ ] An event without a valid stored size falls back to the uncropped one-column layout
+- [ ] The layout choice is a pure function with a unit test for the threshold, edges and missing or invalid sizes
