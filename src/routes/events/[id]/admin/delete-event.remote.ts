@@ -1,3 +1,4 @@
+import { text } from '#lib/server/validation';
 import * as v from 'valibot';
 import { redirect } from '@sveltejs/kit';
 import { form } from '$app/server';
@@ -8,7 +9,7 @@ import { eq } from 'drizzle-orm';
 import { releasePicture } from '#lib/server/eventForm';
 import { requireEventOwner } from '#lib/server/authz';
 
-export const deleteEvent = form(v.object({ eventId: v.string() }), async (data) => {
+export const deleteEvent = form(v.object({ eventId: text }), async (data) => {
 	const ev = await requireEventOwner(data.eventId);
 
 	await releasePicture(ev.picture, data.eventId);

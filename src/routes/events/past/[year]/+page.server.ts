@@ -1,5 +1,5 @@
 import { and, gte, lt } from 'drizzle-orm';
-import { error } from '@sveltejs/kit';
+import { parseArchiveYear } from '#lib/server/validation';
 import { events } from '#lib/server/db/schema';
 import {
 	getArchiveYears,
@@ -10,8 +10,7 @@ import {
 import type { PageServerLoad } from './$types';
 
 export const load = (async ({ params, locals }) => {
-	const year = Number(params.year);
-	if (!Number.isInteger(year)) error(400, 'Invalid year');
+	const year = parseArchiveYear(params.year);
 
 	const [inYear, archiveYears] = await Promise.all([
 		listEventsWithAttendeeCount(

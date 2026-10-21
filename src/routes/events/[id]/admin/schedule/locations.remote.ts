@@ -1,3 +1,4 @@
+import { databaseId, storedId, text } from '#lib/server/validation';
 import * as v from 'valibot';
 import { form, query } from '$app/server';
 import { error } from '@sveltejs/kit';
@@ -14,7 +15,7 @@ import { requireEventManager } from '#lib/server/authz';
  * instead of "no position".
  */
 const optionalCoordinate = v.pipe(
-	v.optional(v.string()),
+	v.optional(text),
 	v.transform((s) => {
 		if (s === undefined || s.trim() === '') return null;
 		const n = Number(s);
@@ -23,19 +24,19 @@ const optionalCoordinate = v.pipe(
 );
 
 const locationSchema = v.object({
-	name: v.pipe(v.string(), v.minLength(1)),
-	address: v.optional(v.string()),
+	name: v.pipe(text, v.minLength(1)),
+	address: v.optional(text),
 	latitude: optionalCoordinate,
 	longitude: optionalCoordinate
 });
 
-export const listEventLocations = query(v.string(), async (eventId) => {
+export const listEventLocations = query(storedId, async (eventId) => {
 	await requireEventManager(eventId);
 	return db.select().from(scheduleLocations).where(eq(scheduleLocations.eventId, eventId));
 });
 
 export const createEventLocation = form(
-	v.object({ eventId: v.string(), ...locationSchema.entries }),
+	v.object({ eventId: storedId, ...locationSchema.entries }),
 	async (data) => {
 		await requireEventManager(data.eventId);
 		// Only keep a position when both halves are present.
@@ -56,7 +57,7 @@ export const createEventLocation = form(
 );
 
 export const deleteEventLocation = form(
-	v.object({ id: v.pipe(v.string(), v.transform(Number)), eventId: v.string() }),
+	v.object({ id: v.pipe(databaseId, v.transform(Number)), eventId: storedId }),
 	async (data) => {
 		await requireEventManager(data.eventId);
 		// Scoped to the authorised event: the venue id comes from the form.

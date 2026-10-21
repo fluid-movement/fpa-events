@@ -1,3 +1,5 @@
+import { storedId } from '#lib/server/validation';
+import { scheduleSchema, updateScheduleSchema, type ScheduleInput } from '#lib/server/scheduleForm';
 import * as v from 'valibot';
 import { form } from '$app/server';
 import { error } from '@sveltejs/kit';
@@ -8,17 +10,6 @@ import { ulid } from 'ulid';
 import { requireEventManager } from '#lib/server/authz';
 import { sanitizeRichText } from '#lib/utils/html';
 
-const scheduleSchema = v.object({
-	eventId: v.string(),
-	name: v.pipe(v.string(), v.minLength(1)),
-	startDate: v.pipe(v.string(), v.minLength(1)),
-	endDate: v.pipe(v.string(), v.minLength(1)),
-	locationId: v.optional(v.string()),
-	description: v.optional(v.string())
-});
-
-type ScheduleInput = v.InferOutput<typeof scheduleSchema>;
-
 /**
  * The columns both the add and edit forms write, with their times validated.
  *
@@ -28,9 +19,8 @@ type ScheduleInput = v.InferOutput<typeof scheduleSchema>;
 async function scheduleValues(data: ScheduleInput) {
 	const startDate = new Date(data.startDate);
 	const endDate = new Date(data.endDate);
-	if (endDate <= startDate) throw new Error('End time must be after start time');
 
-	const locationId = data.locationId ? parseInt(data.locationId, 10) : null;
+	const locationId = data.locationId ? Number(data.locationId) : null;
 	if (locationId !== null) {
 		const [venue] = await db
 			.select({ id: scheduleLocations.id })
@@ -67,27 +57,21 @@ export const addSchedule = form(scheduleSchema, async (data) => {
 	});
 });
 
-export const updateSchedule = form(
-	v.object({ id: v.string(), ...scheduleSchema.entries }),
-	async (data) => {
-		await requireEventManager(data.eventId);
-		const updated = await db
-			.update(schedules)
-			.set({ ...(await scheduleValues(data)), updatedAt: new Date() })
-			.where(ofEvent(data.id, data.eventId))
-			.returning({ id: schedules.id });
-		if (updated.length === 0) error(404, 'Schedule item not found');
-	}
-);
+export const updateSchedule = form(updateScheduleSchema, async (data) => {
+	await requireEventManager(data.eventId);
+	const updated = await db
+		.update(schedules)
+		.set({ ...(await scheduleValues(data)), updatedAt: new Date() })
+		.where(ofEvent(data.id, data.eventId))
+		.returning({ id: schedules.id });
+	if (updated.length === 0) error(404, 'Schedule item not found');
+});
 
-export const deleteSchedule = form(
-	v.object({ id: v.string(), eventId: v.string() }),
-	async (data) => {
-		await requireEventManager(data.eventId);
-		const deleted = await db
-			.delete(schedules)
-			.where(ofEvent(data.id, data.eventId))
-			.returning({ id: schedules.id });
-		if (deleted.length === 0) error(404, 'Schedule item not found');
-	}
-);
+export const deleteSchedule = form(v.object({ id: storedId, eventId: storedId }), async (data) => {
+	await requireEventManager(data.eventId);
+	const deleted = await db
+		.delete(schedules)
+		.where(ofEvent(data.id, data.eventId))
+		.returning({ id: schedules.id });
+	if (deleted.length === 0) error(404, 'Schedule item not found');
+});

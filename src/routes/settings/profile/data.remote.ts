@@ -1,3 +1,4 @@
+import { text } from '#lib/server/validation';
 import * as v from 'valibot';
 import { form, getRequestEvent } from '$app/server';
 import { requireSignedInRequest } from '#lib/server/authz';
@@ -7,7 +8,7 @@ import { requireSignedInRequest } from '#lib/server/authz';
  * `db.update`, so its session handling and hooks stay in step.
  */
 export const updateProfile = form(
-	v.object({ name: v.pipe(v.string(), v.trim(), v.minLength(1, 'Name is required.')) }),
+	v.object({ name: v.pipe(text, v.trim(), v.minLength(1, 'Name is required.')) }),
 	async (data) => {
 		requireSignedInRequest();
 

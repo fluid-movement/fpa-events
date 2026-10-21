@@ -13,7 +13,12 @@ const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/g
 export const POST: RequestHandler = async ({ request, locals }) => {
 	if (!locals.user) return json({ error: 'Unauthorized' }, { status: 401 });
 
-	const formData = await request.formData();
+	let formData: FormData;
+	try {
+		formData = await request.formData();
+	} catch {
+		return json({ error: 'Invalid multipart body' }, { status: 400 });
+	}
 	const file = formData.get('file');
 
 	if (!(file instanceof File) || file.size === 0) {

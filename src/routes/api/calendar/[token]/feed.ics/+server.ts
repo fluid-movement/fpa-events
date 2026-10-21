@@ -3,9 +3,13 @@ import { user, events, eventUser } from '#lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
 import ical, { ICalCalendarMethod } from 'ical-generator';
 import { eventPath } from '#lib/utils/urls';
+import { isCalendarToken } from '#lib/server/validation';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ params, url }) => {
+	// Not a token we could have issued: the same 404, without a query.
+	if (!isCalendarToken(params.token)) return new Response('Not found', { status: 404 });
+
 	const [owner] = await db
 		.select({ id: user.id, name: user.name })
 		.from(user)

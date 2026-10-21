@@ -8,13 +8,16 @@ import { type Handle, type HandleServerError } from '@sveltejs/kit/hooks';
 import * as Sentry from '@sentry/sveltekit';
 import { GLITCHTIP_DSN } from '$app/env/private';
 import { trackerOptions } from '#lib/error-tracking';
-import { describeServerError } from '#lib/server/errors';
+import { rejectNulPath } from '#lib/server/validation';
+import { describeServerError, isMalformedClientInput } from '#lib/server/errors';
 import { withFailedSignInTiming } from '#lib/server/sign-in-timing';
 
 // A blank DSN leaves the SDK disabled (dev, tests).
 Sentry.init(trackerOptions(GLITCHTIP_DSN));
 
 export const handle: Handle = async ({ event, resolve }) => {
+	// Before the session lookup, so a NUL never reaches a query.
+	rejectNulPath(event.url);
 	const session = await auth.api.getSession({ headers: event.request.headers });
 
 	if (session) {
@@ -71,6 +74,11 @@ function withSecurityHeaders(response: Response): Response {
  * Errors thrown with `error()` keep Kit's defaults and are not logged.
  */
 export const handleError: HandleServerError = ({ kind, error, event }) => {
+	// Kit failing to decode a malformed request body or argument: the client's
+	// fault, so a 400 with no reference, log line or report.
+	if (kind === 'unknown' && isMalformedClientInput(error, event.request)) {
+		return { status: 400, message: 'Bad Request' };
+	}
 	const report = describeServerError({
 		kind,
 		error,

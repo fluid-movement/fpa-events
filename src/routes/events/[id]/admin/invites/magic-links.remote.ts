@@ -1,3 +1,4 @@
+import { text } from '#lib/server/validation';
 import * as v from 'valibot';
 import { form } from '$app/server';
 import { db } from '#lib/server/db';
@@ -6,7 +7,7 @@ import { eq } from 'drizzle-orm';
 import { ulid } from 'ulid';
 import { requireEventManager } from '#lib/server/authz';
 
-const schema = v.object({ eventId: v.string() });
+const schema = v.object({ eventId: text });
 
 /** How long a co-organizer invite stays usable. */
 const LINK_TTL_MS = 48 * 60 * 60 * 1000;

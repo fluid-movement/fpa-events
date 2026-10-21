@@ -1,3 +1,4 @@
+import { text } from '#lib/server/validation';
 import * as v from 'valibot';
 import { query } from '$app/server';
 import { fpaApiGet, FpaApiError } from '#lib/server/fpa-api/client';
@@ -98,7 +99,7 @@ export interface RankingStandingsView {
 }
 
 export const getRankings = query(
-	v.optional(v.string()),
+	v.optional(text),
 	async (requestedSeries): Promise<ApiResult<RankingStandingsView>> =>
 		attempt(async () => {
 			const series = await resolveSeries(requestedSeries, 'rankings');
@@ -132,7 +133,7 @@ export interface RatingStandingsView {
 export const getRatings = query(
 	v.optional(
 		v.object({
-			series: v.optional(v.string()),
+			series: v.optional(text),
 			minMatchCount: v.optional(v.pipe(v.number(), v.integer(), v.minValue(0)))
 		})
 	),
@@ -173,7 +174,7 @@ export const getRatings = query(
  * `resultId` joins them — see `#lib/rankings/breakdown`.
  */
 export const getScoringResults = query(
-	v.object({ playerId: v.string(), series: v.optional(v.string()) }),
+	v.object({ playerId: text, series: v.optional(text) }),
 	async ({ playerId, series: requestedSeries }): Promise<ApiResult<ScoringResult[]>> =>
 		attempt(async () => {
 			const series = await resolveSeries(requestedSeries, 'rankings');

@@ -4,6 +4,7 @@ import { count, eq } from 'drizzle-orm';
 import { error, redirect } from '@sveltejs/kit';
 import { resolve } from '$app/paths';
 import { canManageEvent, isEventManager, requireSignedIn } from '#lib/server/authz';
+import { storedIdParam } from '#lib/server/validation';
 import type { LayoutServerLoad } from './$types';
 
 /**
@@ -17,7 +18,10 @@ export const load = (async ({ params, locals }) => {
 	// Not `user`: that name belongs to the schema table imported above.
 	const signedIn = requireSignedIn(locals);
 
-	const [event] = await db.select().from(events).where(eq(events.id, params.id));
+	const [event] = await db
+		.select()
+		.from(events)
+		.where(eq(events.id, storedIdParam(params.id)));
 	if (!event) error(404, 'Not found');
 
 	if (!(await canManageEvent(event, signedIn.id, locals.role))) {

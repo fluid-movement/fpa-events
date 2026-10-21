@@ -4,6 +4,7 @@ import { autocomplete } from '#lib/geocoding';
 import { sanitizeRichText } from '#lib/utils/html';
 import { eq } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
+import { storedIdParam } from '#lib/server/validation';
 import type { PageServerLoad } from './$types';
 
 /**
@@ -20,19 +21,19 @@ const GEOCODE_TIMEOUT_MS = 2000;
  * on this tab uses the coordinates. Previously it ran on every tab.
  */
 export const load = (async ({ params }) => {
-	if (!params.id) error(404, 'Not found');
+	const id = storedIdParam(params.id);
 
 	const [row] = await db
 		.select({ event: events, location: eventLocations })
 		.from(events)
 		.leftJoin(eventLocations, eq(events.eventLocationId, eventLocations.id))
-		.where(eq(events.id, params.id));
+		.where(eq(events.id, id));
 	if (!row) error(404, 'Not found');
 
 	const eventSchedules = await db
 		.select()
 		.from(schedules)
-		.where(eq(schedules.eventId, params.id))
+		.where(eq(schedules.eventId, id))
 		.orderBy(schedules.startDate);
 
 	let eventLat = row.location?.latitude ?? null;

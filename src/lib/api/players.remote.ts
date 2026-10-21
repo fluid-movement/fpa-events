@@ -1,4 +1,4 @@
-import * as v from 'valibot';
+import { text } from '#lib/server/validation';
 import { query } from '$app/server';
 import { fpaApiGet, FpaApiError } from '#lib/server/fpa-api/client';
 import type { PlayerProfile } from '#lib/server/fpa-api/types';
@@ -42,7 +42,7 @@ function playerBio(raw: unknown): PlayerBio | null {
 }
 
 export const getPlayerProfile = query(
-	v.string(),
+	text,
 	async (playerId): Promise<ApiResult<PlayerProfileView>> =>
 		attempt(async () => {
 			const profile = await fpaApiGet<PlayerProfile>(`/players/${encodeURIComponent(playerId)}`);

@@ -1,10 +1,11 @@
+import { text } from '#lib/server/validation';
 import * as v from 'valibot';
 import { form } from '$app/server';
 import { error } from '@sveltejs/kit';
 import { sendTestEmail } from '#lib/server/email';
 
 const schema = v.object({
-	to: v.pipe(v.string(), v.email()),
+	to: v.pipe(text, v.email()),
 	templateId: v.picklist(['activate-account', 'reset-password'])
 });
 

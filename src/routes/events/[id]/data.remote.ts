@@ -5,12 +5,12 @@ import { db } from '#lib/server/db';
 import { events, eventUser } from '#lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { requireSignedInRequest } from '#lib/server/authz';
+import { storedIdParam } from '#lib/server/validation';
 
 /** RSVP on, or off again — the public event page's single write. */
 export const toggleRsvp = form(v.object({}), async () => {
 	const signedIn = requireSignedInRequest();
-	const eventId = getRequestEvent().params.id;
-	if (!eventId) error(400, 'Event ID required');
+	const eventId = storedIdParam(getRequestEvent().params.id, 'Event not found');
 
 	const [event] = await db.select().from(events).where(eq(events.id, eventId));
 	if (!event) error(404, 'Event not found');

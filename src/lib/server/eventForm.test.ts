@@ -195,3 +195,33 @@ describe('eventFormSchema dates', () => {
 		expect(v.safeParse(eventFormSchema, form(value, '2026-10-17')).success).toBe(false);
 	});
 });
+
+describe('picture dimension validation', () => {
+	const event = {
+		name: 'Test',
+		description: '',
+		location: '',
+		startDate: '2030-01-01',
+		endDate: '2030-01-02'
+	};
+	it.each(['abc', 'NaN', 'Infinity', '-1', '0', '12junk', '1.5', '2147483648', '100001'])(
+		'rejects %s for either dimension',
+		(value) => {
+			for (const field of ['pictureWidth', 'pictureHeight']) {
+				expect(v.safeParse(eventFormSchema, { ...event, [field]: value }).success).toBe(false);
+			}
+		}
+	);
+	it.each(['', '1', '1920', '100000'])('accepts %s and omitted dimensions', (value) => {
+		expect(
+			v.safeParse(eventFormSchema, { ...event, pictureWidth: value, pictureHeight: value }).success
+		).toBe(true);
+		expect(v.safeParse(eventFormSchema, event).success).toBe(true);
+	});
+	it.each(['name', 'location', 'description', 'city', 'country', 'picture'])(
+		'rejects NUL in %s',
+		(field) => {
+			expect(v.safeParse(eventFormSchema, { ...event, [field]: 'bad\0input' }).success).toBe(false);
+		}
+	);
+});

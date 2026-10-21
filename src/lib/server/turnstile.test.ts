@@ -43,3 +43,20 @@ describe('verifyTurnstile', () => {
 		await expect(verifyTurnstile('token')).resolves.toBe(false);
 	});
 });
+
+import { isHttpError } from '@sveltejs/kit';
+import { requireTurnstile } from './turnstile';
+describe('requireTurnstile', () => {
+	it('rejects an expired challenge with 400 rather than a server fault', async () => {
+		setEnv({ TURNSTILE_SECRET_KEY: 'secret' });
+		vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+			new Response(JSON.stringify({ success: false }))
+		);
+		try {
+			await requireTurnstile('expired-token');
+			expect.fail('Expected captcha rejection');
+		} catch (error) {
+			expect(isHttpError(error, 400)).toBe(true);
+		}
+	});
+});

@@ -3,20 +3,21 @@ import { error, redirect } from '@sveltejs/kit';
 import { resolve } from '$app/paths';
 import { db } from '#lib/server/db';
 import { events, eventUser } from '#lib/server/db/schema';
+import { isStoredId } from '#lib/server/validation';
 import { and, eq } from 'drizzle-orm';
 
 type SessionUser = NonNullable<App.Locals['user']>;
 
 /**
  * Require an authenticated user for the current request. Returns the user and their role.
- * Throws `Error('Unauthorized')` when no session is present.
+ * Throws a 401 HttpError when no session is present.
  *
  * Intended for use inside remote functions (`form()` / `query()` from `$app/server`),
  * which throw errors rather than redirecting.
  */
 export function requireUser(): { user: SessionUser; role: 'user' | 'admin' } {
 	const { locals } = getRequestEvent();
-	if (!locals.user) throw new Error('Unauthorized');
+	if (!locals.user) error(401, 'Unauthorized');
 	return { user: locals.user, role: locals.role ?? 'user' };
 }
 
@@ -103,6 +104,7 @@ async function requireEventAccess(
 	) => boolean | Promise<boolean>
 ) {
 	const { user, role } = requireUser();
+	if (!isStoredId(eventId)) error(400, 'Invalid event ID');
 	const [event] = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
 	if (!event) error(404, 'Event not found');
 	if (!(await allow(event, user.id, role))) error(403, 'Forbidden');

@@ -1,3 +1,4 @@
+import { error } from '@sveltejs/kit';
 import { TURNSTILE_SECRET_KEY } from '$app/env/private';
 
 const SITEVERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
@@ -34,6 +35,6 @@ export async function verifyTurnstile(token: string | undefined): Promise<boolea
 /** `verifyTurnstile`, but for call sites that just want to abort on failure. */
 export async function requireTurnstile(token: string | undefined): Promise<void> {
 	if (!(await verifyTurnstile(token))) {
-		throw new Error('Captcha verification failed');
+		error(400, 'Captcha verification failed');
 	}
 }

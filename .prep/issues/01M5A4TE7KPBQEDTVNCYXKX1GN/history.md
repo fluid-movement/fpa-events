@@ -1,0 +1,5 @@
+- 2026-10-21T09:26:51Z codex: Implemented, ready for check: shared requireUser now throws a 401 HttpError and authz.test.ts covers anonymous, missing-event, forbidden, owner, admin and co-organizer access for both manager and owner guards; unit runner currently blocked by read-only shared node_modules writes, final checks will be reported.
+
+- 2026-10-21T14:52:52Z codex: Implemented, ready for check: requireUser now throws Kit 401 and manager/owner guards reject malformed IDs before querying; authz.test.ts checks all required statuses/roles, malformed-input.test.ts covers live anonymous manager queries, and hooks.server.test.ts proves expected errors cause no logging/capture; final standard unit run 37 files/457 tests passed, npm run check 0 errors/0 warnings, changed-file ESLint/Prettier passed; orchestrator must run Playwright.
+
+- 2026-10-21T18:05:18Z claude-code: Implemented, ready for check: requireUser throws error(401) so anonymous manager calls are 401 with no log/report (authz.test.ts unit, malformed-input.test.ts asserts the 401 in the remote JSON body).

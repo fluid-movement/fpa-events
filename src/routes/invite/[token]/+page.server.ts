@@ -3,10 +3,11 @@ import { eventMagicLinks, eventUser } from '#lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { error, redirect } from '@sveltejs/kit';
 import { resolve } from '$app/paths';
+import { storedIdParam } from '#lib/server/validation';
 import type { PageServerLoad } from './$types';
 
 export const load = (async ({ params, locals }) => {
-	const { token } = params;
+	const token = storedIdParam(params.token, 'Invite link not found');
 
 	const [link] = await db.select().from(eventMagicLinks).where(eq(eventMagicLinks.id, token));
 	if (!link) error(404, 'Invite link not found');

@@ -1,5 +1,5 @@
-import * as v from 'valibot';
-import { redirect } from '@sveltejs/kit';
+import { text } from '#lib/server/validation';
+import { error, redirect } from '@sveltejs/kit';
 import { query, form, getRequestEvent } from '$app/server';
 import { resolve } from '$app/paths';
 import { eq } from 'drizzle-orm';
@@ -16,7 +16,7 @@ import { requireTurnstile } from '#lib/server/turnstile';
 import { sanitizeRichText } from '#lib/utils/html';
 
 /** The event as the manage area edits it: dates as `yyyy-mm-dd`, never null. */
-export const getEvent = query(v.string(), async (id) => {
+export const getEvent = query(text, async (id) => {
 	await requireEventManager(id);
 
 	const [event] = await db
@@ -38,7 +38,7 @@ export const getEvent = query(v.string(), async (id) => {
 		.where(eq(events.id, id))
 		.limit(1);
 
-	if (!event) throw new Error('Event not found');
+	if (!event) error(404, 'Event not found');
 
 	return {
 		...event,
@@ -53,7 +53,7 @@ export const getEvent = query(v.string(), async (id) => {
 
 export const updateEvent = form(eventFormSchema, async (data) => {
 	const eventId = getRequestEvent().params.id;
-	if (!eventId) throw new Error('Event ID is required');
+	if (!eventId) error(400, 'Event ID is required');
 
 	const existing = await requireEventManager(eventId);
 	await requireTurnstile(data.turnstileToken);

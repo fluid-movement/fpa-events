@@ -1,3 +1,4 @@
+import { text } from '#lib/server/validation';
 import * as v from 'valibot';
 import { query } from '$app/server';
 import { fpaApiGet, FpaApiError } from '#lib/server/fpa-api/client';
@@ -52,8 +53,8 @@ const toRow = (event: IndexedEvent): ResultEventRow => ({
 export const getResultEvents = query(
 	v.optional(
 		v.object({
-			q: v.optional(v.string()),
-			division: v.optional(v.string()),
+			q: v.optional(text),
+			division: v.optional(text),
 			year: v.optional(v.pipe(v.number(), v.integer())),
 			page: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1)))
 		}),
@@ -83,20 +84,18 @@ export const getResultEvents = query(
 		})
 );
 
-export const getEventResults = query(
-	v.string(),
-	async (eventId): Promise<ApiResult<EventResultsView>> =>
-		attempt(async () => {
-			const detail = await fpaApiGet<EventDetail>(`/events/${encodeURIComponent(eventId)}`);
+export const getEventResults = query(text, async (eventId): Promise<ApiResult<EventResultsView>> =>
+	attempt(async () => {
+		const detail = await fpaApiGet<EventDetail>(`/events/${encodeURIComponent(eventId)}`);
 
-			return {
-				id: detail.event.id,
-				name: detail.event.name,
-				startDate: detail.event.startDate,
-				endDate: detail.event.endDate,
-				// Left in the API's own order: it returns divisions grouped, and each
-				// division's rounds final-first, which is the order worth reading.
-				results: detail.results
-			};
-		})
+		return {
+			id: detail.event.id,
+			name: detail.event.name,
+			startDate: detail.event.startDate,
+			endDate: detail.event.endDate,
+			// Left in the API's own order: it returns divisions grouped, and each
+			// division's rounds final-first, which is the order worth reading.
+			results: detail.results
+		};
+	})
 );

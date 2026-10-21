@@ -1,3 +1,4 @@
+import { calendarDate, pictureDimension, text } from '#lib/server/validation';
 import * as v from 'valibot';
 import { error } from '@sveltejs/kit';
 import { and, eq, ne } from 'drizzle-orm';
@@ -15,32 +16,21 @@ import { deleteImage } from '#lib/server/r2';
  * fields are filled in by `EventLocationInput` only when a geocoding suggestion
  * was picked, so they are all optional and only honoured as a complete set.
  */
-/** A real calendar date as the date picker sends it, `yyyy-mm-dd`. */
-const isoDate = v.pipe(
-	v.string(),
-	v.regex(/^\d{4}-\d{2}-\d{2}$/, 'Pick a date.'),
-	// Rejects 2026-13-01 (Invalid Date) and 2026-02-30 (which Date rolls over).
-	v.check((value) => {
-		const date = new Date(`${value}T00:00:00Z`);
-		return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(value);
-	}, 'Pick a valid date.')
-);
-
 export const eventFormSchema = v.pipe(
 	v.object({
-		name: v.pipe(v.string(), v.minLength(1), v.maxLength(100)),
-		description: v.string(),
-		startDate: isoDate,
-		endDate: isoDate,
-		location: v.string(),
-		city: v.optional(v.string()),
-		country: v.optional(v.string()),
-		latitude: v.optional(v.string()),
-		longitude: v.optional(v.string()),
-		picture: v.optional(v.string()),
-		pictureWidth: v.optional(v.string()),
-		pictureHeight: v.optional(v.string()),
-		turnstileToken: v.optional(v.string())
+		name: v.pipe(text, v.minLength(1), v.maxLength(100)),
+		description: text,
+		startDate: calendarDate,
+		endDate: calendarDate,
+		location: text,
+		city: v.optional(text),
+		country: v.optional(text),
+		latitude: v.optional(text),
+		longitude: v.optional(text),
+		picture: v.optional(text),
+		pictureWidth: pictureDimension,
+		pictureHeight: pictureDimension,
+		turnstileToken: v.optional(text)
 	}),
 	// `yyyy-mm-dd` strings compare correctly as text. Same-day events are fine.
 	v.forward(
@@ -102,8 +92,8 @@ export async function parsePictureFields(
 
 	return {
 		picture,
-		pictureWidth: data.pictureWidth ? parseInt(data.pictureWidth, 10) : current.pictureWidth,
-		pictureHeight: data.pictureHeight ? parseInt(data.pictureHeight, 10) : current.pictureHeight
+		pictureWidth: data.pictureWidth ? Number(data.pictureWidth) : current.pictureWidth,
+		pictureHeight: data.pictureHeight ? Number(data.pictureHeight) : current.pictureHeight
 	};
 }
 

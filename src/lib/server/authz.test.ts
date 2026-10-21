@@ -33,7 +33,7 @@ describe('isEventManager', () => {
 });
 
 describe('canManageEvent', () => {
-	const event = { id: 'event-1', userId: 'owner-1' };
+	const event = { id: '01m5a4te7kpbqedtvncyxkx1gn', userId: 'owner-1' };
 
 	/** Stub the `select().from().where().limit()` chain used by isEventCoOrganizer. */
 	function mockCoOrganizerLookup(rows: { id: number }[]) {
@@ -73,5 +73,74 @@ describe('canManageEvent', () => {
 	it('denies when role is undefined and there is no organizing seat', async () => {
 		mockCoOrganizerLookup([]);
 		await expect(canManageEvent(event, 'random-user', undefined)).resolves.toBe(false);
+	});
+});
+
+const { requestMock } = vi.hoisted(() => ({ requestMock: vi.fn() }));
+vi.mock('$app/server', () => ({ getRequestEvent: requestMock }));
+
+import { isHttpError } from '@sveltejs/kit';
+import { requireEventManager, requireEventOwner } from './authz';
+
+describe.each([requireEventManager, requireEventOwner])('%s request authorization', (guard) => {
+	const event = { id: '01m5a4te7kpbqedtvncyxkx1gn', userId: 'owner-1' };
+	function session(id: string | null, role = 'user') {
+		requestMock.mockReturnValue({ locals: { user: id ? { id } : null, role } });
+	}
+	function rows(...results: unknown[][]) {
+		for (const result of results) {
+			selectMock.mockReturnValueOnce({
+				from: () => ({ where: () => ({ limit: async () => result }) })
+			});
+		}
+	}
+	async function status(expected: number) {
+		try {
+			await guard(event.id);
+			expect.fail('Expected an HttpError');
+		} catch (err) {
+			expect(isHttpError(err, expected)).toBe(true);
+		}
+	}
+	beforeEach(() => {
+		selectMock.mockReset();
+		requestMock.mockReset();
+	});
+	it('rejects anonymous requests with 401 before querying', async () => {
+		session(null);
+		await status(401);
+		expect(selectMock).not.toHaveBeenCalled();
+	});
+	it('returns 404 for an unknown event', async () => {
+		session('owner-1');
+		rows([]);
+		await status(404);
+	});
+	it.each(['bad-id', 'bad\0id'])('rejects malformed ID %s before querying', async (id) => {
+		session('owner-1');
+		await expect(guard(id)).rejects.toSatisfy((err: unknown) => isHttpError(err, 400));
+		expect(selectMock).not.toHaveBeenCalled();
+	});
+	it('denies a signed-in stranger with 403', async () => {
+		session('stranger');
+		rows([event], []);
+		await status(403);
+	});
+	it.each([
+		['owner-1', 'user'],
+		['admin-1', 'admin']
+	])('allows %s', async (id, role) => {
+		session(id, role);
+		rows([event]);
+		await expect(guard(event.id)).resolves.toEqual(event);
+	});
+	it('admits co-organizers only to manager access', async () => {
+		session('co-organizer');
+		rows([event], [{ id: 7 }]);
+		if (guard === requireEventManager) {
+			await expect(guard(event.id)).resolves.toEqual(event);
+		} else {
+			await status(403);
+		}
 	});
 });

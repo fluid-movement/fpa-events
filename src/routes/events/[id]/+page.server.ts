@@ -6,12 +6,16 @@ import type { PageServerLoad } from './$types';
 import { sanitizeRichText } from '#lib/utils/html';
 import { eventMeta } from '#lib/utils/meta';
 import type { EventUserStatus } from '#lib/types/event';
+import { storedIdParam } from '#lib/server/validation';
 
 /** Names shown inline under the RSVP control before the "and N others" remainder. */
 const ATTENDEE_PEEK_LIMIT = 4;
 
 export const load = (async ({ params, locals }) => {
-	const [event] = await db.select().from(events).where(eq(events.id, params.id));
+	const [event] = await db
+		.select()
+		.from(events)
+		.where(eq(events.id, storedIdParam(params.id)));
 	if (!event) error(404, 'Not found');
 
 	const [eventSchedules, attendeeCounts, userRsvp, namedAttendees] = await Promise.all([
