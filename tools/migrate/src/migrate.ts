@@ -10,6 +10,9 @@ import { ulid } from 'ulid';
 import { legacyPool, targetPool, requireEnv } from './db';
 import { Report } from './report';
 import { loadLocationMap } from './locations';
+import { normalizeLegacyEmails } from './emails';
+import { legacyPictureUrl } from './picture-policy';
+import { assertLegacyIds } from './ids';
 
 // Also honor `npm run migrate --dry-run` (without the `--` separator): npm
 // swallows the flag itself but records it as npm_config_dry_run.
@@ -89,9 +92,12 @@ async function migrateUsers(legacy: pg.Pool, target: pg.PoolClient, report: Repo
 		`SELECT id, name, email, password, role, created_at::text, updated_at::text
 		 FROM users ORDER BY id`
 	);
+	assertLegacyIds('users', rows, ['id']);
+	const { users, normalized } = normalizeLegacyEmails(rows);
+	report.note(`users: ${normalized} email(s) normalized (trimmed and lowercased).`);
 
 	let accounts = 0;
-	for (const u of rows) {
+	for (const u of users) {
 		// All migrated users are marked verified: the legacy app never used
 		// email verification (email_verified_at is NULL for everyone), and
 		// these are established accounts — don't lock them out at cutover.
@@ -129,6 +135,7 @@ async function migrateEvents(
 		        picture, picture_width, picture_height, created_at::text, updated_at::text
 		 FROM events ORDER BY id`
 	);
+	assertLegacyIds('events', rows, ['id', 'user_id']);
 
 	// Insert only the map locations actually referenced, deduped on (city, country).
 	const locationIds = new Map<string, number>(); // "city|country" → event_locations.id
@@ -160,7 +167,7 @@ async function migrateEvents(
 	}
 
 	for (const e of rows) {
-		const picture = e.picture ? `${publicUrl}/${e.picture}` : null;
+		const picture = legacyPictureUrl(publicUrl, e.picture);
 		await target.query(
 			`INSERT INTO events (id, user_id, name, start_date, end_date, location, event_location_id,
 			                     description, picture, picture_width, picture_height, created_at, updated_at)
@@ -208,6 +215,7 @@ async function migrateEventUsers(
 		`SELECT event_id, user_id, status, created_at::text, updated_at::text FROM event_user
 		 ORDER BY (lower(status) = 'organizing') DESC, id`
 	);
+	assertLegacyIds('event_user', rows, ['event_id', 'user_id']);
 	let migrated = 0;
 	for (const r of rows) {
 		// The target allows one row per (event, user); later duplicates are dropped.
@@ -233,6 +241,7 @@ async function migrateMagicLinks(
 	const { rows } = await legacy.query<LegacyMagicLink>(
 		`SELECT id, event_id, expires_at::text, created_at::text, updated_at::text FROM event_magic_links ORDER BY id`
 	);
+	assertLegacyIds('event_magic_links', rows, ['id', 'event_id']);
 	for (const r of rows) {
 		await target.query(
 			`INSERT INTO event_magic_links (id, event_id, expires_at, created_at, updated_at)
@@ -253,6 +262,7 @@ async function migrateSchedules(
 		        longitude, latitude, created_at::text, updated_at::text
 		 FROM schedules ORDER BY id`
 	);
+	assertLegacyIds('schedules', rows, ['id', 'event_id']);
 
 	// Venue rows deduped per event on (name, lat, lng), mirroring how the app
 	// reuses schedule_locations across a single event's schedule items.

@@ -1,0 +1,13 @@
+# Allow only reviewed migration sources and the immutable dependency inputs.
+**
+!Dockerfile
+!package.json
+!package-lock.json
+!verify-preparation.mjs
+!src/
+!src/**
+!data/
+!data/**
+**/.env*
+**/.npmrc
+**/node_modules

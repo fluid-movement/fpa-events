@@ -1,16 +1,11 @@
 // Step 3: copy event pictures from the legacy R2 bucket to the target bucket.
 // Keys are kept as-is (pictures/<name>), matching the URLs migrate.ts wrote
-// into events.picture. Idempotent: objects already in the target are skipped;
+// into events.picture. Idempotent: safe objects already in the target are skipped;
 // the legacy bucket is only ever read.
-import {
-	S3Client,
-	GetObjectCommand,
-	PutObjectCommand,
-	HeadObjectCommand,
-	ListObjectsV2Command,
-	DeleteObjectsCommand
-} from '@aws-sdk/client-s3';
+import { S3Client, ListObjectsV2Command, DeleteObjectsCommand } from '@aws-sdk/client-s3';
 import { legacyPool, requireEnv } from './db';
+import { copyLegacyPicture } from './picture-copy';
+import { hasLegacyPicture } from './picture-policy';
 
 // --wipe-target deletes every object in the target bucket before copying, so
 // the bucket converges to exactly the legacy pictures (drops orphaned dev
@@ -36,16 +31,6 @@ function r2Client(prefix: 'LEGACY' | 'TARGET'): S3Client {
 			secretAccessKey: env('SECRET_ACCESS_KEY')
 		}
 	});
-}
-
-async function exists(client: S3Client, bucket: string, key: string): Promise<boolean> {
-	try {
-		await client.send(new HeadObjectCommand({ Bucket: bucket, Key: key }));
-		return true;
-	} catch (err) {
-		if (err instanceof Error && err.name === 'NotFound') return false;
-		throw err;
-	}
 }
 
 async function emptyBucket(client: S3Client, bucket: string): Promise<number> {
@@ -83,49 +68,44 @@ async function main() {
 
 	const legacy = legacyPool();
 	const { rows } = await legacy.query<{ id: string; name: string; picture: string }>(
-		`SELECT id, name, picture FROM events WHERE picture IS NOT NULL AND btrim(picture) <> '' ORDER BY id`
+		`SELECT id, name, picture FROM events WHERE picture IS NOT NULL ORDER BY id`
 	);
 	await legacy.end();
-	console.log(`${rows.length} event picture(s) to check…`);
+	// Use exactly the URL mapper's JS whitespace rule, including tabs/newlines.
+	const pictures = rows.filter(({ picture }) => hasLegacyPicture(picture));
+	console.log(`${pictures.length} event picture(s) to check…`);
 
 	let copied = 0;
 	let skipped = 0;
 	const missing: string[] = [];
+	const rejected: string[] = [];
 
-	for (const { name, picture: key } of rows) {
-		if (await exists(targetR2, targetBucket, key)) {
+	for (const { name, picture: key } of pictures) {
+		const result = await copyLegacyPicture(legacyR2, targetR2, legacyBucket, targetBucket, key);
+		if (result.status === 'present') {
 			skipped++;
 			continue;
 		}
-		let source;
-		try {
-			source = await legacyR2.send(new GetObjectCommand({ Bucket: legacyBucket, Key: key }));
-		} catch (err) {
-			if (err instanceof Error && (err.name === 'NoSuchKey' || err.name === 'NotFound')) {
-				missing.push(`${key} (event "${name}")`);
-				continue;
-			}
-			throw err;
+		if (result.status === 'missing') {
+			missing.push(`${key} (event "${name}")`);
+			continue;
 		}
-		const body = await source.Body!.transformToByteArray();
-		await targetR2.send(
-			new PutObjectCommand({
-				Bucket: targetBucket,
-				Key: key,
-				Body: body,
-				ContentType: source.ContentType,
-				CacheControl: 'public, max-age=31536000'
-			})
-		);
+		if (result.status === 'rejected') {
+			rejected.push(
+				`${JSON.stringify(key)} (event ${JSON.stringify(name)}): ${result.bucket} Content-Type ${JSON.stringify(result.contentType ?? '(missing)')}`
+			);
+			continue;
+		}
 		copied++;
-		console.log(`  copied ${key} (${(body.length / 1024).toFixed(0)} KiB)`);
+		console.log(`  copied ${key} (${(result.bytes / 1024).toFixed(0)} KiB)`);
 	}
 
 	console.log(
-		`\nDone: ${copied} copied, ${skipped} already present, ${missing.length} missing in legacy bucket.`
+		`\nDone: ${copied} copied, ${skipped} already present, ${missing.length} missing in legacy bucket, ${rejected.length} rejected by content type.`
 	);
 	for (const m of missing) console.log(`  ⚠ missing: ${m}`);
-	if (missing.length > 0) process.exit(1);
+	for (const r of rejected) console.log(`  ⚠ rejected: ${r}`);
+	if (missing.length > 0 || rejected.length > 0) process.exit(1);
 }
 
 main().catch((err) => {

@@ -1,12 +1,10 @@
 <script lang="ts">
 	import 'leaflet/dist/leaflet.css';
 	import { onMount } from 'svelte';
-	import { resolve } from '$app/paths';
 	import type { Map as LeafletMap, Marker } from 'leaflet';
 	import { addOsmTiles, enableTwoFingerPan, isTouchDevice, loadLeaflet } from '#lib/leaflet';
 	import { groupBy } from '#lib/utils/collections';
-	import { escapeHtml } from '#lib/utils/html';
-	import { formatShortDateRange } from '#lib/utils/dates';
+	import { buildPopupHtml } from '#lib/utils/mapPopup';
 
 	type MapEvent = {
 		id: string;
@@ -30,29 +28,6 @@
 		events.filter((e): e is LocatedEvent => e.latitude != null && e.longitude != null)
 	);
 	const hasLocatedEvents = $derived(locatedEvents.length > 0);
-
-	/**
-	 * Leaflet builds popups from an HTML string, so this is the one place in the
-	 * app where markup is assembled by hand — hence the explicit escaping, and
-	 * theme tokens read as inline styles rather than Tailwind classes.
-	 */
-	function buildPopupHtml(group: LocatedEvent[]): string {
-		const muted = 'color:var(--muted-foreground);font-size:0.8rem;margin:0 0 4px';
-
-		const entries = group.map((ev, i) => {
-			const border =
-				i > 0 ? 'border-top:1px solid var(--border);padding-top:8px;margin-top:8px;' : '';
-			return `
-				<div style="${border}">
-					<p style="font-weight:600;margin:0 0 2px">${escapeHtml(ev.name)}</p>
-					<p style="${muted}">${formatShortDateRange(ev.startDate, ev.endDate)}</p>
-					${ev.location ? `<p style="${muted}">${escapeHtml(ev.location)}</p>` : ''}
-					<a href="${resolve('/events/[id]', { id: ev.id })}" style="color:var(--primary);font-size:0.8rem;text-decoration:none;">View event →</a>
-				</div>`;
-		});
-
-		return `<div style="min-width:180px;font-size:0.85rem;line-height:1.4">${entries.join('')}</div>`;
-	}
 
 	onMount(() => {
 		if (!hasLocatedEvents) return;
