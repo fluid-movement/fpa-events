@@ -1,13 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
-import {
-	GetObjectCommand,
-	HeadObjectCommand,
-	PutObjectCommand,
-	type S3Client
-} from '@aws-sdk/client-s3';
 import { copyLegacyPicture } from '../../tools/migrate/src/picture-copy';
 import { legacyPictureUrl } from '../../tools/migrate/src/picture-policy';
 import { migrationFixture, runMigrationCli, eventId } from './helpers/migration-cli';
+
+// The tool may resolve its own @aws-sdk copy (tools/migrate/node_modules), so
+// identify commands by name and take the client type from the tool itself.
+type S3Client = Parameters<typeof copyLegacyPicture>[0];
+type Command = { constructor: { name: string }; input: Record<string, unknown> };
+const isCommand = (command: unknown, name: string): command is Command =>
+	(command as Command | null)?.constructor?.name === name;
 
 const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
 const rejectedTypes = [
@@ -110,16 +111,19 @@ function fixture(contentType: string | undefined) {
 	const body = { transformToByteArray: vi.fn().mockResolvedValue(bytes), destroy: vi.fn() };
 	const uploaded = new Map<string, { body: unknown; type: unknown }>();
 	const legacySend = vi.fn(async (command: unknown) => {
-		if (!(command instanceof GetObjectCommand)) throw new Error('Unexpected legacy command');
+		if (!isCommand(command, 'GetObjectCommand')) throw new Error('Unexpected legacy command');
 		return { Body: body, ContentType: contentType };
 	});
 	const targetSend = vi.fn(async (command: unknown) => {
-		if (command instanceof HeadObjectCommand) {
+		if (isCommand(command, 'HeadObjectCommand')) {
 			throw Object.assign(new Error('Not found'), { name: 'NotFound' });
 		}
-		if (!(command instanceof PutObjectCommand)) throw new Error('Unexpected target command');
+		if (!isCommand(command, 'PutObjectCommand')) throw new Error('Unexpected target command');
 		if (command.input.Bucket !== 'target') throw new Error('Wrong destination');
-		uploaded.set(command.input.Key!, { body: command.input.Body, type: command.input.ContentType });
+		uploaded.set(command.input.Key as string, {
+			body: command.input.Body,
+			type: command.input.ContentType
+		});
 		return {};
 	});
 	const copy = () =>
