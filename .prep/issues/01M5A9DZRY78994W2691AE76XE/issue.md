@@ -1,7 +1,7 @@
 ---
 title: Record picture sizes in the legacy migration
 kind: code
-parent: 01M4B368MKSHRQWYJ2XMZD7TXV
+parent: 01M4B368HR728N7P81MK1DFQCR
 tags:
   - feature
 ---

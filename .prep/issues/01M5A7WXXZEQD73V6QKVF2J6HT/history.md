@@ -1,0 +1,1 @@
+- 2026-10-21T09:12:40Z claude-code: Checked: docs match decision 01M59PK8QMF1B7Z8BMMDMD6PH5; one-liner run at 24.0.0 (flags only dev-only vite-plus/core), 24.11.0 and 24.22.0 (clean). The deployed patch is not in the Coolify MCP log summary (debug log only); owner reads it from the deploy debug log - added to the runbook.
