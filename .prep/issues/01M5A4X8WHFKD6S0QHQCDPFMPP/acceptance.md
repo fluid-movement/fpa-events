@@ -1,4 +1,4 @@
-- [ ] The import stores every email trimmed and lowercased, matching what Better Auth looks up
-- [ ] The import aborts (or the dry-run report lists them) when two legacy users collide after lowercasing, instead of failing on the unique constraint or merging silently
+- [x] The import stores every email trimmed and lowercased, matching what Better Auth looks up
+- [x] The import aborts (or the dry-run report lists them) when two legacy users collide after lowercasing, instead of failing on the unique constraint or merging silently
 - [ ] The dry-run report states how many emails were normalised, and a dry run against the legacy dump is reviewed before the final migration
 - [ ] No new automated test: tools/migrate is a standalone one-off tool without a test setup; the dry-run report against the real dump is the check

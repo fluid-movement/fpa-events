@@ -1,3 +1,3 @@
-- [ ] The popup href is escaped with escapeHtml (or the link is built as a DOM element), so no value reaches the popup HTML unescaped
-- [ ] The import rejects or reports any legacy id that is not a ULID before inserting it
-- [ ] The popup builder moves out of EventsMap.svelte into a function with a unit test showing that name, location and id containing quotes and angle brackets come out escaped
+- [x] The popup href is escaped with escapeHtml (or the link is built as a DOM element), so no value reaches the popup HTML unescaped
+- [x] The import rejects or reports any legacy id that is not a ULID before inserting it
+- [x] The popup builder moves out of EventsMap.svelte into a function with a unit test showing that name, location and id containing quotes and angle brackets come out escaped
