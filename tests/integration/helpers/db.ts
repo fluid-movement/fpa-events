@@ -74,6 +74,14 @@ export async function getUserName(email: string): Promise<string | null> {
 	return rows[0]?.name ?? null;
 }
 
+export async function getSessionIds(email: string): Promise<string[]> {
+	const rows = await sql()<{ id: string }[]>`
+		SELECT s.id FROM session s JOIN "user" u ON u.id = s.user_id
+		WHERE u.email = ${email} ORDER BY s.id
+	`;
+	return rows.map((row) => row.id);
+}
+
 export async function createTestEvent(
 	userId: string,
 	overrides: { name?: string; startDate?: Date; endDate?: Date } = {}

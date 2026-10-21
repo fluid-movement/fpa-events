@@ -1,8 +1,68 @@
 import { test, expect } from '@playwright/test';
-import { sql } from './helpers/db';
-import { installErrorGuard } from './helpers/console';
+import { getSessionIds, sql } from './helpers/db';
+import { expectSessionAccess, signIn, signUpAndSignIn } from './helpers/auth';
+import { expectConsoleErrors, installErrorGuard } from './helpers/console';
 
 installErrorGuard(test);
+
+test('password reset revokes both existing sessions and replaces the credential', async ({
+	page,
+	context
+}) => {
+	expectConsoleErrors(page);
+	const email = `reset-sessions-${crypto.randomUUID()}@playwright.local`;
+	const password = 'reset-sessions-original-1';
+	const newPassword = 'reset-sessions-replacement-1';
+
+	try {
+		await signUpAndSignIn(page, context, { email, password });
+		const firstCookies = await context.cookies();
+		await expectSessionAccess(page, context, firstCookies, true);
+		await signIn(page, context, { email, password });
+		const secondCookies = await context.cookies();
+		await expectSessionAccess(page, context, secondCookies, true);
+		await expect.poll(() => getSessionIds(email)).toHaveLength(2);
+
+		await context.clearCookies();
+		await page.goto('/forget-password');
+		await page.waitForLoadState('networkidle');
+		await page.getByLabel('Email').fill(email);
+		await page.getByRole('button', { name: 'Send reset link' }).click();
+		await page.waitForLoadState('networkidle');
+		await expect(page.getByText(/check your inbox|sent/i)).toBeVisible();
+
+		// Read the token created by the real reset request; no synthetic verification row.
+		const resetTokens = () => sql()<{ identifier: string }[]>`
+			SELECT v.identifier FROM verification v JOIN "user" u ON u.id = v.value
+			WHERE v.identifier LIKE 'reset-password:%' AND u.email = ${email}
+		`;
+		await expect.poll(resetTokens).toHaveLength(1);
+		const [row] = await resetTokens();
+		const token = row.identifier.replace('reset-password:', '');
+		await page.goto(`/reset-password?token=${encodeURIComponent(token)}`);
+		await page.waitForLoadState('networkidle');
+		await page.getByLabel('New Password').fill(newPassword);
+		await page.getByLabel('Confirm Password').fill(newPassword);
+		await page.getByRole('button', { name: 'Reset password' }).click();
+		await page.waitForLoadState('networkidle');
+		await expect(page).toHaveURL(/\/sign-in/);
+
+		await expect.poll(() => getSessionIds(email)).toEqual([]);
+		await expectSessionAccess(page, context, firstCookies, false);
+		await expectSessionAccess(page, context, secondCookies, false);
+
+		await context.clearCookies();
+		const rejected = await page.request.post('/api/auth/sign-in/email', {
+			data: { email, password }
+		});
+		expect(rejected.status()).toBe(401);
+		await expect.poll(() => getSessionIds(email)).toEqual([]);
+		await signIn(page, context, { email, password: newPassword });
+		await expectSessionAccess(page, context, await context.cookies(), true);
+	} finally {
+		await sql()`DELETE FROM "user" WHERE email = ${email}`;
+	}
+});
 
 test.describe('sign-up email verification flow', () => {
 	test.describe.configure({ mode: 'serial' });

@@ -23,7 +23,7 @@
 
 		loading = true;
 		await client.changePassword(
-			{ currentPassword, newPassword },
+			{ currentPassword, newPassword, revokeOtherSessions: true },
 			{
 				onError(context) {
 					error = context.error.message;

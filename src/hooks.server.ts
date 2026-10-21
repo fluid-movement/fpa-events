@@ -9,6 +9,7 @@ import * as Sentry from '@sentry/sveltekit';
 import { GLITCHTIP_DSN } from '$app/env/private';
 import { trackerOptions } from '#lib/error-tracking';
 import { describeServerError } from '#lib/server/errors';
+import { withFailedSignInTiming } from '#lib/server/sign-in-timing';
 
 // A blank DSN leaves the SDK disabled (dev, tests).
 Sentry.init(trackerOptions(GLITCHTIP_DSN));
@@ -29,7 +30,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 		event.locals.role = record?.role ?? 'user';
 	}
 
-	const response = await svelteKitHandler({ event, resolve, auth, building });
+	const response = await withFailedSignInTiming(event.request, () =>
+		svelteKitHandler({ event, resolve, auth, building })
+	);
 	return withSecurityHeaders(response);
 };
 

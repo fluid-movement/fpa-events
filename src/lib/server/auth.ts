@@ -31,6 +31,7 @@ export const auth = betterAuth({
 	emailAndPassword: {
 		enabled: true,
 		requireEmailVerification: true,
+		revokeSessionsOnPasswordReset: true,
 		// Custom verify so bcrypt hashes migrated from the legacy Laravel app
 		// keep working alongside Better Auth's default scrypt hashes.
 		password: { hash: hashPassword, verify: verifyPassword },

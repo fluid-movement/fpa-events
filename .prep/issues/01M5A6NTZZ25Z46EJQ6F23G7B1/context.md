@@ -1,0 +1,7 @@
+Enable emailAndPassword.revokeSessionsOnPasswordReset in src/lib/server/auth.ts and pass revokeOtherSessions in the existing Better Auth client call in src/routes/settings/password/+page.svelte. Preserve current-password verification and the existing Svelte 5 form. No schema or dependency changes.
+
+Extend tests/integration/auth-email.test.ts with a throwaway identity, two independently issued sessions, a real reset request/token/form submission, polled session deletion, replay of both captured cookie jars against /settings/password, and old/new password sign-in checks. Extend tests/integration/settings.test.ts to prove current-session rotation, rejection of both prior cookies, continued access with the replacement cookie, and unchanged credential/session rows after an incorrect current password. Reuse helpers/auth.ts and add small shared session-query/replay helpers if needed. Follow hydration/networkidle, expect.poll and expected-console-error conventions.
+
+Knowledge: recovery audit finding /findings/01M5A6T8D95DVNKF1GV0MTFKQ9.md agrees with the installed Better Auth branches. Preserve legacy verification compatibility. No affected product decision changes.
+
+Run Prettier and ESLint on changed files, npm run check, npx vp test run, and prep check. Playwright execution is reserved for the orchestrator outside this sandbox. Do not check acceptance, complete, stage, commit or push.

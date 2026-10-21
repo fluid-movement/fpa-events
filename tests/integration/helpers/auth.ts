@@ -42,3 +42,17 @@ export async function signIn(
 	expect(resp.ok(), `sign-in failed for ${email}${body}`).toBeTruthy();
 	await context.addCookies((await page.request.storageState()).cookies);
 }
+
+/** Replay an independently captured cookie jar against a server-protected page. */
+export async function expectSessionAccess(
+	page: Page,
+	context: BrowserContext,
+	cookies: Awaited<ReturnType<BrowserContext['cookies']>>,
+	authorized: boolean
+): Promise<void> {
+	await context.clearCookies();
+	await context.addCookies(cookies);
+	await page.goto('/settings/password');
+	await page.waitForLoadState('networkidle');
+	await expect(page).toHaveURL(authorized ? /\/settings\/password$/ : /\/sign-in(?:\?|$)/);
+}

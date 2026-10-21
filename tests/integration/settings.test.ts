@@ -4,12 +4,13 @@ import {
 	createTestEvent,
 	eventExists,
 	getUserName,
+	getSessionIds,
 	deleteEventsByName,
 	sql,
 	closeDb
 } from './helpers/db';
 import { TEST_USER } from './helpers/constants';
-import { signUpAndSignIn, signIn } from './helpers/auth';
+import { expectSessionAccess, signUpAndSignIn, signIn } from './helpers/auth';
 import { installErrorGuard, expectConsoleErrors } from './helpers/console';
 
 installErrorGuard(test);
@@ -80,43 +81,84 @@ test.describe('settings — password', () => {
 		await expect(page.getByText('New passwords do not match.')).toBeVisible();
 	});
 
-	test('changes the password and the new one works', async ({ page, context }) => {
+	test('changes the password, revokes old cookies and rotates the initiating session', async ({
+		page,
+		context
+	}) => {
+		expectConsoleErrors(page);
 		await signIn(page, context, { email, password: original });
-		await page.goto('/settings/password');
-		// The form is client-only: submitting before hydration does a native GET
-		// and the handler never runs. Same wait the rest of the suite uses.
-		await page.waitForLoadState('networkidle');
+		const otherCookies = await context.cookies();
+		await expectSessionAccess(page, context, otherCookies, true);
+		await signIn(page, context, { email, password: original });
+		const initiatingCookies = await context.cookies();
+		await expectSessionAccess(page, context, initiatingCookies, true);
+		await expect.poll(async () => (await getSessionIds(email)).length).toBeGreaterThanOrEqual(2);
+		const previousIds = await getSessionIds(email);
 
-		await page.locator('#current').fill(original);
-		await page.locator('#new').fill(changed);
-		await page.locator('#confirm').fill(changed);
+		await page.getByLabel('Current password', { exact: true }).fill(original);
+		await page.getByLabel('New password', { exact: true }).fill(changed);
+		await page.getByLabel('Confirm new password', { exact: true }).fill(changed);
 		await page.getByRole('button', { name: 'Change password' }).click();
-
+		await page.waitForLoadState('networkidle');
 		await expect(page.getByText('Password updated.')).toBeVisible();
 
-		// The real proof: the new password authenticates.
+		const replacementCookies = await context.cookies();
+		await expect.poll(() => getSessionIds(email)).toHaveLength(1);
+		await expect
+			.poll(async () => (await getSessionIds(email)).filter((id) => previousIds.includes(id)))
+			.toEqual([]);
+		await expectSessionAccess(page, context, replacementCookies, true);
+		await expectSessionAccess(page, context, otherCookies, false);
+		await expectSessionAccess(page, context, initiatingCookies, false);
+
+		await context.clearCookies();
+		const rejected = await page.request.post('/api/auth/sign-in/email', {
+			data: { email, password: original }
+		});
+		expect(rejected.status()).toBe(401);
 		await signIn(page, context, { email, password: changed });
-		await page.goto('/dashboard');
-		await expect(page).not.toHaveURL(/sign-in/);
+		await expectSessionAccess(page, context, await context.cookies(), true);
 	});
 
-	test('rejects a wrong current password', async ({ page, context }) => {
-		// better-auth answers 400, which the browser logs as a failed resource.
-		// The app handles it correctly — that is what this test asserts.
+	test('a wrong current password changes neither credential nor sessions', async ({
+		page,
+		context
+	}) => {
 		expectConsoleErrors(page);
 		await signIn(page, context, { email, password: changed });
-		await page.goto('/settings/password');
-		// The form is client-only: submitting before hydration does a native GET
-		// and the handler never runs. Same wait the rest of the suite uses.
-		await page.waitForLoadState('networkidle');
+		const otherCookies = await context.cookies();
+		await expectSessionAccess(page, context, otherCookies, true);
+		const beforeSecondSignIn = await getSessionIds(email);
+		await signIn(page, context, { email, password: changed });
+		const initiatingCookies = await context.cookies();
+		await expectSessionAccess(page, context, initiatingCookies, true);
+		await expect.poll(() => getSessionIds(email)).toHaveLength(beforeSecondSignIn.length + 1);
+		const previousIds = await getSessionIds(email);
+		const credential = () => sql()<{ password: string }[]>`
+			SELECT a.password FROM account a JOIN "user" u ON u.id = a.user_id
+			WHERE u.email = ${email} AND a.provider_id = 'credential'
+		`;
+		const previousCredential = await credential();
+		expect(previousCredential).toHaveLength(1);
 
-		await page.locator('#current').fill('not-the-current-password');
-		await page.locator('#new').fill('another-new-password-1');
-		await page.locator('#confirm').fill('another-new-password-1');
+		await page.getByLabel('Current password', { exact: true }).fill('not-the-current-password');
+		await page.getByLabel('New password', { exact: true }).fill('another-new-password-1');
+		await page.getByLabel('Confirm new password', { exact: true }).fill('another-new-password-1');
 		await page.getByRole('button', { name: 'Change password' }).click();
-
-		// FormStatus renders errors with role="alert".
+		await page.waitForLoadState('networkidle');
 		await expect(page.getByRole('alert')).toBeVisible();
+
+		await expect.poll(credential).toEqual(previousCredential);
+		await expect.poll(() => getSessionIds(email)).toEqual(previousIds);
+		await expectSessionAccess(page, context, otherCookies, true);
+		await expectSessionAccess(page, context, initiatingCookies, true);
+		await context.clearCookies();
+		const rejected = await page.request.post('/api/auth/sign-in/email', {
+			data: { email, password: 'another-new-password-1' }
+		});
+		expect(rejected.status()).toBe(401);
+		await signIn(page, context, { email, password: changed });
+		await expectSessionAccess(page, context, await context.cookies(), true);
 	});
 });
 
