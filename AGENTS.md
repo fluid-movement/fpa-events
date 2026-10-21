@@ -126,31 +126,36 @@ Git hooks are the only thing between a commit and a Coolify production deploy �
 - **pre-commit** (~20s): `lint-staged` (Prettier + ESLint on staged files only), then `npm run check`, then `npm run test`. Note `npm run lint` is deliberately _not_ used — it runs `prettier --check .` over the whole repo and would fail on files the commit never touched.
 - **pre-push** (~2-4 min): `npm run build`, then `npm run db:migrate:test`, then `npm run test:integration`. The build runs first because a build failure is the likeliest cause of a broken deploy and it fails fastest.
 
-**The deploy runs an older Node than your machine.** Coolify builds with
-nixpacks at `NIXPACKS_NODE_VERSION=22`, which pins only the major and currently
-resolves to **Node 22.19.0 / npm 10.9.3** — behind the 22.22.x most dev machines
-are on. A dependency whose `engines.node` floor lands between the two will still
-install (npm just warns), but it will not _run_ in the container.
+**The deploy runs Node 24, pinned by major only.** Coolify builds with nixpacks
+at `NIXPACKS_NODE_VERSION=24` (decision `01M59PK8QMF1B7Z8BMMDMD6PH5`, which
+replaced the earlier exact Node 22 pin). The patch release moves with the
+nixpacks resolver, so it can sit behind your machine: read the actual version
+from the `node -v` / nixpacks setup lines in the deploy's debug log before
+trusting a dependency's `engines.node` floor. A dependency whose floor lands
+above the deployed patch will still install (npm just warns), but it may not
+_run_ in the container.
 
-This is why `.npmrc` no longer sets `engine-strict=true`: with it on, that
-warning became a fatal `EBADENGINE` and aborted `npm install`, which is what
-broke the 2026-09-15 deploy when `lint-staged` raised its floor to `>=22.22.1`.
-lint-staged and husky are git-hook tooling that never executes in the container,
-so failing the build on their Node floor bought nothing.
+This is why `.npmrc` does not set `engine-strict=true`: with it on, that
+warning becomes a fatal `EBADENGINE` and aborts `npm install`, which is what
+broke the 2026-09-15 deploy (then on Node 22.19.0) when `lint-staged` raised its
+floor to `>=22.22.1`. Git-hook and dev tooling never executes in the container,
+so failing the build on its Node floor buys nothing. Today the only packages
+whose floor a low Node 24 patch misses are `vite-plus` and
+`@voidzero-dev/vite-plus-core` (`>=24.11.0` on the 24 line) — dev-only, not used
+by `npm run build` or `node build`.
 
-To check the whole tree against the build's Node before pushing something
-dependency-shaped:
+To check the whole tree against the deployed Node before pushing something
+dependency-shaped, pass the version from the deploy log:
 
 ```
-node -e "const s=require('semver'),l=require('./package-lock.json');
+NODE_V=24.11.1 node -e "const s=require('semver'),l=require('./package-lock.json');
 for(const[p,v]of Object.entries(l.packages))
-  if(v.engines?.node&&!s.satisfies('22.19.0',v.engines.node))
+  if(v.engines?.node&&!s.satisfies(process.env.NODE_V,v.engines.node))
     console.log(p,v.version,v.engines.node)"
 ```
 
-Pin `NIXPACKS_NODE_VERSION` to an exact version (or to `24`) in Coolify if you
-want the build on a current Node — after that, `engine-strict` could safely come
-back.
+Whether `engine-strict` comes back is the owner's call; with the deploy on 24 it
+could, once the deployed patch clears every floor in the tree.
 
 **Integration tests use their own database.** One-time setup:
 
