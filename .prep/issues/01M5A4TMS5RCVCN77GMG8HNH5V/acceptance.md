@@ -1,3 +1,3 @@
-- [ ] The four direct-POST tests in tests/integration/admin-role.test.ts submit to the real remote forms (deleteEvent, addSchedule) the way postOverriding in tests/integration/helpers/forms.ts does, and the local postAction helper posting to ?/<action> URLs is removed
-- [ ] Each of those tests fails if the guard is removed from the remote function it targets (checked once by hand while writing them), and asserts DB state with expect.poll
-- [ ] A co-organizer submitting deleteEvent directly for the event they co-organize is refused and the event still exists (integration test; the Danger Zone test only proves the button is hidden)
+- [x] The four direct-POST tests in tests/integration/admin-role.test.ts submit to the real remote forms (deleteEvent, addSchedule) the way postOverriding in tests/integration/helpers/forms.ts does, and the local postAction helper posting to ?/<action> URLs is removed
+- [x] Each of those tests fails if the guard is removed from the remote function it targets (checked once by hand while writing them), and asserts DB state with expect.poll
+- [x] A co-organizer submitting deleteEvent directly for the event they co-organize is refused and the event still exists (integration test; the Danger Zone test only proves the button is hidden)
