@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { ulid } from 'ulid';
 import {
 	getTestUserId,
 	createTestEvent,
@@ -90,6 +91,18 @@ test.describe('signing in from an invite link', () => {
 			'href',
 			`/sign-up?redirect=${encodeURIComponent(`/invite/${token}`)}`
 		);
+	});
+
+	// Well-formed, so it passes `storedIdParam` and is looked up: an unknown
+	// link must be a 404, not a sign-in redirect and not a crash.
+	test('an unknown invite token is a 404', async ({ page }) => {
+		const unknown = ulid().toLowerCase();
+		const response = await page.goto(`/invite/${unknown}`);
+		await page.waitForLoadState('networkidle');
+
+		expect(response?.status()).toBe(404);
+		await expect(page).toHaveURL(`/invite/${unknown}`);
+		await expect(page.getByText('Page not found')).toBeVisible();
 	});
 
 	test('an off-site redirect is ignored', async ({ page }) => {
