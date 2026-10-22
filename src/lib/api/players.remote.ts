@@ -1,6 +1,8 @@
-import { text } from '#lib/server/validation';
+import { fpaId } from '#lib/server/validation';
 import { query } from '$app/server';
-import { fpaApiGet, FpaApiError } from '#lib/server/fpa-api/client';
+import { cachedFpaApiGet } from '#lib/server/fpa-api/cache';
+import { attempt } from '#lib/server/fpa-api/attempt';
+import { isPlayerProfile } from '#lib/server/fpa-api/shapes';
 import type { PlayerProfile } from '#lib/server/fpa-api/types';
 import type { ApiResult } from '#lib/rankings/types';
 import { collapsePlacements } from '#lib/results/career';
@@ -16,18 +18,6 @@ import { renderMarkdown } from '#lib/server/markdown';
  * canonical player, so a link built from an older result still lands correctly.
  */
 
-async function attempt<T>(fn: () => Promise<T>): Promise<ApiResult<T>> {
-	try {
-		return { ok: true, data: await fn() };
-	} catch (error) {
-		if (error instanceof FpaApiError) {
-			console.warn(`[players] ${error.message}`);
-			return { ok: false, message: error.message };
-		}
-		throw error;
-	}
-}
-
 /**
  * The enrichment is supplementary: if anything about it goes wrong, the page
  * renders without it rather than losing the results it already has.
@@ -42,10 +32,13 @@ function playerBio(raw: unknown): PlayerBio | null {
 }
 
 export const getPlayerProfile = query(
-	text,
+	fpaId,
 	async (playerId): Promise<ApiResult<PlayerProfileView>> =>
-		attempt(async () => {
-			const profile = await fpaApiGet<PlayerProfile>(`/players/${encodeURIComponent(playerId)}`);
+		attempt('players', async () => {
+			const profile = await cachedFpaApiGet<PlayerProfile>(
+				`/players/${encodeURIComponent(playerId)}`,
+				isPlayerProfile
+			);
 
 			return {
 				// The canonical id, which may differ from the one asked for.

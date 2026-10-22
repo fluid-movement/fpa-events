@@ -1,9 +1,12 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { FPA_API_URL, setEnv } from '../../../test/mocks/app-env-private';
-import { fpaApiGet, FpaApiError } from './client';
+import { fpaApiGet as get, FpaApiError, MAX_BODY_BYTES, type Shape } from './client';
 
 // The mocked env sets FPA_API_URL to https://fpa-api.test (see mocks/app-env-private.ts).
 const ORIGINAL_URL = FPA_API_URL;
+
+const anything = (() => true) as unknown as Shape<unknown>;
+const fpaApiGet = (path: string) => get(path, anything);
 
 afterEach(() => {
 	setEnv({ FPA_API_URL: ORIGINAL_URL });
@@ -77,5 +80,51 @@ describe('fpaApiGet', () => {
 		vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('not json'));
 
 		await expect(fpaApiGet('/rankings')).rejects.toThrow(/malformed/);
+	});
+
+	it('refuses a declared Content-Length over the limit without reading it', async () => {
+		vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+			new Response('{}', { headers: { 'content-length': String(MAX_BODY_BYTES + 1) } })
+		);
+
+		await expect(fpaApiGet('/rankings')).rejects.toThrow(/too large/);
+	});
+
+	it('stops reading a streamed body that grows past the limit', async () => {
+		const chunk = new Uint8Array(512 * 1024).fill(32);
+		let sent = 0;
+		const body = new ReadableStream<Uint8Array>({
+			pull(controller) {
+				sent++;
+				controller.enqueue(chunk); // never ends
+			}
+		});
+		vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(body));
+
+		await expect(fpaApiGet('/rankings')).rejects.toThrow(/too large/);
+		expect(sent * chunk.byteLength).toBeLessThan(MAX_BODY_BYTES + 4 * chunk.byteLength);
+	});
+
+	it('does not follow redirects and fails on one', async () => {
+		const fetchSpy = vi
+			.spyOn(globalThis, 'fetch')
+			.mockResolvedValue(
+				new Response(null, { status: 302, headers: { location: 'http://evil.test/' } })
+			);
+
+		await expect(fpaApiGet('/rankings')).rejects.toMatchObject({
+			name: 'FpaApiError',
+			status: 302
+		});
+		expect((fetchSpy.mock.calls[0]![1] as RequestInit).redirect).toBe('manual');
+	});
+
+	it('turns a body of the wrong shape into an FpaApiError', async () => {
+		vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response('{}'));
+		const hasItems: Shape<{ items: unknown[] }> = (v): v is { items: unknown[] } =>
+			typeof v === 'object' && v !== null && Array.isArray((v as { items?: unknown }).items);
+
+		await expect(get('/events', hasItems)).rejects.toThrow(FpaApiError);
+		await expect(get('/events', hasItems)).rejects.toThrow(/unexpected shape/);
 	});
 });

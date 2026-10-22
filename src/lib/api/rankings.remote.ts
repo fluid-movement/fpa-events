@@ -1,7 +1,10 @@
-import { text } from '#lib/server/validation';
+import { fpaId, text } from '#lib/server/validation';
 import * as v from 'valibot';
 import { query } from '$app/server';
-import { fpaApiGet, FpaApiError } from '#lib/server/fpa-api/client';
+import { fpaApiGet } from '#lib/server/fpa-api/client';
+import { cachedFpaApiGet } from '#lib/server/fpa-api/cache';
+import { attempt } from '#lib/server/fpa-api/attempt';
+import { isPlayerProfile, isRatingStandings, isSeriesList } from '#lib/server/fpa-api/shapes';
 import { loadRankingStandings } from '#lib/server/fpa-api/rankingIndex';
 import type { PlayerProfile, RatingStandings, SeriesRef } from '#lib/server/fpa-api/types';
 import { joinScoringResults } from '#lib/rankings/breakdown';
@@ -43,20 +46,6 @@ import {
  */
 const API_ROW_LIMIT = 500;
 
-/** Run a fetch, converting an expected API outage into a renderable result. */
-async function attempt<T>(fn: () => Promise<T>): Promise<ApiResult<T>> {
-	try {
-		return { ok: true, data: await fn() };
-	} catch (error) {
-		if (error instanceof FpaApiError) {
-			console.warn(`[rankings] ${error.message}`);
-			return { ok: false, message: error.message };
-		}
-		// Anything else is a genuine bug — let it surface.
-		throw error;
-	}
-}
-
 export interface SeriesLists {
 	rankings: SeriesOption[];
 	ratings: SeriesOption[];
@@ -64,10 +53,10 @@ export interface SeriesLists {
 
 /** Available ranking and rating series, for the division switcher. */
 export const getSeries = query(async (): Promise<ApiResult<SeriesLists>> =>
-	attempt(async () => {
+	attempt('rankings', async () => {
 		const [rankings, ratings] = await Promise.all([
-			fpaApiGet<{ series: SeriesRef[] }>('/rankings/series'),
-			fpaApiGet<{ series: SeriesRef[] }>('/ratings/series')
+			fpaApiGet<{ series: SeriesRef[] }>('/rankings/series', isSeriesList),
+			fpaApiGet<{ series: SeriesRef[] }>('/ratings/series', isSeriesList)
 		]);
 		return { rankings: rankings.series, ratings: ratings.series };
 	})
@@ -101,7 +90,7 @@ export interface RankingStandingsView {
 export const getRankings = query(
 	v.optional(text),
 	async (requestedSeries): Promise<ApiResult<RankingStandingsView>> =>
-		attempt(async () => {
+		attempt('rankings', async () => {
 			const series = await resolveSeries(requestedSeries, 'rankings');
 
 			const data = await loadRankingStandings(series);
@@ -138,13 +127,14 @@ export const getRatings = query(
 		})
 	),
 	async (args): Promise<ApiResult<RatingStandingsView>> =>
-		attempt(async () => {
+		attempt('rankings', async () => {
 			const series = await resolveSeries(args?.series, 'ratings');
 			const minMatchCount = args?.minMatchCount ?? DEFAULT_MIN_MATCH_COUNT;
 
 			const data = await fpaApiGet<RatingStandings>(
 				`/ratings?series=${encodeURIComponent(series)}` +
-					`&minMatchCount=${minMatchCount}&limit=${API_ROW_LIMIT}`
+					`&minMatchCount=${minMatchCount}&limit=${API_ROW_LIMIT}`,
+				isRatingStandings
 			);
 
 			const rows: RatingRow[] = data.items.map((entry) => ({
@@ -174,14 +164,14 @@ export const getRatings = query(
  * `resultId` joins them — see `#lib/rankings/breakdown`.
  */
 export const getScoringResults = query(
-	v.object({ playerId: text, series: v.optional(text) }),
+	v.object({ playerId: fpaId, series: v.optional(text) }),
 	async ({ playerId, series: requestedSeries }): Promise<ApiResult<ScoringResult[]>> =>
-		attempt(async () => {
+		attempt('rankings', async () => {
 			const series = await resolveSeries(requestedSeries, 'rankings');
 
 			const [standings, profile] = await Promise.all([
 				loadRankingStandings(series),
-				fpaApiGet<PlayerProfile>(`/players/${encodeURIComponent(playerId)}`)
+				cachedFpaApiGet<PlayerProfile>(`/players/${encodeURIComponent(playerId)}`, isPlayerProfile)
 			]);
 
 			// An id that is not in this series has no scoring events to show. That

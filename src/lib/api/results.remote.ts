@@ -1,7 +1,9 @@
-import { text } from '#lib/server/validation';
+import { fpaId, text } from '#lib/server/validation';
 import * as v from 'valibot';
 import { query } from '$app/server';
-import { fpaApiGet, FpaApiError } from '#lib/server/fpa-api/client';
+import { cachedFpaApiGet } from '#lib/server/fpa-api/cache';
+import { attempt } from '#lib/server/fpa-api/attempt';
+import { isEventDetail } from '#lib/server/fpa-api/shapes';
 import {
 	facetsOf,
 	filterEvents,
@@ -27,20 +29,6 @@ import {
  *    request 500s first — so an outage is returned as `ApiResult`, not thrown.
  */
 
-/** Run a fetch, converting an expected API outage into a renderable result. */
-async function attempt<T>(fn: () => Promise<T>): Promise<ApiResult<T>> {
-	try {
-		return { ok: true, data: await fn() };
-	} catch (error) {
-		if (error instanceof FpaApiError) {
-			console.warn(`[results] ${error.message}`);
-			return { ok: false, message: error.message };
-		}
-		// Anything else is a genuine bug — let it surface.
-		throw error;
-	}
-}
-
 const toRow = (event: IndexedEvent): ResultEventRow => ({
 	id: event.id,
 	name: event.name,
@@ -61,7 +49,7 @@ export const getResultEvents = query(
 		{}
 	),
 	async (args): Promise<ApiResult<ResultEventsView>> =>
-		attempt(async () => {
+		attempt('results', async () => {
 			const index = await loadEventIndex();
 			const matches = filterEvents(index, args);
 
@@ -84,9 +72,12 @@ export const getResultEvents = query(
 		})
 );
 
-export const getEventResults = query(text, async (eventId): Promise<ApiResult<EventResultsView>> =>
-	attempt(async () => {
-		const detail = await fpaApiGet<EventDetail>(`/events/${encodeURIComponent(eventId)}`);
+export const getEventResults = query(fpaId, async (eventId): Promise<ApiResult<EventResultsView>> =>
+	attempt('results', async () => {
+		const detail = await cachedFpaApiGet<EventDetail>(
+			`/events/${encodeURIComponent(eventId)}`,
+			isEventDetail
+		);
 
 		return {
 			id: detail.event.id,

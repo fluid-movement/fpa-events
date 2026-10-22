@@ -1,4 +1,5 @@
 import { fpaApiGet } from './client';
+import { isRankingStandings } from './shapes';
 import type { RankingStandings } from './types';
 
 /**
@@ -28,7 +29,8 @@ export async function loadRankingStandings(series: string): Promise<RankingStand
 	let pending = inFlight.get(series);
 	if (!pending) {
 		pending = fpaApiGet<RankingStandings>(
-			`/rankings?series=${encodeURIComponent(series)}&limit=${API_ROW_LIMIT}`
+			`/rankings?series=${encodeURIComponent(series)}&limit=${API_ROW_LIMIT}`,
+			isRankingStandings
 		)
 			.then((data) => {
 				cache.set(series, { data, loadedAt: Date.now() });

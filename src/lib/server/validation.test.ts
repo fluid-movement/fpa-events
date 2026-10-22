@@ -3,6 +3,7 @@ import { isHttpError } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { ulid } from 'ulid';
 import {
+	fpaId,
 	isCalendarToken,
 	optionalCoordinate,
 	parseArchiveYear,
@@ -90,4 +91,17 @@ describe('coordinates', () => {
 	it.each(['1e100', '180.5', '-181'])('rejects longitude %s', (value) => {
 		expect(v.safeParse(longitude, value).success).toBe(false);
 	});
+});
+
+describe('fpaId', () => {
+	it('accepts a UUID', () => {
+		expect(v.safeParse(fpaId, '88a7c11c-fcce-402e-b3f4-b5d84acb27af').success).toBe(true);
+	});
+
+	it.each(['.', '..', '', ' ', '../x', '%2e%2e', 'abc', '88a7c11c-fcce-402e-b3f4-b5d84acb27af/x'])(
+		'rejects %j',
+		(value) => {
+			expect(v.safeParse(fpaId, value).success).toBe(false);
+		}
+	);
 });

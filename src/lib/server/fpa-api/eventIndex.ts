@@ -1,4 +1,5 @@
 import { fpaApiGet } from './client';
+import { isPaginatedEvents } from './shapes';
 import { apiDateKey } from '#lib/utils/dates';
 import type { EventSummary, PaginatedEvents } from './types';
 
@@ -66,7 +67,8 @@ async function fetchAll(): Promise<IndexedEvent[]> {
 	for (let page = 0; page < MAX_PAGES; page++) {
 		const offset = page * API_PAGE_SIZE;
 		const batch = await fpaApiGet<PaginatedEvents>(
-			`/events?hasResults=true&limit=${API_PAGE_SIZE}&offset=${offset}`
+			`/events?hasResults=true&limit=${API_PAGE_SIZE}&offset=${offset}`,
+			isPaginatedEvents
 		);
 
 		fetched += batch.items.length;

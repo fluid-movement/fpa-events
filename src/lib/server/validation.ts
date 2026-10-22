@@ -11,6 +11,15 @@ export const text = v.pipe(
 export const isStoredId = (value: string): boolean => /^[0-7][0-9a-hjkmnp-tv-z]{25}$/i.test(value);
 export const storedId = v.pipe(text, v.check(isStoredId, 'Invalid ID.'));
 
+/**
+ * Player, event and alias ids from fpa-api are UUIDs. Anything else (notably
+ * `.` and `..`, which survive encodeURIComponent and are resolved as dot
+ * segments in the upstream URL) is rejected before a path is built.
+ */
+export const isFpaId = (value: string): boolean =>
+	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+export const fpaId = v.pipe(text, v.check(isFpaId, 'Invalid ID.'));
+
 /** Calendar tokens are `crypto.randomUUID()` (`regenerateCalendarToken`). */
 export const isCalendarToken = (value: string): boolean =>
 	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
