@@ -1,0 +1,1 @@
+- 2026-10-22T12:58:38Z claude-code: Question 3 answered by the owner 2026-10-22: TURNSTILE_SECRET_KEY is set (non-blank).

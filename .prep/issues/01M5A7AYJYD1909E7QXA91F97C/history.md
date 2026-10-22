@@ -7,3 +7,5 @@
 - 2026-10-22T08:22:04Z claude-code: Check passed: reviewed diff; check/vp test (682)/build pass without Turnstile/Mailgun keys; production=!dev&&!building correct for node build, dev:test (dev=true) and build; mutation (disable gate) fails 3 tests, reverted, diff unchanged; error path logs key names only. Pending owner: criterion 3 (confirm nonblank deployed keys).
 
 - 2026-10-22T08:54:44Z claude-code: Code merged in 6ea6bc8. Owner before the next deploy: confirm TURNSTILE_SECRET_KEY, MAILGUN_API_KEY and MAILGUN_DOMAIN are non-blank runtime variables in Coolify, otherwise the new container refuses to start.
+
+- 2026-10-22T12:58:38Z claude-code: Owner confirmed 2026-10-22: TURNSTILE_SECRET_KEY, MAILGUN_API_KEY and MAILGUN_DOMAIN are set (non-blank) in Coolify for NEW FPA Events.
