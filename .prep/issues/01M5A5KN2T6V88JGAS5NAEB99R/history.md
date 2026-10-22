@@ -1,0 +1,1 @@
+- 2026-10-22T06:45:19Z claude-code: From the error-handling review 2026-10-22: Better Auth's own updateUser endpoint accepts a NUL-bearing name and reaches the DB adapter; the NUL check in settings/profile/data.remote.ts only covers the wrapper. Enforce validation at the auth API boundary (e.g. a Better Auth before-hook on update-user and sign-up) and test direct requests.
