@@ -7,3 +7,5 @@
 - 2026-10-22T06:51:18Z claude-code: Check passed: reviewed sniff/body cap/limiter/sweep; npm run check and vp test run pass (543); mutation checks (sniff, limiter, sweep reference check) fail tests as expected, reverted. Note: stream body cap mutation survived (test masked by 10MB file check); BODY_SIZE_LIMIT=11M is owner action.
 
 - 2026-10-22T08:16:05Z claude-code: Code merged in b10fd23. Owner: Coolify has no BODY_SIZE_LIMIT key (checked 2026-10-22 via list_env_keys); set BODY_SIZE_LIMIT=11M as a runtime variable on NEW FPA Events and redeploy, then check criterion 1.
+
+- 2026-10-22T13:12:58Z claude-code: Owner set BODY_SIZE_LIMIT=11M (runtime only) in Coolify 2026-10-22; confirmed via list_env_keys. Takes effect with the next deploy.
