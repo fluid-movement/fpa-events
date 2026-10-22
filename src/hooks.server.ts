@@ -70,8 +70,19 @@ const SECURITY_HEADERS: Record<string, string> = {
 	'permissions-policy': 'camera=(), microphone=(), geolocation=(), payment=()'
 };
 
+/**
+ * Kit sets its CSP on pages only. Everything else (the calendar feed, remote
+ * function JSON, the upload API) renders nothing, so it gets the strictest
+ * policy: nothing may load and nothing may frame it.
+ */
+const NON_PAGE_CSP = "default-src 'none'; frame-ancestors 'none'";
+
 function withSecurityHeaders(response: Response): Response {
-	for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
+	const headers: Record<string, string> = {
+		...SECURITY_HEADERS,
+		'content-security-policy': NON_PAGE_CSP
+	};
+	for (const [name, value] of Object.entries(headers)) {
 		// Some responses (redirects from `fetch`, static files) are immutable.
 		try {
 			if (!response.headers.has(name)) response.headers.set(name, value);

@@ -72,16 +72,16 @@ test.describe('security headers', () => {
 		expectSecurityHeaders(response);
 	});
 
-	// BLOCKED (see cloud-todo.md, Status): Kit adds its CSP only to page
-	// responses, so the feed — a `+server.ts` endpoint answering text/calendar —
-	// has none. Skipped rather than deleted so the gap stays visible.
-	test.fixme('the calendar feed carries a script CSP', async ({ page }) => {
+	test('the calendar feed carries a deny-all CSP', async ({ page }) => {
 		const userId = await getTestUserId(TEST_USER.email);
 		await page.goto('/attending');
 		await page.waitForLoadState('networkidle');
 		const token = await getCalendarToken(userId);
 		const response = await page.request.get(`/api/calendar/${token}/feed.ics`);
-		expectScriptCsp(response);
+		// Endpoints render nothing, so they get the strictest policy rather than Kit's page CSP.
+		expect(response.headers()['content-security-policy']).toBe(
+			"default-src 'none'; frame-ancestors 'none'"
+		);
 	});
 });
 
