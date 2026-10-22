@@ -1,3 +1,3 @@
-- [ ] npm run build succeeds with no .env and none of DATABASE_URL, BETTER_AUTH_SECRET, BETTER_AUTH_URL set (env -i check, documented in the log)
-- [ ] Production runtime (not dev, not building) refuses to start when DATABASE_URL, BETTER_AUTH_SECRET or BETTER_AUTH_URL is blank; unit tests in production-config.test.ts fail if the check is removed
-- [ ] npm run check, npx vp test run and the auth-email/session integration specs stay green
+- [x] npm run build succeeds with no .env and none of DATABASE_URL, BETTER_AUTH_SECRET, BETTER_AUTH_URL set (env -i check, documented in the log)
+- [x] Production runtime (not dev, not building) refuses to start when DATABASE_URL, BETTER_AUTH_SECRET or BETTER_AUTH_URL is blank; unit tests in production-config.test.ts fail if the check is removed
+- [x] npm run check, npx vp test run and the auth-email/session integration specs stay green
