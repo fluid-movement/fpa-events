@@ -78,6 +78,19 @@ describe('loadEventIndex', () => {
 		expect(String(fetchSpy.mock.calls[1]![0])).toContain('offset=500');
 	});
 
+	it('stops after 10 requests when total never matches what is returned', async () => {
+		// A lying `total`: always more than has been fetched. Without the page cap
+		// this would loop forever.
+		const fetchSpy = vi
+			.spyOn(globalThis, 'fetch')
+			.mockImplementation(pageOf([event({ id: 'a' })], 1_000_000));
+
+		const events = await loadEventIndex();
+
+		expect(fetchSpy).toHaveBeenCalledTimes(10);
+		expect(events).toHaveLength(10);
+	});
+
 	it('orders newest first across mixed date padding', async () => {
 		// The upstream data really does carry both forms. Sorting the raw strings
 		// would put 2020-2-8 below 2020-10-01.
