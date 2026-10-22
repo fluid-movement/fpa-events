@@ -11,7 +11,7 @@ vi.mock('$app/server', () => ({ getRequestEvent: () => request }));
 
 import { load } from './+page.server';
 
-const event = { id: 'event', userId: 'owner', location: 'Berlin' };
+const event = { id: '01M5A4T2FTPAV4Y429PTTQZKJ7', userId: 'owner', location: 'Berlin' };
 
 function runLoad() {
 	return load({ params: { id: event.id }, locals: request.locals } as Parameters<typeof load>[0]);
