@@ -32,7 +32,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		const tooLarge =
 			typeof cause === 'object' && cause !== null && 'status' in cause && cause.status === 413;
 		return json(
-			{ error: tooLarge ? UPLOAD_SIZE_ERROR : 'Invalid upload form data' },
+			{ error: tooLarge ? UPLOAD_SIZE_ERROR : 'Invalid multipart body' },
 			{ status: tooLarge ? 413 : 400 }
 		);
 	}

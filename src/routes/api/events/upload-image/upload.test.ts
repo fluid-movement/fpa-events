@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it, vi } from 'vitest';
 const { upload } = vi.hoisted(() => ({ upload: vi.fn() }));
 vi.mock('#lib/server/r2', () => ({ uploadImage: upload }));
@@ -23,10 +24,16 @@ describe('upload malformed multipart', () => {
 		expect(upload).not.toHaveBeenCalled();
 	});
 	it('keeps genuine storage failures as server errors', async () => {
-		const request = new Request('https://example.org/api/events/upload-image', { method: 'POST' });
+		const png = Buffer.from(
+			'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aX1sAAAAASUVORK5CYII=',
+			'base64'
+		);
 		const data = new FormData();
-		data.set('file', new File(['png'], 'picture.png', { type: 'image/png' }));
-		vi.spyOn(request, 'formData').mockResolvedValue(data);
+		data.set('file', new File([new Uint8Array(png)], 'picture.png', { type: 'image/png' }));
+		const request = new Request('https://example.org/api/events/upload-image', {
+			method: 'POST',
+			body: data
+		});
 		const fault = new Error('storage unavailable');
 		upload.mockRejectedValueOnce(fault);
 		await expect(POST(event(request))).rejects.toBe(fault);

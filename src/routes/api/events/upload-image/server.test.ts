@@ -164,7 +164,7 @@ it('answers malformed multipart with safe JSON 400', async () => {
 	});
 	const response = await POST(input);
 	expect(response.status).toBe(400);
-	expect(await response.json()).toEqual({ error: 'Invalid upload form data' });
+	expect(await response.json()).toEqual({ error: 'Invalid multipart body' });
 	expect(uploadImage).not.toHaveBeenCalled();
 });
 
