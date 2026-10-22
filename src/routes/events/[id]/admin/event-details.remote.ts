@@ -14,6 +14,7 @@ import {
 import { requireEventManager } from '#lib/server/authz';
 import { requireTurnstile } from '#lib/server/turnstile';
 import { sanitizeRichText } from '#lib/utils/html';
+import { withPictureLock } from '#lib/server/picture-storage';
 
 /** The event as the manage area edits it: dates as `yyyy-mm-dd`, never null. */
 export const getEvent = query(text, async (id) => {
@@ -58,24 +59,27 @@ export const updateEvent = form(eventFormSchema, async (data) => {
 	const existing = await requireEventManager(eventId);
 	await requireTurnstile(data.turnstileToken);
 
-	const picture = await parsePictureFields(data, existing, eventId);
+	const eventLocationId = await resolveEventLocationId(data, existing.eventLocationId);
+	const picture = await withPictureLock(data.picture || existing.picture, async (tx) => {
+		const picture = await parsePictureFields(data, existing, eventId, tx);
+		await tx
+			.update(events)
+			.set({
+				name: data.name,
+				description: data.description,
+				startDate: new Date(data.startDate),
+				endDate: new Date(data.endDate),
+				location: data.location,
+				eventLocationId,
+				...picture,
+				updatedAt: new Date()
+			})
+			.where(eq(events.id, eventId));
+		return picture;
+	});
 	if (picture.picture !== existing.picture) {
 		await releasePicture(existing.picture, eventId);
 	}
-
-	await db
-		.update(events)
-		.set({
-			name: data.name,
-			description: data.description,
-			startDate: new Date(data.startDate),
-			endDate: new Date(data.endDate),
-			location: data.location,
-			eventLocationId: await resolveEventLocationId(data, existing.eventLocationId),
-			...picture,
-			updatedAt: new Date()
-		})
-		.where(eq(events.id, eventId));
 
 	await getEvent(eventId).refresh();
 	// Back to the read-only record, which is the manage area's index route.

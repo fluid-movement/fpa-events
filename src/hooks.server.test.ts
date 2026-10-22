@@ -20,6 +20,7 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock('#lib/server/auth', () => ({ auth: { api: { getSession: mocks.session } } }));
 vi.mock('#lib/server/db', () => ({ db: {} }));
+vi.mock('#lib/server/upload-cleanup', () => ({ startUploadCleanup: vi.fn() }));
 vi.mock('$app/env', () => ({ building: false }));
 vi.mock('better-auth/svelte-kit', () => ({ svelteKitHandler: mocks.handler }));
 vi.mock('@sentry/sveltekit', () => ({

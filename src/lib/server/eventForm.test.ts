@@ -8,7 +8,12 @@ import {
 } from './eventForm';
 
 const mocks = vi.hoisted(() => ({ select: vi.fn(), deleteImage: vi.fn() }));
-vi.mock('#lib/server/db', () => ({ db: { select: mocks.select } }));
+vi.mock('#lib/server/db', () => ({
+	db: {
+		transaction: (work: (tx: unknown) => Promise<unknown>) =>
+			work({ select: mocks.select, execute: vi.fn() })
+	}
+}));
 vi.mock('#lib/server/r2', () => ({ deleteImage: mocks.deleteImage }));
 
 describe('releaseEventPictures', () => {

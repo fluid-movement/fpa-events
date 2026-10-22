@@ -2,7 +2,7 @@ import { redirect } from '@sveltejs/kit';
 import { form } from '$app/server';
 import { resolve } from '$app/paths';
 import { ulid } from 'ulid';
-import { db } from '#lib/server/db';
+import { withPictureLock } from '#lib/server/picture-storage';
 import { events, eventUser } from '#lib/server/db/schema';
 import { eventFormSchema, parsePictureFields, resolveEventLocationId } from '#lib/server/eventForm';
 import { requireSignedInRequest } from '#lib/server/authz';
@@ -16,18 +16,21 @@ export const createEvent = form(eventFormSchema, async (data) => {
 
 	const eventId = ulid().toLowerCase();
 
-	await db.insert(events).values({
-		id: eventId,
-		userId: signedIn.id,
-		name: data.name,
-		description: data.description,
-		startDate: new Date(data.startDate),
-		endDate: new Date(data.endDate),
-		location: data.location,
-		eventLocationId: await resolveEventLocationId(data),
-		...(await parsePictureFields(data, NO_PICTURE, null))
+	const eventLocationId = await resolveEventLocationId(data);
+	await withPictureLock(data.picture, async (tx) => {
+		await tx.insert(events).values({
+			id: eventId,
+			userId: signedIn.id,
+			name: data.name,
+			description: data.description,
+			startDate: new Date(data.startDate),
+			endDate: new Date(data.endDate),
+			location: data.location,
+			eventLocationId,
+			...(await parsePictureFields(data, NO_PICTURE, null, tx))
+		});
+		await tx.insert(eventUser).values({ eventId, userId: signedIn.id, status: 'organizing' });
 	});
-	await db.insert(eventUser).values({ eventId, userId: signedIn.id, status: 'organizing' });
 
 	// Land the new organizer in the manage area, not the public page — it's where the
 	// remaining setup steps live.

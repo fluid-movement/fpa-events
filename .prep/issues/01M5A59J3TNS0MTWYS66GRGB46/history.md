@@ -1,0 +1,3 @@
+- 2026-10-22T06:48:08Z claude-code: Implemented, ready for check: per-user limiter (20/hour, 429+Retry-After) and hourly orphan sweep with per-picture PG advisory lock. Limiter is per process (restart resets, multi-instance each own allowance). Owner: verify R2 credentials permit List/Head/Delete in production.
+
+- 2026-10-22T06:51:18Z claude-code: Check passed: reviewed sniff/body cap/limiter/sweep; npm run check and vp test run pass (543); mutation checks (sniff, limiter, sweep reference check) fail tests as expected, reverted. Note: stream body cap mutation survived (test masked by 10MB file check); BODY_SIZE_LIMIT=11M is owner action.

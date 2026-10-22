@@ -157,6 +157,12 @@ for(const[p,v]of Object.entries(l.packages))
 Whether `engine-strict` comes back is the owner's call; with the deploy on 24 it
 could, once the deployed patch clears every floor in the tree.
 
+**Upload deployment setting:** the owner must set the Coolify runtime variable
+`BODY_SIZE_LIMIT=11M` and redeploy. adapter-node defaults to 512K; uploads allow
+10 MiB per image and 11 MiB per request (including multipart overhead). Keep
+this finite adapter limit aligned with `src/lib/server/upload-body.ts`. The
+code change does not set or verify the production environment variable.
+
 **Integration tests use their own database.** One-time setup:
 
 ```

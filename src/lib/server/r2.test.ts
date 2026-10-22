@@ -25,8 +25,9 @@ describe('uploadImage', () => {
 	});
 
 	it('sends a PutObjectCommand with correct bucket and content type', async () => {
-		const file = new File(['hello'], 'photo.jpg', { type: 'image/jpeg' });
-		await uploadImage(file);
+		const bytes = new Uint8Array([1, 2, 3]);
+		const type = 'image/jpeg';
+		await uploadImage(bytes, type);
 
 		expect(MockPutObjectCommand).toHaveBeenCalledWith(
 			expect.objectContaining({
@@ -39,53 +40,60 @@ describe('uploadImage', () => {
 	});
 
 	it('returns a url that starts with the configured public base url', async () => {
-		const file = new File(['hello'], 'photo.jpg', { type: 'image/jpeg' });
-		const result = await uploadImage(file);
+		const bytes = new Uint8Array([1, 2, 3]);
+		const type = 'image/jpeg';
+		const result = await uploadImage(bytes, type);
 
 		expect(result.url).toMatch(/^https:\/\/test\.r2\.dev\/events\//);
 		expect(result.url).toBe(`https://test.r2.dev/${result.key}`);
 	});
 
 	it('normalises jpeg extension to jpg in the key', async () => {
-		const file = new File(['hello'], 'photo.jpeg', { type: 'image/jpeg' });
-		const result = await uploadImage(file);
+		const bytes = new Uint8Array([1, 2, 3]);
+		const type = 'image/jpeg';
+		const result = await uploadImage(bytes, type);
 
 		expect(result.key).toMatch(/\.jpg$/);
 	});
 
 	it('uses the correct extension for png', async () => {
-		const file = new File(['data'], 'photo.png', { type: 'image/png' });
-		const result = await uploadImage(file);
+		const bytes = new Uint8Array([1, 2, 3]);
+		const type = 'image/png';
+		const result = await uploadImage(bytes, type);
 
 		expect(result.key).toMatch(/\.png$/);
 	});
 
 	it('uses the correct extension for webp', async () => {
-		const file = new File(['data'], 'photo.webp', { type: 'image/webp' });
-		const result = await uploadImage(file);
+		const bytes = new Uint8Array([1, 2, 3]);
+		const type = 'image/webp';
+		const result = await uploadImage(bytes, type);
 
 		expect(result.key).toMatch(/\.webp$/);
 	});
 
 	it('places the file under the events/ prefix', async () => {
-		const file = new File(['data'], 'photo.jpg', { type: 'image/jpeg' });
-		const result = await uploadImage(file);
+		const bytes = new Uint8Array([1, 2, 3]);
+		const type = 'image/jpeg';
+		const result = await uploadImage(bytes, type);
 
 		expect(result.key).toMatch(/^events\//);
 	});
 
 	it('generates a unique key on each call', async () => {
-		const file = new File(['data'], 'photo.jpg', { type: 'image/jpeg' });
-		const [r1, r2] = await Promise.all([uploadImage(file), uploadImage(file)]);
+		const bytes = new Uint8Array([1, 2, 3]);
+		const type = 'image/jpeg';
+		const [r1, r2] = await Promise.all([uploadImage(bytes, type), uploadImage(bytes, type)]);
 
 		expect(r1.key).not.toBe(r2.key);
 	});
 
 	it('propagates S3 errors to the caller', async () => {
 		mockSend.mockRejectedValueOnce(new Error('NoSuchBucket'));
-		const file = new File(['data'], 'photo.jpg', { type: 'image/jpeg' });
+		const bytes = new Uint8Array([1, 2, 3]);
+		const type = 'image/jpeg';
 
-		await expect(uploadImage(file)).rejects.toThrow('NoSuchBucket');
+		await expect(uploadImage(bytes, type)).rejects.toThrow('NoSuchBucket');
 	});
 });
 

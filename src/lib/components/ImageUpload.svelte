@@ -66,8 +66,15 @@
 			body.append('file', file);
 			const res = await fetch('/api/events/upload-image', { method: 'POST', body });
 
-			const payload = (await res.json()) as { url?: string; error?: string };
-			if (!res.ok || !payload.url) throw new Error(payload.error ?? 'Upload failed');
+			const payload = (await res.json().catch(() => null)) as {
+				url?: string;
+				error?: string;
+			} | null;
+			if (!res.ok || !payload?.url) {
+				throw new Error(
+					payload?.error ?? (res.status === 413 ? 'File too large (max 10MB)' : 'Upload failed')
+				);
+			}
 
 			upload = { url: payload.url, ...dimensions };
 		} catch (err) {
@@ -112,6 +119,7 @@
 			{/if}
 		</span>
 		<input
+			data-testid="image-upload"
 			type="file"
 			accept="image/*"
 			class="hidden"

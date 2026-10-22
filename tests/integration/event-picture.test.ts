@@ -66,4 +66,28 @@ test.describe('event pictures', () => {
 
 		expect(res.status()).toBe(400);
 	});
+	test('the upload endpoint refuses non-image bytes declared as image/png', async ({ page }) => {
+		expectConsoleErrors(page);
+		const res = await page.request.post('/api/events/upload-image', {
+			multipart: {
+				file: {
+					name: 'x.png',
+					mimeType: 'image/png',
+					buffer: Buffer.from('<html>not an image</html>')
+				}
+			}
+		});
+		expect(res.status()).toBe(400);
+		expect(await res.json()).toEqual({ error: 'Image contents do not match the declared format' });
+	});
+	test('an oversized upload returns a JSON size error', async ({ page }) => {
+		expectConsoleErrors(page);
+		const bytes = Buffer.alloc(10 * 1024 * 1024 + 1);
+		Buffer.from('89504e470d0a1a0a0000000d49484452', 'hex').copy(bytes);
+		const res = await page.request.post('/api/events/upload-image', {
+			multipart: { file: { name: 'large.png', mimeType: 'image/png', buffer: bytes } }
+		});
+		expect(res.status()).toBe(413);
+		expect(await res.json()).toEqual({ error: 'File too large (max 10MB)' });
+	});
 });

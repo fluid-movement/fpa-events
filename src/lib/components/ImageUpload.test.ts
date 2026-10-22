@@ -220,3 +220,21 @@ describe('ImageUpload — failed upload', () => {
 		expect(pictureInput.value).toBe('');
 	});
 });
+
+describe('ImageUpload — body size failures', () => {
+	it.each([
+		new Response(JSON.stringify({ error: 'File too large (max 10MB)' }), { status: 413 }),
+		new Response('<html>Payload Too Large</html>', { status: 413 })
+	])('shows the size message and preserves the existing picture', async (response) => {
+		vi.mocked(fetch).mockResolvedValueOnce(response);
+		render(ImageUpload, {
+			props: { fields, currentUrl: 'https://test.r2.dev/events/existing.jpg' }
+		});
+		selectFile(screen.getByTestId('image-upload'), makeFile());
+		await waitFor(() => expect(screen.getByText('File too large (max 10MB)')).toBeInTheDocument());
+		expect(document.querySelector<HTMLInputElement>('input[name="picture"]')?.value).toBe(
+			'https://test.r2.dev/events/existing.jpg'
+		);
+		expect(screen.getByTestId('image-upload')).not.toBeDisabled();
+	});
+});

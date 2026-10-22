@@ -17,11 +17,13 @@ import {
 	reportableError
 } from '#lib/server/errors';
 import { withFailedSignInTiming } from '#lib/server/sign-in-timing';
+import { startUploadCleanup } from '#lib/server/upload-cleanup';
 
 // A blank DSN leaves the SDK disabled (dev, tests).
 Sentry.init(trackerOptions(GLITCHTIP_DSN));
 
 export const handle: Handle = async ({ event, resolve }) => {
+	if (!building) startUploadCleanup();
 	// Before the session lookup, so a NUL never reaches a query.
 	rejectNulPath(event.url);
 	if (isMisroutedRemotePayload(event.request)) {

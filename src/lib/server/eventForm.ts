@@ -3,10 +3,10 @@ import * as v from 'valibot';
 import { error } from '@sveltejs/kit';
 import { and, eq, ne } from 'drizzle-orm';
 import { R2_PUBLIC_URL } from '$app/env/private';
-import { db } from '#lib/server/db';
 import { events } from '#lib/server/db/schema';
 import { findOrCreateEventLocation } from '#lib/server/db/eventLocations';
-import { deleteImage } from '#lib/server/r2';
+import { deleteImage, uploadedImageExists } from '#lib/server/r2';
+import { withPictureLock, type PictureTransaction } from '#lib/server/picture-storage';
 
 /**
  * The event form, shared by create and edit — they post the same fields, and
@@ -59,8 +59,12 @@ export function isUploadedPictureUrl(url: string, publicUrl = R2_PUBLIC_URL): bo
 }
 
 /** Whether any event other than `eventId` uses `url` as its picture. */
-async function pictureUsedElsewhere(url: string, eventId: string | null): Promise<boolean> {
-	const [row] = await db
+async function pictureUsedElsewhere(
+	url: string,
+	eventId: string | null,
+	tx: PictureTransaction
+): Promise<boolean> {
+	const [row] = await tx
 		.select({ id: events.id })
 		.from(events)
 		.where(eventId ? and(eq(events.picture, url), ne(events.id, eventId)) : eq(events.picture, url))
@@ -81,13 +85,17 @@ async function pictureUsedElsewhere(url: string, eventId: string | null): Promis
 export async function parsePictureFields(
 	data: EventFormData,
 	current: PictureColumns,
-	eventId: string | null
+	eventId: string | null,
+	tx: PictureTransaction
 ): Promise<PictureColumns> {
 	const picture = data.picture || current.picture;
 	if (picture && picture !== current.picture) {
-		if (!isUploadedPictureUrl(picture) || (await pictureUsedElsewhere(picture, eventId))) {
+		if (!isUploadedPictureUrl(picture) || (await pictureUsedElsewhere(picture, eventId, tx))) {
 			error(400, 'Invalid picture');
 		}
+		// The caller holds the picture lock through the event write. If cleanup
+		// already removed an abandoned upload, its stale URL cannot be attached.
+		if (!(await uploadedImageExists(picture))) error(400, 'Picture expired. Upload it again.');
 	}
 
 	return {
@@ -103,8 +111,11 @@ export async function parsePictureFields(
  * or delete.
  */
 export async function releasePicture(url: string | null, eventId: string): Promise<void> {
-	if (!url || (await pictureUsedElsewhere(url, eventId))) return;
-	await deleteImage(url).catch(() => {});
+	if (!url) return;
+	await withPictureLock(url, async (tx) => {
+		if (await pictureUsedElsewhere(url, eventId, tx)) return;
+		await deleteImage(url).catch(() => {});
+	});
 }
 
 /** Release pictures after deleting the event rows, without blocking account deletion. */
