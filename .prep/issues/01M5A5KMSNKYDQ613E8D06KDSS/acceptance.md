@@ -1,4 +1,4 @@
-- [ ] A path or remote-function id containing a NUL byte or otherwise not in the stored id format is answered 404 (or 400) without a database query: /events/[id] (and its admin routes), /invite/[token] and /api/calendar/[token]/feed.ics, e.g. via param matchers for the ULID/UUID formats or one NUL check in handle
-- [ ] /events/past/[year] accepts only a sane year range (e.g. 1970 to 9999) and answers 404/400 for anything else
-- [ ] A remote-query request whose payload cannot be decoded is a 400 and is neither logged as a server error nor sent to GlitchTip (fixed in handle or by filtering in handleError; report upstream to Kit if it is a framework bug)
-- [ ] Integration test (a bug we hit): /events/%00, /invite/%00, /api/calendar/%00/feed.ics and /events/past/99999 give a 4xx; unit tests for any param matcher or year-range helper
+- [x] A path or remote-function id containing a NUL byte or otherwise not in the stored id format is answered 404 (or 400) without a database query: /events/[id] (and its admin routes), /invite/[token] and /api/calendar/[token]/feed.ics, e.g. via param matchers for the ULID/UUID formats or one NUL check in handle
+- [x] /events/past/[year] accepts only a sane year range (e.g. 1970 to 9999) and answers 404/400 for anything else
+- [x] A remote-query request whose payload cannot be decoded is a 400 and is neither logged as a server error nor sent to GlitchTip (fixed in handle or by filtering in handleError; report upstream to Kit if it is a framework bug)
+- [x] Integration test (a bug we hit): /events/%00, /invite/%00, /api/calendar/%00/feed.ics and /events/past/99999 give a 4xx; unit tests for any param matcher or year-range helper

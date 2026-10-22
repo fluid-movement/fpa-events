@@ -1,4 +1,4 @@
-- [ ] eventFormSchema validates pictureWidth/pictureHeight as positive integers within a sane bound, and the schedule schema validates start/end as parseable dates and locationId/venue id as integers, so bad values are form validation issues, not 500s
-- [ ] Expected failures use error(4xx) or a returned form issue instead of a bare Error: end-before-start in schedule.remote.ts, captcha failure in requireTurnstile, and getEvent's not-found
-- [ ] The upload endpoint answers a body that is not valid multipart with a 400 JSON error
-- [ ] Unit tests: the schemas reject non-numeric/out-of-range picture sizes and unparseable schedule dates; requireTurnstile failure is a 4xx HttpError; the upload handler returns 400 when formData() throws
+- [x] eventFormSchema validates pictureWidth/pictureHeight as positive integers within a sane bound, and the schedule schema validates start/end as parseable dates and locationId/venue id as integers, so bad values are form validation issues, not 500s
+- [x] Expected failures use error(4xx) or a returned form issue instead of a bare Error: end-before-start in schedule.remote.ts, captcha failure in requireTurnstile, and getEvent's not-found
+- [x] The upload endpoint answers a body that is not valid multipart with a 400 JSON error
+- [x] Unit tests: the schemas reject non-numeric/out-of-range picture sizes and unparseable schedule dates; requireTurnstile failure is a 4xx HttpError; the upload handler returns 400 when formData() throws
