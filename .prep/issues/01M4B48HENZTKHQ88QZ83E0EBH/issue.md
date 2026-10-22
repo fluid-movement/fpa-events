@@ -2,6 +2,8 @@
 title: Run the final legacy data migration
 kind: manual
 parent: 01M4B48HBQAD5X06ECPSJVFGG6
+depends_on:
+  - 01M5HY132E2E612NADX33GAY6V
 tags:
   - cutover
 priority: high

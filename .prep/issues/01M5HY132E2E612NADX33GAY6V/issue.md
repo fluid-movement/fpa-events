@@ -1,0 +1,26 @@
+---
+title: One wipe-and-import migration command with verification and a smoke suite
+kind: code
+parent: 01M4B368HR728N7P81MK1DFQCR
+tags:
+  - cutover
+priority: high
+---
+
+## Requirement
+
+Settled with the user 2026-10-22. Today the legacy migration is three separate steps in `tools/migrate` (`npm run geocode`, `npm run migrate [--dry-run]`, `npm run migrate:pictures [--wipe-target]`). Replace them with one command that, in a single run:
+
+1. Geocodes the legacy location strings that `data/event-locations.json` does not map yet (Photon, as `geocode.ts` does), prints the new mappings and **pauses for an explicit yes** before importing; on no it stops and leaves the mapping file updated for review.
+2. Shows the target (DB host and name, R2 bucket) and requires the operator to **type the target database name** before deleting anything. Allowed against any target (local, events-dev, production). `--dry-run` deletes nothing and needs no confirmation: DB work is rolled back and the R2 step only lists what it would delete and copy.
+3. Wipes the target database (as `migrate.ts` does today, in one transaction) and deletes **every** object in the new app's R2 bucket.
+4. Runs the full import with all existing safeguards (email normalisation and collision abort, ASCII ULID checks, picture content-type allowlist including target objects, blank-picture handling).
+5. Ends with an automatic **verification report** that fails loudly (non-zero exit) on any mismatch: legacy vs target row counts per table (users, accounts, events, event_user, magic links, schedules, locations), every event picture present in R2 with an allowed content type, and no event pointing at a missing location.
+
+Plus an opt-in **Playwright smoke suite against the migrated app** (not part of the app's normal integration run): sign in as a migrated legacy (bcrypt) user, open events with pictures, schedules and RSVPs, the events map, and a calendar feed.
+
+The migration is a **concentrated, self-contained bundle**: everything (command, helpers, unit tests, smoke suite and its config, runbook) lives under `tools/migrate`, including the `src/test/migration-*.test.ts` tests now in the app, so deleting `tools/migrate` after go-live removes the migration completely (the old application is removed at the switch). The credential-free image (`tools/migrate/Dockerfile`, `verify-preparation.mjs`) stays the way to run it; the prompts need `docker run -it`. Update `tools/migrate/README.md` to the single command.
+
+## Acceptance
+
+## Open questions
