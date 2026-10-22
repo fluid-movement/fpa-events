@@ -1,0 +1,18 @@
+---
+title: Build without DATABASE_URL and the Better Auth secrets
+kind: code
+parent: 01M5A34Z75BVD5BE4AZWWEDCPA
+tags:
+  - security
+priority: low
+---
+
+## Requirement
+
+Follow-up to 01M5A7ZA0AMVQW9D2J1FY6ANW4, agreed with the user 2026-10-22: the owner made every secret runtime-only in Coolify except DATABASE_URL, BETTER_AUTH_SECRET and BETTER_AUTH_URL, because `npm run build` fails without them ("DATABASE_URL environment variable is not set": `src/lib/server/db/index.ts` throws at import, and Kit imports server modules during the build). Make the build need none of them, so they can be runtime-only too, without weakening runtime: production must still refuse to start when any of the three is missing.
+
+Approach: in `db/index.ts` only throw when not `building` (`building` from `$app/env`, as `hooks.server.ts` uses); add the three keys to `assertProductionConfig()` in `src/lib/server/production-config.ts`; check whether `auth.ts` then needs the same treatment for the build.
+
+## Acceptance
+
+## Open questions
