@@ -1,3 +1,3 @@
 - [ ] Check Coolify: either BODY_SIZE_LIMIT is set just above the upload limit, or MAX_SIZE is lowered to what the server accepts; the two agree and the choice is recorded (deployment note in AGENTS.md or a decision)
-- [ ] An oversized upload is answered with the endpoint's JSON error (413) and ImageUpload shows the size message
-- [ ] Unit test of the upload handler: when reading the body fails with a 413, the response is a 413 JSON error
+- [x] An oversized upload is answered with the endpoint's JSON error (413) and ImageUpload shows the size message
+- [x] Unit test of the upload handler: when reading the body fails with a 413, the response is a 413 JSON error

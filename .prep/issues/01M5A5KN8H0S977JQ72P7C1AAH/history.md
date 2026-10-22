@@ -5,3 +5,5 @@
 - 2026-10-22T06:48:08Z claude-code: Implemented, ready for check: endpoint returns JSON 413/400 for body failures, bounded 11 MiB body, ImageUpload shows size message. Owner action: set Coolify runtime env BODY_SIZE_LIMIT=11M and redeploy (not done, no Coolify change made); chose finite limit aligned with upload-body.ts, documented in AGENTS.md.
 
 - 2026-10-22T06:51:18Z claude-code: Check passed: reviewed sniff/body cap/limiter/sweep; npm run check and vp test run pass (543); mutation checks (sniff, limiter, sweep reference check) fail tests as expected, reverted. Note: stream body cap mutation survived (test masked by 10MB file check); BODY_SIZE_LIMIT=11M is owner action.
+
+- 2026-10-22T08:16:05Z claude-code: Code merged in b10fd23. Owner: Coolify has no BODY_SIZE_LIMIT key (checked 2026-10-22 via list_env_keys); set BODY_SIZE_LIMIT=11M as a runtime variable on NEW FPA Events and redeploy, then check criterion 1.

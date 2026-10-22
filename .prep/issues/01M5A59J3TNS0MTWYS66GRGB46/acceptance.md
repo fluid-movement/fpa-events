@@ -1,3 +1,3 @@
-- [ ] The upload endpoint refuses a signed-in user past a per-user limit with 429, and still refuses anonymous callers with 401
-- [ ] Uploaded objects that no event references are removed after a grace period (or the decision not to is recorded)
-- [ ] Unit test for the limit's logic (allowed under the limit, 429 over it, window resets); integration test in event-picture.test.ts only if the limit is wired through state the unit test cannot reach
+- [x] The upload endpoint refuses a signed-in user past a per-user limit with 429, and still refuses anonymous callers with 401
+- [x] Uploaded objects that no event references are removed after a grace period (or the decision not to is recorded)
+- [x] Unit test for the limit's logic (allowed under the limit, 429 over it, window resets); integration test in event-picture.test.ts only if the limit is wired through state the unit test cannot reach
