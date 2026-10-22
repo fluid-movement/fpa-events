@@ -5,3 +5,5 @@
 - 2026-10-22T08:25:14Z claude-code: Code merged in 24962bd (Sonnet implemented, Sonnet reviewed, full suite 195/195). Remaining: owner runs the production data check in the Coolify terminal (DB ports are firewalled), then checks the last criterion.
 
 - 2026-10-22T08:25:14Z claude-code: Review note for the input lock-in: removing only the latitude term from the location match passes every test; add a same-longitude/different-latitude case.
+
+- 2026-10-22T13:45:03Z claude-code: Owner, 2026-10-22: production event_locations has 0 rows with non-finite or out-of-range coordinates.

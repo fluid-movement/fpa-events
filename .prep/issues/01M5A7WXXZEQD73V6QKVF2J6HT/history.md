@@ -1,1 +1,3 @@
 - 2026-10-21T09:12:40Z claude-code: Checked: docs match decision 01M59PK8QMF1B7Z8BMMDMD6PH5; one-liner run at 24.0.0 (flags only dev-only vite-plus/core), 24.11.0 and 24.22.0 (clean). The deployed patch is not in the Coolify MCP log summary (debug log only); owner reads it from the deploy debug log - added to the runbook.
+
+- 2026-10-22T13:45:02Z claude-code: Deploy 8243b04 (2026-10-22) ran Node 24.10.0 (owner, from the debug log). The engines one-liner at 24.10.0 flags only vite-plus 0.3.3 and its bundled vite (>=24.11.0), which are dev-only; npm run build uses the app's vite 8.3.2 (>=22.12.0). AGENTS.md now names the deployed version.

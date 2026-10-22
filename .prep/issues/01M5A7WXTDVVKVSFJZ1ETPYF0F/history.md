@@ -5,3 +5,5 @@
 - 2026-10-22T08:54:44Z claude-code: Root .dockerignore merged in 6ea6bc8. Owner after the next deploy: in the container shell check that /app/.prep, /app/tests and /app/tools are absent and that npm run db:migrate ran; that checks criterion 1.
 
 - 2026-10-22T13:36:22Z claude-code: Deploy 8243b04 (2026-10-22): container log shows 'npm run db:migrate' -> migrations applied successfully, then 'Listening on http://0.0.0.0:3000'. Still to check by the owner in the container terminal: /app/.prep, /app/tests, /app/tools absent.
+
+- 2026-10-22T13:45:02Z claude-code: Owner, 2026-10-22, ls -a /app in the deployed container: .prep, tests and tools are absent (present: build, node_modules, src, static, docs, scripts, configs). db:migrate ran at start.

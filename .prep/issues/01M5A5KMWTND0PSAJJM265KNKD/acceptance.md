@@ -3,4 +3,4 @@
 - [x] city and country have length limits
 - [x] EventsMap skips (and does not throw on) a group whose coordinates are not finite, so one bad row cannot blank the map
 - [x] Unit tests: the coordinate parsing rejects NaN, Infinity and out-of-range values; findOrCreateEventLocation (or its replacement) cannot be made to move an existing city's position
-- [ ] Before go-live, check the production event_locations table for non-finite or out-of-range rows
+- [x] Before go-live, check the production event_locations table for non-finite or out-of-range rows

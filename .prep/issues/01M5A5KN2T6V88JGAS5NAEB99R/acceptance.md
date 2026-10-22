@@ -1,4 +1,4 @@
 - [x] A Better Auth databaseHooks (user create and update, before) or equivalent drops image (the app has no avatar feature), or accepts only an https URL of bounded length if avatars are wanted; decide which and record it
 - [x] name is a string, trimmed, length-limited and free of control characters at sign-up and update, matching the profile form (shared with 01M5A4X926P3C442RHMNW5WWJ5)
 - [x] Unit test of the hook function: an image is dropped or refused, and a too-long or control-character name is refused
-- [ ] Before go-live, check production user.image values for anything set by hand
+- [x] Before go-live, check production user.image values for anything set by hand

@@ -3,3 +3,5 @@
 - 2026-10-22T13:21:34Z claude-code: 2026-10-22: owner made DATABASE_URL, BETTER_AUTH_SECRET, BETTER_AUTH_URL runtime-only too (confirmed via list_env_keys); only NIXPACKS_NODE_VERSION, PUBLIC_GLITCHTIP_DSN, PUBLIC_TURNSTILE_SITE_KEY, SENTRY_URL, SENTRY_AUTH_TOKEN are build variables, SENTRY_AUTH_TOKEN is build-only. Code to build without them merged in 0ef2033. Criterion 2 (image history, prune old images) after the deploy.
 
 - 2026-10-22T13:36:22Z claude-code: Deploy 8243b04 built with no secret build args (nixpacks plan env: NIXPACKS_NODE_VERSION, COOLIFY_URL/FQDN/BRANCH/RESOURCE_UUID only). Remaining: owner checks docker history/inspect of the new image for secret key names and prunes images built before the change.
+
+- 2026-10-22T13:45:03Z claude-code: Owner, 2026-10-22: docker history/inspect of image 8243b04 shows none of the secret key names; images built before the change were removed. Repeatable check: docs/deploy-checks.md and the commands in this log.

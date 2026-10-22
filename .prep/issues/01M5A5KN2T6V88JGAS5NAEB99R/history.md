@@ -5,3 +5,5 @@
 - 2026-10-22T07:40:56Z claude-code: Check passed: databaseHooks user.create/update before call guardUserWrite; no admin/changeEmail plugin enabled; legacy import and seed write image NULL; image nulled (not rejected), so no 400/legacy breakage; APIError BAD_REQUEST for names. Mutation-tested image drop and line-separator regex (tests fail). check and vp test run green.
 
 - 2026-10-22T08:25:14Z claude-code: Code merged in 24962bd (Sonnet implemented, Sonnet reviewed, full suite 195/195). Remaining: owner runs the production data check in the Coolify terminal (DB ports are firewalled), then checks the last criterion.
+
+- 2026-10-22T13:45:03Z claude-code: Owner, 2026-10-22: production user.image is null for every row.

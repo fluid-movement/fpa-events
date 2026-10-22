@@ -1,3 +1,3 @@
 - [x] In Coolify, only NIXPACKS_NODE_VERSION, PUBLIC_GLITCHTIP_DSN, SENTRY_URL and SENTRY_AUTH_TOKEN are build variables; SENTRY_AUTH_TOKEN is not a runtime variable
-- [ ] A redeployed build succeeds and the app runs; the new image's history and config (docker history/inspect on the server) contain none of the runtime secret key names; images built before the change are pruned
-- [ ] Record the check (key names and flags only) in the work log so it can be repeated after env changes
+- [x] A redeployed build succeeds and the app runs; the new image's history and config (docker history/inspect on the server) contain none of the runtime secret key names; images built before the change are pruned
+- [x] Record the check (key names and flags only) in the work log so it can be repeated after env changes
