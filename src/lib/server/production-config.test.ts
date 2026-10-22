@@ -30,9 +30,19 @@ const BEARER = 'https://events.example/api/auth/reset-password?token=SECRET_BEAR
 const CONFIGURED = {
 	TURNSTILE_SECRET_KEY: 'turnstile-secret',
 	MAILGUN_API_KEY: 'mailgun-key',
-	MAILGUN_DOMAIN: 'mg.example'
+	MAILGUN_DOMAIN: 'mg.example',
+	DATABASE_URL: 'postgresql://prod',
+	BETTER_AUTH_SECRET: 'auth-secret',
+	BETTER_AUTH_URL: 'https://events.example'
 };
-const BLANK = { TURNSTILE_SECRET_KEY: undefined, MAILGUN_API_KEY: undefined, MAILGUN_DOMAIN: '' };
+const BLANK = {
+	TURNSTILE_SECRET_KEY: undefined,
+	MAILGUN_API_KEY: undefined,
+	MAILGUN_DOMAIN: '',
+	DATABASE_URL: undefined,
+	BETTER_AUTH_SECRET: '',
+	BETTER_AUTH_URL: undefined
+};
 
 beforeEach(() => {
 	runtime.dev = false;
@@ -51,9 +61,12 @@ describe('missingProductionKeys', () => {
 			missingProductionKeys({
 				TURNSTILE_SECRET_KEY: '   ',
 				MAILGUN_API_KEY: undefined,
-				MAILGUN_DOMAIN: 'mg.example'
+				MAILGUN_DOMAIN: 'mg.example',
+				DATABASE_URL: 'postgresql://prod',
+				BETTER_AUTH_SECRET: '  ',
+				BETTER_AUTH_URL: undefined
 			})
-		).toEqual(['TURNSTILE_SECRET_KEY', 'MAILGUN_API_KEY']);
+		).toEqual(['TURNSTILE_SECRET_KEY', 'MAILGUN_API_KEY', 'BETTER_AUTH_SECRET', 'BETTER_AUTH_URL']);
 	});
 });
 
@@ -71,6 +84,14 @@ describe('assertProductionConfig', () => {
 		expect(message).not.toContain('MAILGUN_API_KEY');
 		expect(message).not.toContain('value-that-must-not-leak');
 	});
+
+	it.each(['DATABASE_URL', 'BETTER_AUTH_SECRET', 'BETTER_AUTH_URL'] as const)(
+		'refuses to start production when %s is blank',
+		(key) => {
+			setEnv({ ...CONFIGURED, [key]: '' });
+			expect(() => assertProductionConfig()).toThrow(key);
+		}
+	);
 
 	it('passes when every key is configured', () => {
 		setEnv(CONFIGURED);

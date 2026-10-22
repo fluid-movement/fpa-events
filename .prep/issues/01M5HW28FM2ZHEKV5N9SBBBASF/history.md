@@ -1,0 +1,1 @@
+- 2026-10-22T13:20:30Z claude-code: Implemented, ready for check: build passes under env -i with .env moved aside (auth.ts also needed a building-guarded secret placeholder); production refuses blank DATABASE_URL, BETTER_AUTH_SECRET, BETTER_AUTH_URL; mutation caught by 4 tests.

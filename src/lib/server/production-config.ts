@@ -1,5 +1,12 @@
 import { building, dev } from '$app/env';
-import { MAILGUN_API_KEY, MAILGUN_DOMAIN, TURNSTILE_SECRET_KEY } from '$app/env/private';
+import {
+	BETTER_AUTH_SECRET,
+	BETTER_AUTH_URL,
+	DATABASE_URL,
+	MAILGUN_API_KEY,
+	MAILGUN_DOMAIN,
+	TURNSTILE_SECRET_KEY
+} from '$app/env/private';
 
 /**
  * Keys without which a production server must not serve. Blank is the dev/test
@@ -9,7 +16,10 @@ import { MAILGUN_API_KEY, MAILGUN_DOMAIN, TURNSTILE_SECRET_KEY } from '$app/env/
 export const REQUIRED_PRODUCTION_KEYS = [
 	'TURNSTILE_SECRET_KEY',
 	'MAILGUN_API_KEY',
-	'MAILGUN_DOMAIN'
+	'MAILGUN_DOMAIN',
+	'DATABASE_URL',
+	'BETTER_AUTH_SECRET',
+	'BETTER_AUTH_URL'
 ] as const;
 
 type RequiredKey = (typeof REQUIRED_PRODUCTION_KEYS)[number];
@@ -39,7 +49,10 @@ export function assertProductionConfig(): void {
 	const missing = missingProductionKeys({
 		TURNSTILE_SECRET_KEY,
 		MAILGUN_API_KEY,
-		MAILGUN_DOMAIN
+		MAILGUN_DOMAIN,
+		DATABASE_URL,
+		BETTER_AUTH_SECRET,
+		BETTER_AUTH_URL
 	});
 	if (missing.length > 0) {
 		throw new Error(`Missing required production configuration: ${missing.join(', ')}`);

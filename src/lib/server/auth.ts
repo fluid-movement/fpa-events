@@ -2,6 +2,7 @@ import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { captcha } from 'better-auth/plugins';
 import { db } from '#lib/server/db';
+import { building } from '$app/env';
 import { BETTER_AUTH_SECRET, BETTER_AUTH_URL, TURNSTILE_SECRET_KEY } from '$app/env/private';
 import { sendPasswordResetEmail, sendVerificationEmail } from './email';
 import { guardUserWrite } from './userInput';
@@ -64,7 +65,10 @@ export const auth = betterAuth({
 			update: { before: async (data) => guardUserWrite(data, { requireName: false }) }
 		}
 	},
-	secret: BETTER_AUTH_SECRET,
+	// Better Auth throws at import without a secret in production builds; the build
+	// never serves requests, so a placeholder stands in there. Runtime still needs
+	// the real key: assertProductionConfig() refuses to start without it.
+	secret: BETTER_AUTH_SECRET ?? (building ? 'build-placeholder-secret' : undefined),
 	baseURL: BETTER_AUTH_URL,
 	plugins
 });
