@@ -187,6 +187,9 @@ reach the runtime image. `src/` (with the migrations), `package*.json`,
 The Node version is pinned in Coolify through `NIXPACKS_NODE_VERSION`; see the
 deployment decisions via `prep knowledge find deploy`.
 
+See [docs/deploy-checks.md](docs/deploy-checks.md) for the passive deployment check and the
+Coolify and GlitchTip review procedures.
+
 ## Project knowledge
 
 Decisions and findings for this project are recorded in prep. Use:
