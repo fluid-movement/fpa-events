@@ -70,4 +70,23 @@ describe('sanitizeRichText', () => {
 	it('removes tags outside the allow-list but keeps their text', () => {
 		expect(sanitizeRichText('<div><p>kept</p></div>')).toBe('<p>kept</p>');
 	});
+
+	// Browsers parse these containers' contents differently from a plain tag (as
+	// raw text, or into a separate fragment) — the place sanitizers have
+	// historically disagreed with the browser. The container may vanish or leave
+	// its contents as escaped text, but no tag may survive beside the allowed <p>.
+	it.each(['textarea', 'template', 'noembed'])(
+		'leaves no live markup from an img onerror inside <%s>',
+		(tag) => {
+			const output = sanitizeRichText(`<p>ok</p><${tag}><img src=x onerror=alert(1)></${tag}>`);
+			expect(output.startsWith('<p>ok</p>')).toBe(true);
+			expect(output.slice('<p>ok</p>'.length)).not.toMatch(/[<>]/);
+		}
+	);
+
+	it('drops a javascript: link, keeping only its text', () => {
+		const output = sanitizeRichText('<p>see <a href="javascript:alert(1)">this</a></p>');
+		expect(output).toBe('<p>see this</p>');
+		expect(output).not.toMatch(/javascript:/i);
+	});
 });
