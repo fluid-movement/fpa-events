@@ -20,6 +20,8 @@ for (const path of [
 	'/invite/%00',
 	'/api/calendar/%00/feed.ics',
 	'/events/past/99999',
+	// Its upper bound would be year 10000, which Postgres rejects (22009).
+	'/events/past/9999',
 	'/events/past/1e20',
 	'/events/not-a-stored-id',
 	'/api/calendar/not-a-token/feed.ics'
@@ -55,10 +57,20 @@ test('malformed remote payloads are 400 on a live query endpoint', async ({ page
 		'%',
 		Buffer.from('not JSON').toString('base64url'),
 		Buffer.from('[{"x":999}]').toString('base64url'),
-		Buffer.from('["bad\\u0000id"]').toString('base64url')
+		Buffer.from('["bad\\u0000id"]').toString('base64url'),
+		// Thrown by devalue's revivers as SyntaxError/TypeError, not as its own errors.
+		Buffer.from('[["BigInt","x"]]').toString('base64url'),
+		Buffer.from('[["RegExp","(",""]]').toString('base64url'),
+		Buffer.from('[["URL","not a url"]]').toString('base64url'),
+		Buffer.from('[["Uint8Array",5]]').toString('base64url')
 	]) {
 		const response = await page.request.get(`${endpoint}?payload=${encodeURIComponent(payload)}`);
 		await expectRemoteStatus(response, 400);
+	}
+	// Kit decodes a query's payload on any method; only GET is let through.
+	for (const method of ['HEAD', 'POST', 'PUT']) {
+		const response = await page.request.fetch(`${endpoint}?payload=AAAA`, { method });
+		expect(response.status(), method).toBe(405);
 	}
 });
 

@@ -88,13 +88,21 @@ describe('server log database allowlist', () => {
 	});
 });
 
-// Kit's own client serialiser and server parser, not copies of them: if Kit
+// Kit's own client serialisers and server decoders, not copies of them: if Kit
 // changes its wire format these fail instead of production requests.
-import { convertFormData, parseRemoteArg, stringifyRemoteArg } from '../../test/kit-wire';
-import { isMalformedClientInput, remotePayloadIsJson } from './errors';
+import {
+	convertFormData,
+	deserializeBinaryForm,
+	parseRemoteArg,
+	serializeBinaryForm,
+	stringifyRemoteArg
+} from '../../test/kit-wire';
+import { isMalformedClientInput, isMisroutedRemotePayload, keepRemoteFormBody } from './errors';
 
 const QUERY = 'https://example.org/_app/remote/abc123/getPlayerProfile';
 const FORM = 'https://example.org/_app/remote/abc123/updateEvent';
+const BINARY = 'application/x-sveltekit-formdata';
+const b64 = (text: string) => Buffer.from(text).toString('base64url');
 
 /** The error Kit's own server decoder throws for this payload. */
 function kitDecodeError(payload: string): unknown {
@@ -110,39 +118,68 @@ describe('malformed remote arguments', () => {
 	it.each([
 		['not base64', 'AAAA'],
 		['a stray percent', '%'],
-		['not JSON', Buffer.from('not JSON').toString('base64url')],
-		['JSON but not devalue', Buffer.from('[{"x":999}]').toString('base64url')],
-		['an unknown devalue type', Buffer.from('[["Nope",1]]').toString('base64url')]
-	])('is a client error for %s', (_, payload) => {
+		['not JSON', b64('not JSON')],
+		['JSON but not devalue', b64('[{"x":999}]')],
+		['an unknown devalue type', b64('[["Nope",1]]')],
+		// Thrown by the revivers, not by devalue itself, and not as plain Errors.
+		['an invalid BigInt', b64('[["BigInt","x"]]')],
+		['an invalid RegExp', b64('[["RegExp","(",""]]')],
+		['an invalid URL', b64('[["URL","not a url"]]')],
+		['a typed array pointing nowhere', b64('[["Uint8Array",5]]')],
+		['a typed array pointing at a string', b64('[["Uint8Array",1],"x"]')]
+	])('is a client error for %s', async (_, payload) => {
 		const request = new Request(`${QUERY}?payload=${encodeURIComponent(payload)}`);
-		expect(isMalformedClientInput(kitDecodeError(payload), request)).toBe(true);
+		expect(await isMalformedClientInput(kitDecodeError(payload), request)).toBe(true);
 	});
 
 	it.each([['01m5a4te7kpbqedtvncyxkx1gn'], [{ series: 'open', minMatchCount: 3 }], [42], [null]])(
 		'treats an argument Kit encoded as decodable: %j',
-		(value) => {
+		async (value) => {
 			const payload = stringifyRemoteArg(value);
 			expect(parseRemoteArg(payload)).toEqual(value);
-			expect(remotePayloadIsJson(payload)).toBe(true);
+			const request = new Request(`${QUERY}?payload=${payload}`);
+			expect(await isMalformedClientInput(new Error('Invalid input'), request)).toBe(false);
 		}
 	);
 
-	// The callback ran, so whatever it threw is ours to report.
+	// The argument decodes, so the callback ran and whatever it threw is ours to
+	// report — even when it looks exactly like one of the decoder's own errors.
 	it.each([
-		new SyntaxError('Unexpected token < in upstream JSON'),
+		new Error('Invalid input'),
+		new Error('Invalid data'),
+		new SyntaxError('Cannot convert x to a BigInt'),
+		new TypeError('Invalid URL'),
 		new TypeError('Cannot read properties of undefined'),
 		new Error('connection refused')
-	])('reports %s from a query with a valid argument', (error) => {
+	])('reports %s from a query with a valid argument', async (error) => {
 		const request = new Request(`${QUERY}?payload=${stringifyRemoteArg('player-1')}`);
-		expect(isMalformedClientInput(error, request)).toBe(false);
+		expect(await isMalformedClientInput(error, request)).toBe(false);
 	});
 
-	it('only applies to remote requests', () => {
+	it('only applies to remote requests', async () => {
 		const error = kitDecodeError('AAAA');
 		expect(
-			isMalformedClientInput(error, new Request('https://example.org/events?payload=AAAA'))
+			await isMalformedClientInput(error, new Request('https://example.org/events?payload=AAAA'))
 		).toBe(false);
-		expect(isMalformedClientInput(error, new Request(QUERY))).toBe(false);
+		expect(await isMalformedClientInput(error, new Request(QUERY))).toBe(false);
+	});
+
+	// Kit decodes a query's payload whatever the method; `handle` refuses every
+	// method but GET, so the classifier never has to guess what a POST was.
+	it.each(['HEAD', 'POST', 'PUT', 'PATCH', 'DELETE'])(
+		'refuses a payload sent with %s',
+		(method) => {
+			expect(isMisroutedRemotePayload(new Request(`${QUERY}?payload=AAAA`, { method }))).toBe(true);
+		}
+	);
+	it('lets GET queries, payload-free POSTs and ordinary pages through', () => {
+		expect(isMisroutedRemotePayload(new Request(`${QUERY}?payload=AAAA`))).toBe(false);
+		expect(isMisroutedRemotePayload(new Request(FORM, { method: 'POST' }))).toBe(false);
+		expect(
+			isMisroutedRemotePayload(
+				new Request('https://example.org/events?payload=x', { method: 'POST' })
+			)
+		).toBe(false);
 	});
 });
 
@@ -157,8 +194,27 @@ describe('malformed remote form bodies', () => {
 		}
 		throw new Error('Kit accepted the form');
 	}
-	const post = (url = FORM, type = 'multipart/form-data; boundary=x') =>
-		new Request(url, { method: 'POST', headers: { 'content-type': type } });
+	const post = (url = FORM, type = 'multipart/form-data; boundary=x', body?: BodyInit) =>
+		new Request(url, { method: 'POST', headers: { 'content-type': type }, body });
+
+	/** A body as `handle` sees it: copied first, then read by Kit's decoder. */
+	async function decodedByKit(request: Request): Promise<unknown> {
+		keepRemoteFormBody(request);
+		try {
+			await deserializeBinaryForm(request, 'abc123/updateEvent');
+		} catch (error) {
+			return error;
+		}
+		return null;
+	}
+
+	/** A binary form whose fixed header is valid, followed by `text` as its data. */
+	function binaryBody(text: string): Uint8Array<ArrayBuffer> {
+		const data = Buffer.from(text);
+		const header = Buffer.alloc(7);
+		header.writeUInt32LE(data.length, 1);
+		return new Uint8Array(Buffer.concat([header, data]));
+	}
 
 	it.each([
 		['an unbound field', [['name', 'x']]],
@@ -170,61 +226,77 @@ describe('malformed remote form bodies', () => {
 			]
 		],
 		['a prototype-pollution key', [['__proto__.polluted/abc123/updateEvent', 'x']]]
-	] as [string, [string, string][]][])('is a client error for %s', (_, entries) => {
+	] as [string, [string, string][]][])('is a client error for %s', async (_, entries) => {
 		const error = kitFieldError(entries);
-		expect(isMalformedClientInput(error, post())).toBe(true);
+		expect(await isMalformedClientInput(error, post())).toBe(true);
 		// Kit's production wording is the bare documented URL.
 		const code = (error as Error).message.match(/form_field_\w+$/)![0];
-		expect(isMalformedClientInput(new Error(`https://svelte.dev/e/kit/${code}`), post())).toBe(
-			true
-		);
+		expect(
+			await isMalformedClientInput(new Error(`https://svelte.dev/e/kit/${code}`), post())
+		).toBe(true);
 	});
 
-	it('does not take a message that only mentions a Kit code for the diagnostic', () => {
+	it('does not take a message that only mentions a Kit code for the diagnostic', async () => {
 		for (const message of [
 			'value "https://svelte.dev/e/kit/form_field_unbound" rejected',
 			'form_field_duplicate\nx\nhttps://svelte.dev/e/kit/form_field_unbound'
 		]) {
-			expect(isMalformedClientInput(new Error(message), post())).toBe(false);
+			expect(await isMalformedClientInput(new Error(message), post())).toBe(false);
 		}
 	});
 
 	it('is a client error when a multipart body does not parse', async () => {
-		const request = new Request(FORM, {
-			method: 'POST',
-			headers: { 'content-type': 'multipart/form-data; boundary=missing' },
-			body: 'broken multipart'
-		});
-		const error = await request
-			.clone()
-			.formData()
-			.then(
-				() => expect.fail('Node parsed a broken body'),
-				(error: unknown) => error
-			);
-		expect(isMalformedClientInput(error, request)).toBe(true);
-		expect(isMalformedClientInput(error, new Request('https://example.org/events', request))).toBe(
-			false
-		);
+		const request = post(FORM, 'multipart/form-data; boundary=missing', 'broken multipart');
+		const error = await decodedByKit(request);
+		expect(error).toBeInstanceOf(TypeError);
+		expect(await isMalformedClientInput(error, request)).toBe(true);
 	});
 
-	it('is a client error when a binary form header is not devalue', () => {
-		const error = kitDecodeError(Buffer.from('[{"x":999}]').toString('base64url'));
-		expect(isMalformedClientInput(error, post(FORM, 'application/x-sveltekit-formdata'))).toBe(
-			true
-		);
+	it.each([
+		['malformed JSON', 'x'],
+		['a null entry', '[null]'],
+		['an object entry', '[{}]'],
+		['JSON but not devalue', '[{"x":999}]']
+	])('is a client error when a binary form header is %s', async (_, text) => {
+		const request = post(FORM, BINARY, binaryBody(text));
+		const error = await decodedByKit(request);
+		expect(error).toBeInstanceOf(Error);
+		expect(await isMalformedClientInput(error, request)).toBe(true);
 	});
 
-	it('reports a form callback fault', () => {
-		for (const error of [
-			new TypeError('x is undefined'),
-			new SyntaxError('bad'),
-			new Error('boom')
-		]) {
-			expect(isMalformedClientInput(error, post())).toBe(false);
-			expect(isMalformedClientInput(error, post(FORM, 'application/x-sveltekit-formdata'))).toBe(
-				false
-			);
-		}
+	it('is a client error on the no-JavaScript action URL too', async () => {
+		const request = post(
+			'https://example.org/events/x?/remote=abc123/updateEvent',
+			BINARY,
+			binaryBody('x')
+		);
+		expect(await isMalformedClientInput(await decodedByKit(request), request)).toBe(true);
+	});
+
+	// Kit decoded these bodies, so the callback ran and its error is reported,
+	// even one worded exactly like a decoder failure.
+	it.each([
+		new Error('Invalid input'),
+		new SyntaxError(`Unexpected token 'x', "x" is not valid JSON`),
+		new TypeError('object null is not iterable (cannot read property Symbol(Symbol.iterator))'),
+		new TypeError('Failed to parse body as FormData.'),
+		new Error('boom')
+	])('reports %s from a form whose body decoded', async (error) => {
+		const { blob } = serializeBinaryForm({ name: 'Event' }, {});
+		const binary = post(FORM, BINARY, blob);
+		expect(await decodedByKit(binary)).toBeNull();
+		expect(await isMalformedClientInput(error, binary)).toBe(false);
+
+		const fields = new FormData();
+		fields.set('name/abc123/updateEvent', 'Event');
+		const multipart = new Request(FORM, { method: 'POST', body: fields });
+		expect(await decodedByKit(multipart)).toBeNull();
+		expect(await isMalformedClientInput(error, multipart)).toBe(false);
+	});
+
+	it('reports when no copy of the body was kept', async () => {
+		const request = post(FORM, BINARY, binaryBody('x'));
+		const error = await deserializeBinaryForm(request, '').catch((error: unknown) => error);
+		expect(await isMalformedClientInput(error, request)).toBe(false);
 	});
 });

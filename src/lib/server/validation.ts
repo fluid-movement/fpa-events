@@ -40,11 +40,17 @@ export function rejectNulPath(url: URL): void {
 	if (path.includes('\0')) error(400, 'Invalid path');
 }
 
-/** Bounds fit both JavaScript Date and Postgres, including the next-year upper bound. */
+/**
+ * The archive queries `[1 January year, 1 January year + 1)` in local time, and
+ * Postgres cannot take a five-digit ISO year (it answers 22009), so the last
+ * year is 9998: its upper bound is year 9999 in every time zone.
+ */
+export const LAST_ARCHIVE_YEAR = 9998;
+
 export function parseArchiveYear(value: string): number {
 	if (!/^\d{4}$/.test(value)) error(400, 'Invalid year');
 	const year = Number(value);
-	if (year < 1970 || year > 9999) error(400, 'Invalid year');
+	if (year < 1970 || year > LAST_ARCHIVE_YEAR) error(400, 'Invalid year');
 	return year;
 }
 
@@ -84,3 +90,22 @@ export const dateTime = v.pipe(
 		);
 	}, 'Enter a valid date and time.')
 );
+
+/**
+ * An optional latitude or longitude: degrees within `±limit`, or null for "no
+ * position". Parsed explicitly rather than with `v.transform(Number)`, because
+ * `Number('')` is `0` and an empty field would otherwise persist a position in
+ * the Gulf of Guinea. The range check also keeps values inside Postgres `real`,
+ * which overflows (22003) on a finite but huge number such as `1e100`.
+ */
+export function optionalCoordinate(limit: 90 | 180) {
+	return v.pipe(
+		v.optional(text),
+		v.transform((s) => {
+			if (s === undefined || s.trim() === '') return null;
+			const n = Number(s);
+			return Number.isFinite(n) ? n : null;
+		}),
+		v.check((n) => n === null || Math.abs(n) <= limit, 'Coordinate out of range.')
+	);
+}

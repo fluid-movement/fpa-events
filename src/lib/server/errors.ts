@@ -10,6 +10,11 @@
 
 import { newErrorId } from '#lib/utils/error-id';
 import { redactErrorText } from '#lib/error-tracking';
+import {
+	BINARY_FORM_CONTENT_TYPE,
+	deserializeBinaryForm,
+	parseRemoteArg
+} from '#lib/server/kit-decoders';
 
 type ErrorKind = 'app' | 'framework' | 'validation' | 'unknown';
 
@@ -45,6 +50,26 @@ function errorFrames(error: Error): string[] {
 		.slice(start + error.message.length)
 		.split('\n')
 		.filter((line) => /^\s+at /.test(line));
+}
+
+/**
+ * A copy of an error and its causes for the error tracker. The SDK parses
+ * `stack` itself, header included, so a database value echoed into a message
+ * (a Drizzle parameter, a Postgres message) can turn into a fake frame whose
+ * file name is that value, and `beforeSend` only sees parsed frames, so it
+ * cannot tell one apart. Each copy keeps the name, the redacted message on one
+ * line and only the frames below the original message.
+ */
+export function reportableError(error: unknown, depth = 0): Error {
+	const source = error instanceof Error ? error : new Error(String(error));
+	const copy = new Error(redactErrorText(source.message, source.name).replace(/\s+/g, ' '));
+	copy.name = source.name;
+	copy.stack = [`${copy.name}: ${copy.message}`, ...errorFrames(source)].join('\n');
+	// Sentry's linked-errors integration follows `cause` (five levels by default).
+	if (depth < 5 && source.cause instanceof Error) {
+		copy.cause = reportableError(source.cause, depth + 1);
+	}
+	return copy;
 }
 
 /**
@@ -86,63 +111,96 @@ export function describeServerError(
 const KIT_FORM_FIELD_ERROR =
 	/^(?:(form_field_[a-z_]+)\n[\s\S]*\n)?https:\/\/svelte\.dev\/e\/kit\/(form_field_(?:unbound|duplicate|forbidden_key|invalid_name|array_conflict))$/;
 
-/** `devalue.parse` rejects a structurally broken payload with exactly these. */
-const DEVALUE_ERROR =
-	/^(?:Invalid input|Invalid data|Invalid circular reference|Invalid ArrayBuffer encoding|Unknown type .+|Cannot parse an object with a (?:non-string key|`__proto__` property))$/;
-
-/** Node's `Request.formData()` on a body that is not the multipart it claims. */
-const FORM_DATA_ERROR = /^Failed to parse body as FormData\.?$/;
+/** Kit's remote endpoint, or a remote form posted without JavaScript. */
+function isRemoteRequest(url: URL): boolean {
+	return url.pathname.startsWith('/_app/remote/') || url.searchParams.has('/remote');
+}
 
 /**
- * Whether the remote-query argument in the URL is past Kit's JSON stage. This
- * mirrors `parse_remote_arg` on the server (`Buffer` base64 is lenient, so only
- * the JSON can fail) and stops before devalue; a unit test runs it against
- * Kit's own serialiser, so a change of wire format fails a test, not requests.
+ * A remote request with `?payload=` that is not a GET. Kit's client only puts
+ * the argument in the URL for queries, which it fetches with GET; but Kit
+ * decodes it for a query whatever the method. Refusing the rest in `handle`
+ * means a `payload` is only ever decoded on a GET, where the classifier below
+ * can re-run that decoding.
  */
-export function remotePayloadIsJson(payload: string): boolean {
+export function isMisroutedRemotePayload(request: Request): boolean {
+	const url = new URL(request.url);
+	return request.method !== 'GET' && isRemoteRequest(url) && url.searchParams.has('payload');
+}
+
+/** Kit's `is_form_content_type`: the bodies its form handler decodes. */
+const FORM_CONTENT_TYPES = [
+	'application/x-www-form-urlencoded',
+	'multipart/form-data',
+	'text/plain',
+	BINARY_FORM_CONTENT_TYPE
+];
+
+/** A second copy of each remote form body, keyed by the request Kit reads. */
+const formBodies = new WeakMap<Request, Request>();
+
+/**
+ * Called from `handle`, before Kit reads the body: keeps a copy of a remote
+ * form POST so `isMalformedClientInput` can decode it again. The copy is a tee
+ * of the same stream, so it is held to the adapter's body size limit
+ * (`BODY_SIZE_LIMIT`) like the original, and is dropped with the request.
+ */
+export function keepRemoteFormBody(request: Request): void {
+	if (request.method !== 'POST' || !request.body) return;
+	if (!isRemoteRequest(new URL(request.url))) return;
+	const type = request.headers.get('content-type')?.split(';', 1)[0].trim().toLowerCase() ?? '';
+	if (FORM_CONTENT_TYPES.includes(type)) formBodies.set(request, request.clone());
+}
+
+async function decodingFails(decode: () => unknown): Promise<boolean> {
 	try {
-		const bytes = Buffer.from(payload.replaceAll('-', '+').replaceAll('_', '/'), 'base64');
-		JSON.parse(new TextDecoder().decode(bytes));
-		return true;
-	} catch {
+		await decode();
 		return false;
+	} catch {
+		return true;
 	}
 }
 
 /**
  * Whether an `unknown` error is Kit failing to decode what the client sent, so
- * it is a 400 and not a server fault. Kit 3 throws these as plain errors before
- * any schema or callback runs (upstream bug: they deserve a 400 SvelteKitError,
- * as its other binary-form checks already throw).
+ * it is a 400 and not a server fault. Kit 3 throws these as plain errors (a
+ * devalue `Error`, a `SyntaxError`, a `TypeError`...) before any schema
+ * or callback runs (upstream bug: they deserve a 400 SvelteKitError, as its
+ * other binary-form checks already throw).
  *
- * Every rule pairs the request shape with the exact error Kit or Node raises,
- * and none reads stack frames (Kit trims them in dev, bundling may rename them).
- * Each fails safe: if Kit or Node change their wording, the error is reported
- * as a 500 again — a request is never refused because of this function.
+ * The error itself is not trusted to say where it came from: a callback can
+ * throw the same type with the same message. Instead Kit's own decoder is run
+ * again on the same input — the query's `payload`, or the copy of the form
+ * body `keepRemoteFormBody` kept. Only if that throws is the request at fault;
+ * if it decodes, the callback ran and its error is reported. Without a copy
+ * (body already read, no `handle` call) the error is reported.
+ *
+ * A body sent to a `command` endpoint with a form content type is judged by
+ * the form decoder. Kit's client never sends one, so only a hand-made request
+ * can have its own error classified as 400.
  */
-export function isMalformedClientInput(error: unknown, request: Request): boolean {
-	if (!(error instanceof Error)) return false;
-
-	const kitField = KIT_FORM_FIELD_ERROR.exec(error.message);
+export async function isMalformedClientInput(error: unknown, request: Request): Promise<boolean> {
+	const kitField = error instanceof Error && KIT_FORM_FIELD_ERROR.exec(error.message);
 	if (kitField && (kitField[1] === undefined || kitField[1] === kitField[2])) return true;
 
 	const url = new URL(request.url);
-	if (!url.pathname.startsWith('/_app/remote/') && !url.searchParams.has('/remote')) return false;
+	if (!isRemoteRequest(url)) return false;
 
-	const devalueError = error.constructor === Error && DEVALUE_ERROR.test(error.message);
 	if (request.method === 'GET') {
 		const payload = url.searchParams.get('payload');
-		if (!payload) return false;
-		// Kit decodes the argument before the query runs, so an argument that is
-		// not even JSON means the SyntaxError is Kit's, not the callback's.
-		return remotePayloadIsJson(payload) ? devalueError : error instanceof SyntaxError;
+		return payload !== null && decodingFails(() => parseRemoteArg(payload));
 	}
-	if (request.method === 'POST') {
-		const type = request.headers.get('content-type') ?? '';
-		if (type === 'application/x-sveltekit-formdata') return devalueError;
-		return error instanceof TypeError && FORM_DATA_ERROR.test(error.message);
-	}
-	return false;
+
+	const body = formBodies.get(request);
+	if (!body) return false;
+	formBodies.delete(request);
+	// The form id only matters for a non-binary body, whose field mapping errors
+	// are matched above; decoding the body itself is what can fail here.
+	return decodingFails(() =>
+		body.headers.get('content-type') === BINARY_FORM_CONTENT_TYPE
+			? deserializeBinaryForm(body, '')
+			: body.formData()
+	);
 }
 
 /**

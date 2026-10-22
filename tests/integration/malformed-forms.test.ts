@@ -8,6 +8,7 @@ import {
 	getScheduleCount,
 	insertVenue,
 	venueExists,
+	getLocationCoords,
 	closeDb
 } from './helpers/db';
 import { expectConsoleErrors, installErrorGuard } from './helpers/console';
@@ -48,15 +49,17 @@ async function postForm(
 				const key = [...data.keys()][0];
 				data.set(`__proto__.polluted${key.slice(key.indexOf('/'))}`, 'yes');
 			}
-			const binary = mode === 'binary';
+			const binary = mode.startsWith('binary:');
 			const multipart = mode === 'multipart';
+			// A valid binary-form header (version 0, data length, no files) followed
+			// by data Kit's decoder throws on: past the checks Kit answers itself.
+			const header = new TextEncoder().encode(mode.slice('binary:'.length));
+			const bytes = new Uint8Array(7 + header.length);
+			new DataView(bytes.buffer).setUint32(1, header.length, true);
+			bytes.set(header, 7);
 			const response = await fetch(endpoint, {
 				method: 'POST',
-				body: binary
-					? new Uint8Array([0, 0, 0, 0, 0, 0, 0])
-					: multipart
-						? 'broken multipart'
-						: data,
+				body: binary ? bytes : multipart ? 'broken multipart' : data,
 				headers: {
 					'x-sveltekit-pathname': location.pathname,
 					'x-sveltekit-search': location.search,
@@ -116,7 +119,15 @@ test.describe('malformed remote forms', () => {
 		await expect.poll(() => getEventName(eventId)).toBe('Valid Form Event');
 	});
 
-	for (const mode of ['unbound', 'duplicate', 'forbidden', 'binary', 'multipart']) {
+	for (const mode of [
+		'unbound',
+		'duplicate',
+		'forbidden',
+		'binary:x',
+		'binary:[null]',
+		'binary:[{}]',
+		'multipart'
+	]) {
 		test(`malformed ${mode} encoding is 400 before the callback`, async ({ page }) => {
 			expectConsoleErrors(page);
 			await page.goto(`/events/${eventId}/admin/edit`);
@@ -161,6 +172,43 @@ test.describe('malformed remote forms', () => {
 		expect(valid.status).toBe(200);
 		expect(valid.body).not.toContain('issues');
 		await expect.poll(() => getScheduleCount(eventId)).toBe(1);
+	});
+
+	// Finite, so they passed the old check, but Postgres `real` overflows (22003).
+	test('out-of-range venue coordinates fail validation without inserting', async ({ page }) => {
+		expectConsoleErrors(page);
+		await page.goto(`/events/${eventId}/admin/schedule`);
+		await page.waitForLoadState('networkidle');
+		await page.getByRole('button', { name: 'Add Location' }).click();
+		await expect(page.getByTestId('location-name-input')).toBeVisible();
+		for (const [latitude, longitude] of [
+			['1e100', '10'],
+			['10', '1e100'],
+			['-91', '10'],
+			['10', '181']
+		]) {
+			const result = await postForm(page, 'createEventLocation', {
+				eventId,
+				name: 'Overflow venue',
+				latitude,
+				longitude
+			});
+			expect(result.status).toBe(200);
+			expect(result.body).toContain('issues');
+			expect(result.body).not.toContain('errorId');
+			await expect.poll(() => getLocationCoords(eventId, 'Overflow venue')).toBeNull();
+		}
+		const valid = await postForm(page, 'createEventLocation', {
+			eventId,
+			name: 'Edge venue',
+			latitude: '90',
+			longitude: '-180'
+		});
+		expect(valid.status).toBe(200);
+		expect(valid.body).not.toContain('issues');
+		await expect
+			.poll(() => getLocationCoords(eventId, 'Edge venue'))
+			.toEqual({ latitude: 90, longitude: -180 });
 	});
 
 	test('malformed venue deletion cannot delete the venue', async ({ page }) => {

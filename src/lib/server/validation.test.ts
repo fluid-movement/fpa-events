@@ -4,6 +4,7 @@ import * as v from 'valibot';
 import { ulid } from 'ulid';
 import {
 	isCalendarToken,
+	optionalCoordinate,
 	parseArchiveYear,
 	rejectNulPath,
 	storedIdParam,
@@ -54,13 +55,39 @@ describe('request validation', () => {
 });
 
 describe('archive year', () => {
-	it.each(['1970', '2026', '9999'])('accepts %s', (value) => {
+	it.each(['1970', '2026', '9998'])('accepts %s', (value) => {
 		expect(parseArchiveYear(value)).toBe(Number(value));
 	});
-	it.each(['1969', '0000', '99999', '275761', '1e20', '-5000', 'NaN', '2026.5', ' 2026'])(
+	it.each(['1969', '0000', '9999', '99999', '275761', '1e20', '-5000', 'NaN', '2026.5', ' 2026'])(
 		'rejects %s',
 		(value) => {
 			expectStatus(() => parseArchiveYear(value), 400);
 		}
 	);
+});
+
+describe('coordinates', () => {
+	const latitude = optionalCoordinate(90);
+	const longitude = optionalCoordinate(180);
+	it.each([
+		['', null],
+		[undefined, null],
+		['abc', null],
+		['48.137', 48.137],
+		['-90', -90],
+		['90', 90]
+	])('reads latitude %j as %j', (value, expected) => {
+		expect(v.parse(latitude, value)).toBe(expected);
+	});
+	it('accepts the full longitude range', () => {
+		expect(v.parse(longitude, '-180')).toBe(-180);
+		expect(v.parse(longitude, '180')).toBe(180);
+	});
+	// Finite, so they passed the old check, but Postgres `real` overflows (22003).
+	it.each(['1e100', '-1e100', '3.5e38', '90.0001'])('rejects latitude %s', (value) => {
+		expect(v.safeParse(latitude, value).success).toBe(false);
+	});
+	it.each(['1e100', '180.5', '-181'])('rejects longitude %s', (value) => {
+		expect(v.safeParse(longitude, value).success).toBe(false);
+	});
 });

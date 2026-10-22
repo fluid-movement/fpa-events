@@ -17,11 +17,10 @@ import type { LayoutServerLoad } from './$types';
 export const load = (async ({ params, locals }) => {
 	// Not `user`: that name belongs to the schema table imported above.
 	const signedIn = requireSignedIn(locals);
+	// Before the query builder exists, so a malformed id never reaches it.
+	const id = storedIdParam(params.id);
 
-	const [event] = await db
-		.select()
-		.from(events)
-		.where(eq(events.id, storedIdParam(params.id)));
+	const [event] = await db.select().from(events).where(eq(events.id, id));
 	if (!event) error(404, 'Not found');
 
 	if (!(await canManageEvent(event, signedIn.id, locals.role))) {

@@ -1,4 +1,4 @@
-import { databaseId, storedId, text } from '#lib/server/validation';
+import { databaseId, optionalCoordinate, storedId, text } from '#lib/server/validation';
 import * as v from 'valibot';
 import { form, query } from '$app/server';
 import { error } from '@sveltejs/kit';
@@ -7,27 +7,12 @@ import { scheduleLocations } from '#lib/server/db/schema';
 import { and, eq } from 'drizzle-orm';
 import { requireEventManager } from '#lib/server/authz';
 
-/**
- * Coordinates are optional — a venue can be a plain name.
- *
- * Parsed explicitly rather than with `v.transform(Number)`: `Number('')` is `0`,
- * so an empty field would otherwise persist a position in the Gulf of Guinea
- * instead of "no position".
- */
-const optionalCoordinate = v.pipe(
-	v.optional(text),
-	v.transform((s) => {
-		if (s === undefined || s.trim() === '') return null;
-		const n = Number(s);
-		return Number.isFinite(n) ? n : null;
-	})
-);
-
+/** Coordinates are optional — a venue can be a plain name. */
 const locationSchema = v.object({
 	name: v.pipe(text, v.minLength(1)),
 	address: v.optional(text),
-	latitude: optionalCoordinate,
-	longitude: optionalCoordinate
+	latitude: optionalCoordinate(90),
+	longitude: optionalCoordinate(180)
 });
 
 export const listEventLocations = query(storedId, async (eventId) => {

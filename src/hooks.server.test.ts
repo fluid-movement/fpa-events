@@ -4,6 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { format } from 'node:util';
 import type { ErrorEvent } from '@sentry/core';
 import { exceptionFromError } from '@sentry/core';
+// The parser the server SDK really uses, so a fake frame shows up as one.
+import { defaultStackParser } from '@sentry/node';
 import type { RequestEvent } from '@sveltejs/kit';
 import { isHttpError } from '@sveltejs/kit';
 import { DrizzleQueryError } from 'drizzle-orm';
@@ -11,6 +13,7 @@ import postgres from 'postgres';
 
 const mocks = vi.hoisted(() => ({
 	session: vi.fn(),
+	handler: vi.fn(),
 	capture: vi.fn(),
 	scope: { setTag: vi.fn(), setTransactionName: vi.fn(), setUser: vi.fn() },
 	options: {} as { beforeSend?: (event: ErrorEvent) => ErrorEvent }
@@ -18,7 +21,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock('#lib/server/auth', () => ({ auth: { api: { getSession: mocks.session } } }));
 vi.mock('#lib/server/db', () => ({ db: {} }));
 vi.mock('$app/env', () => ({ building: false }));
-vi.mock('better-auth/svelte-kit', () => ({ svelteKitHandler: vi.fn() }));
+vi.mock('better-auth/svelte-kit', () => ({ svelteKitHandler: mocks.handler }));
 vi.mock('@sentry/sveltekit', () => ({
 	init: (options: typeof mocks.options) => {
 		mocks.options = options;
@@ -27,15 +30,16 @@ vi.mock('@sentry/sveltekit', () => ({
 	captureException: mocks.capture
 }));
 import { handle, handleError } from './hooks.server';
-import { parseRemoteArg, stringifyRemoteArg } from './test/kit-wire';
+import { deserializeBinaryForm, parseRemoteArg, stringifyRemoteArg } from './test/kit-wire';
 
 function event(
 	url = 'https://example.org/_app/remote/hash/getEvent',
 	routeId: string | null = null,
-	params: Record<string, string> = {}
+	params: Record<string, string> = {},
+	init?: RequestInit
 ) {
 	return {
-		request: new Request(url),
+		request: new Request(url, init),
 		url: new URL(url),
 		params,
 		locals: {},
@@ -91,18 +95,27 @@ describe('server error hook', () => {
 		const url = `https://example.org/_app/remote/hash/getEvent?payload=${stringifyRemoteArg('x')}`;
 		const response = await handleError({ kind: 'unknown', error, event: event(url) });
 		expect(response).toMatchObject({ message: 'Internal Error', errorId: expect.any(String) });
-		expect(mocks.capture).toHaveBeenCalledWith(error);
+		expect(mocks.capture).toHaveBeenCalledWith(
+			expect.objectContaining({ name: 'SyntaxError', message: 'broken server JSON' })
+		);
 		expect(log).toHaveBeenCalled();
 		log.mockRestore();
 	});
 	it('keeps database faults reportable without tokens in actual console output or scrubbed reports', async () => {
 		const token = 'CANARY_live_invite_token';
+		// Postgres and Drizzle echo values unescaped, so a value can forge a
+		// frame line in the stack header the SDK parses.
+		const fakeFrame = '\n    at query (CANARY_REVIEW_TOKEN:1:1)';
 		const cause = new (postgres.PostgresError as unknown as new (data: object) => Error)({
-			message: `invalid token "${token}"`,
+			message: `invalid token "${token}"${fakeFrame}`,
 			detail: token,
 			code: '22P02'
 		});
-		const error = new DrizzleQueryError('select id from invites where token = $1', [token], cause);
+		const error = new DrizzleQueryError(
+			'select id from invites where token = $1',
+			[token, `hello${fakeFrame}`],
+			cause
+		);
 		const log = vi.spyOn(console, 'error').mockImplementation(() => {});
 		const delivered: ErrorEvent[] = [];
 		// Exercise the hook's configured beforeSend with SDK-built exceptions,
@@ -114,7 +127,7 @@ describe('server error hook', () => {
 				current;
 				current = current.cause as Error | undefined
 			) {
-				values.push(exceptionFromError(() => [], current));
+				values.push(exceptionFromError(defaultStackParser, current));
 			}
 			delivered.push(mocks.options.beforeSend!({ type: undefined, exception: { values } }));
 		});
@@ -127,10 +140,68 @@ describe('server error hook', () => {
 		expect(mocks.capture).toHaveBeenCalledOnce();
 		expect(printed(log)).toContain('Failed query: select id from invites');
 		expect(printed(log)).not.toContain(token);
+		expect(printed(log)).not.toContain('CANARY_REVIEW_TOKEN');
 		expect(printed(log)).not.toContain('params:');
 		expect(delivered).toHaveLength(1);
-		expect(JSON.stringify(delivered)).not.toContain(token);
-		expect(JSON.stringify(delivered)).not.toContain('params:');
+		const sent = JSON.stringify(delivered);
+		expect(sent).not.toContain(token);
+		expect(sent).not.toContain('CANARY_REVIEW_TOKEN');
+		expect(sent).not.toContain('params:');
+		// Both errors still arrive, typed and with their real frames.
+		const values = delivered[0].exception!.values!;
+		expect(values.map((value) => value.type)).toEqual([error.name, 'PostgresError']);
+		expect(values[0].stacktrace?.frames?.length).toBeGreaterThan(0);
+		log.mockRestore();
+	});
+	it('refuses a query payload on any method but GET before the session lookup', async () => {
+		for (const method of ['HEAD', 'POST', 'PUT']) {
+			const response = await handle({
+				event: event(
+					'https://example.org/_app/remote/hash/getEvent?payload=AAAA',
+					null,
+					{},
+					{ method }
+				),
+				resolve: vi.fn()
+			});
+			expect(response.status).toBe(405);
+		}
+		expect(mocks.session).not.toHaveBeenCalled();
+		expect(mocks.handler).not.toHaveBeenCalled();
+	});
+	it('keeps the form body before Kit reads it, to tell its decoding failure from a callback fault', async () => {
+		mocks.handler.mockImplementation(({ event, resolve }) => resolve(event));
+		const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+		// A valid binary form header followed by data that is not JSON.
+		const body = Buffer.concat([Buffer.from([0, 1, 0, 0, 0, 0, 0]), Buffer.from('x')]);
+		const request = {
+			method: 'POST',
+			headers: { 'content-type': 'application/x-sveltekit-formdata' },
+			body
+		};
+		const url = 'https://example.org/_app/remote/hash/updateEvent';
+		const kitError = async (e: RequestEvent) => {
+			const error = await deserializeBinaryForm(e.request, 'hash/updateEvent').catch(
+				(error: unknown) => error
+			);
+			return handleError({ kind: 'unknown', error, event: e });
+		};
+
+		const malformed = event(url, null, {}, request);
+		let result: unknown;
+		await handle({
+			event: malformed,
+			resolve: async (e) => {
+				result = await kitError(e);
+				return new Response();
+			}
+		});
+		expect(result).toEqual({ status: 400, message: 'Bad Request' });
+		expect(mocks.capture).not.toHaveBeenCalled();
+
+		// Same request, but nothing kept a copy: the error is reported.
+		expect(await kitError(event(url, null, {}, request))).toHaveProperty('errorId');
+		expect(mocks.capture).toHaveBeenCalledOnce();
 		log.mockRestore();
 	});
 	it('rejects NUL paths before even looking up a session', async () => {

@@ -12,10 +12,9 @@ import { storedIdParam } from '#lib/server/validation';
 const ATTENDEE_PEEK_LIMIT = 4;
 
 export const load = (async ({ params, locals }) => {
-	const [event] = await db
-		.select()
-		.from(events)
-		.where(eq(events.id, storedIdParam(params.id)));
+	// Before the query builder exists, so a malformed id never reaches it.
+	const id = storedIdParam(params.id);
+	const [event] = await db.select().from(events).where(eq(events.id, id));
 	if (!event) error(404, 'Not found');
 
 	const [eventSchedules, attendeeCounts, userRsvp, namedAttendees] = await Promise.all([
