@@ -6,8 +6,8 @@
 #
 # host     app host to check (default events-dev.fluid-movement.de; after
 #          cutover events.freestyledisc.org)
-# --ports  also TCP connect-and-close on the six relevant ports, IPv4 and IPv6
-#          (opt-in: it is not an HTTP request)
+# --ports  also TCP connect-and-close on the relevant ports, IPv4 and IPv6
+#          (opt-in: it is not an HTTP request; Linux only, needs getent and timeout)
 #
 # Exit status is the number of FAIL lines. A header the code sets but the live
 # host lacks may just mean "not yet deployed"; read the FAIL lines with that in mind.
@@ -40,7 +40,8 @@ header_of() { grep -m1 "^$2:" <<<"$1" | sed "s/^$2: *//"; }
 expect_header() { # headers name expected-substring label
 	local v
 	v=$(header_of "$1" "$2")
-	if [[ -n "$v" && "$v" == *"$3"* ]]; then pass "$4: $2 contains '$3'"; else fail "$4: $2 expected '$3', got '${v:-<missing>}'"; fi
+	# fetch lower-cases whole header lines, so compare against the lower-cased expectation.
+	if [[ -n "$v" && "$v" == *"$(tr '[:upper:]' '[:lower:]' <<<"$3")"* ]]; then pass "$4: $2 contains '$3'"; else fail "$4: $2 expected '$3', got '${v:-<missing>}'"; fi
 }
 
 echo "== App: $HOST =="
