@@ -86,3 +86,80 @@ export async function postOverriding(
 	);
 	expect(found, `no ${remote} form on the page holds ${holding}`).toBe(true);
 }
+
+/** Keep Kit's generated action and field names when replaying under another identity. */
+export async function captureRemoteForm(page: Page, remote: string) {
+	const captured = await page.evaluate((remote) => {
+		const form = [...document.querySelectorAll('form')].find((form) =>
+			decodeURIComponent(form.action).endsWith(`/${remote}`)
+		);
+		if (!form) return null;
+		return {
+			action: form.action,
+			fields: Object.fromEntries(
+				[...new FormData(form)].map(([key, value]) => {
+					if (typeof value !== 'string') throw new Error('Expected a text-only form');
+					return [key, value];
+				})
+			)
+		};
+	}, remote);
+	expect(captured, `missing real ${remote} remote form`).not.toBeNull();
+	return captured!;
+}
+
+/** Native same-origin submission, without following a success/sign-in redirect. */
+export async function postRemoteForm(
+	page: Page,
+	captured: Awaited<ReturnType<typeof captureRemoteForm>>,
+	overrides: Record<string, string> = {},
+	origin = new URL(captured.action).origin
+) {
+	const fields = overrideRemoteFields(captured.fields, overrides);
+	const response = await page.request.post(captured.action, {
+		multipart: fields,
+		headers: { accept: 'text/html', origin },
+		maxRedirects: 0
+	});
+	await page.waitForLoadState('networkidle');
+	return response;
+}
+
+function overrideRemoteFields(original: Record<string, string>, overrides: Record<string, string>) {
+	const fields = { ...original };
+	for (const [field, value] of Object.entries(overrides)) {
+		const key = Object.keys(fields).find((key) => key.split('/')[0] === field);
+		expect(key, `missing encoded field ${field}`).toBeDefined();
+		fields[key!] = value;
+	}
+	return fields;
+}
+
+/**
+ * Invoke the endpoint used by enhanced forms. Native POSTs render layouts too,
+ * which can replace an authorization error with a layout's redirect. Keep the
+ * real form's generated ID and encoded fields, and supply its route context.
+ */
+export async function callRemoteForm(
+	page: Page,
+	captured: Awaited<ReturnType<typeof captureRemoteForm>>,
+	overrides: Record<string, string> = {}
+) {
+	const action = new URL(captured.action);
+	const remoteId = action.searchParams.get('/remote');
+	expect(remoteId, 'missing Kit remote form ID').toBeTruthy();
+	action.searchParams.delete('/remote');
+	const response = await page.request.post(`${action.origin}/_app/remote/${remoteId}`, {
+		multipart: overrideRemoteFields(captured.fields, overrides),
+		headers: {
+			origin: action.origin,
+			'x-sveltekit-pathname': action.pathname,
+			'x-sveltekit-search': action.search
+		},
+		maxRedirects: 0
+	});
+	await page.waitForLoadState('networkidle');
+	// Kit wraps handler errors in HTTP 200 with type:error and error.status.
+	expect(response.status()).toBe(200);
+	return response.json();
+}

@@ -36,7 +36,8 @@ export interface ScheduleItem {
 export interface Attendee {
 	id: number;
 	name: string;
-	email: string;
+	/** Only event owners and site admins receive attendee email addresses. */
+	email: string | null;
 	status?: string;
 	userId?: string;
 }

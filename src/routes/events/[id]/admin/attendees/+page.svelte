@@ -8,4 +8,4 @@
 	const attendees = $derived(data.attendees);
 </script>
 
-<AttendeeList {attendees} />
+<AttendeeList {attendees} showEmails={data.isOwner} />

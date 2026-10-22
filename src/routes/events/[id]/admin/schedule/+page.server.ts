@@ -2,6 +2,7 @@ import { db } from '#lib/server/db';
 import { events, schedules, eventLocations } from '#lib/server/db/schema';
 import { autocomplete } from '#lib/geocoding';
 import { sanitizeRichText } from '#lib/utils/html';
+import { requireEventManager, requireSignedIn } from '#lib/server/authz';
 import { eq } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 import { storedIdParam } from '#lib/server/validation';
@@ -14,14 +15,16 @@ import type { PageServerLoad } from './$types';
 const GEOCODE_TIMEOUT_MS = 2000;
 
 /**
- * Access is already guarded by the layout load.
+ * Guard this load independently: data requests can skip the layout load.
  *
  * The geocoding fallback below lives here rather than in the layout on purpose:
  * it is an uncached HTTP call to an external service, and only the venue picker
  * on this tab uses the coordinates. Previously it ran on every tab.
  */
-export const load = (async ({ params }) => {
+export const load = (async ({ params, locals }) => {
+	requireSignedIn(locals);
 	const id = storedIdParam(params.id);
+	await requireEventManager(id);
 
 	const [row] = await db
 		.select({ event: events, location: eventLocations })

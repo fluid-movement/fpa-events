@@ -1,0 +1,7 @@
+- 2026-10-21T09:33:15Z codex: Implemented, ready for check: Schedule leaf load now runs shared sign-in/manager guards before data or geocoding; two unit regressions pass and schedule-access.test.ts covers skipped layouts, with Playwright execution left to the orchestrator.
+
+- 2026-10-21T14:48:06Z codex: Validation: npm run check reports 0 errors/0 warnings; npx vp test run passes all 387 tests including both Schedule load regressions; changed-file ESLint/Prettier and prep check pass. The geocoding short-circuit is proved in the unit test; schedule-access.test.ts awaits the orchestrator browser run.
+
+- 2026-10-22T06:38:23Z codex: Implemented, ready for check: Follow-up to orchestrator failures 7-8 fixes schedule-access.test.ts to resolve the relative data redirect against its response URL and assert the exact same-origin sign-in destination, and check leaf error.status = 403 rather than a nonexistent node.status. No guard or no-data assertion weakened. npm run check: 0 errors/0 warnings; all 387 unit tests and changed-file ESLint/Prettier pass; prep check passes. Orchestrator must rerun the integration spec.
+
+- 2026-10-22T06:49:38Z claude-code: Check passed: load calls requireSignedIn + requireEventManager before any query/geocode; comment updated; unit test fails when either guard removed (mutation-checked, reverted); check and vp test run green (387). Leaf __data.json integration coverage in schedule-access.test.ts not run by me (orchestrator: passed).

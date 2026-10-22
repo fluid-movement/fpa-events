@@ -50,7 +50,8 @@
 					When you RSVP to an event we store your status. If you are attending, your name appears on
 					the event page, which anyone can see, including visitors who are not signed in. You can
 					turn this off under Settings → Privacy: you are then still counted, but not named. The
-					event's organizers always see who has signed up. Legal basis: Art. 6(1)(b).
+					event's organizers always see your name. Only the event owner and site admins can see your
+					email address in the manage area; co-organizers see names only. Legal basis: Art. 6(1)(b).
 				</p>
 			</div>
 

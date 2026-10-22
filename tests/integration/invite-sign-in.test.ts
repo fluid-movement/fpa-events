@@ -65,12 +65,19 @@ test.describe('signing in from an invite link', () => {
 		await page.waitForLoadState('networkidle');
 	}
 
-	test('lands back on the invite and makes the user a co-organizer', async ({ page }) => {
+	test('lands back on the invite and waits for acceptance before making the user a co-organizer', async ({
+		page
+	}) => {
 		await page.goto(`/invite/${token}`);
+		await page.waitForLoadState('networkidle');
 		await expect(page).toHaveURL(/\/sign-in\?redirect=/);
 
 		await signInThroughForm(page);
 
+		await expect(page).toHaveURL(`/invite/${token}`);
+		await expect.poll(() => getEventUserStatus(eventId, inviteeId)).toBeNull();
+		await page.getByTestId('accept-invite').click();
+		await page.waitForLoadState('networkidle');
 		await expect(page).toHaveURL(`/events/${eventId}`);
 		await expect.poll(() => getEventUserStatus(eventId, inviteeId)).toBe('organizing');
 	});

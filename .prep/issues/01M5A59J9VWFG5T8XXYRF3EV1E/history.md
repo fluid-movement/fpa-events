@@ -1,0 +1,5 @@
+- 2026-10-21T14:43:02Z codex: Implemented, ready for check: Manage-area queries select attendee emails only for owners/admins, co-organizer email columns are hidden, and both privacy disclosures follow the recorded user decision; privacy.test.ts checks HTML, serialized data and UI for owner/admin/co-organizer access with public attendance on and off. Orchestrator must run the integration spec outside the sandbox.
+
+- 2026-10-21T14:48:06Z codex: Validation: npm run check reports 0 errors/0 warnings; all 387 unit tests and changed-file ESLint/Prettier pass; prep check passes. Six privacy access cases use throwaway identities and assert raw serialized responses as well as UI for both public attendance settings. privacy.test.ts awaits the orchestrator browser run.
+
+- 2026-10-22T06:49:38Z claude-code: Check passed: only emitter of user.email is admin +layout.server.ts, now null unless isEventManager (owner or admin; co-organizers excluded); no email in other admin loads/remote queries; UI hides column; copy updated in privacy settings and policy; decision recorded; privacy.test.ts asserts serialized __data.json for owner/admin/co-organizer on attendees and invites.

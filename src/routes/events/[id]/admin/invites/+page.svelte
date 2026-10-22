@@ -12,4 +12,10 @@
 	const organizers = $derived(coOrganizers(data.attendees, event.userId));
 </script>
 
-<InviteSection eventId={event.id} {magicLink} {magicLinkUrl} {organizers} />
+<InviteSection
+	eventId={event.id}
+	{magicLink}
+	{magicLinkUrl}
+	{organizers}
+	showEmails={data.isOwner}
+/>

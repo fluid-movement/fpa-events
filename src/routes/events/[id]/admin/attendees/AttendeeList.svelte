@@ -6,16 +6,16 @@
 
 	interface Props {
 		attendees: Attendee[];
+		showEmails: boolean;
 	}
 
-	let { attendees }: Props = $props();
+	let { attendees, showEmails }: Props = $props();
 
-	const columns: DataColumn<Attendee>[] = [
+	const columns: DataColumn<Attendee>[] = $derived([
 		{ header: 'Name', value: (a) => a.name, slot: 'primary' },
-		// The layout load has always selected `user.email` for this list and
-		// nothing rendered it. Organizers need a way to contact who is coming —
-		// it is the one thing the manage area has that the public page must not.
-		{ header: 'Email', value: (a) => a.email, slot: 'subtitle' },
+		...(showEmails
+			? [{ header: 'Email', value: (a: Attendee) => a.email, slot: 'subtitle' as const }]
+			: []),
 		{
 			header: 'Status',
 			value: (a) => a.status,
@@ -24,7 +24,7 @@
 			cellClass: () => 'capitalize',
 			headerClass: 'w-32'
 		}
-	];
+	]);
 </script>
 
 <DataList rows={attendees} {columns} getKey={(a) => a.id}>

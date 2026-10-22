@@ -8,10 +8,14 @@ import {
 	deleteTestEvent,
 	eventExists,
 	getScheduleCount,
+	getEventName,
+	setOrganizing,
 	setUserRole,
 	closeDb
 } from './helpers/db';
-import { installErrorGuard } from './helpers/console';
+import { expectConsoleErrors, installErrorGuard } from './helpers/console';
+
+import { captureRemoteForm, callRemoteForm } from './helpers/forms';
 
 installErrorGuard(test);
 
@@ -25,33 +29,23 @@ async function signIn(page: Page, context: BrowserContext) {
 	await context.addCookies(state.cookies);
 }
 
-// SvelteKit form actions always return HTTP 200; failures are in the response body.
-// Use this to check the action's logical status.
-async function postAction(
-	page: Page,
-	url: string,
-	formData: Record<string, string> = {}
-): Promise<{ status: number; type: string }> {
-	const response = await page.request.post(url, { form: formData });
-	const body = await response.json().catch(() => ({}));
-	// On redirect (e.g. successful action), body may not be JSON
-	return { status: body.status ?? response.status(), type: body.type ?? 'unknown' };
-}
-
 test.describe('admin role — authorization', () => {
 	let userId: string;
 	let otherUserId: string;
 	let ownEventId: string;
 	let otherEventId: string;
 
-	test.beforeAll(async () => {
+	test.beforeEach(async () => {
 		userId = await getTestUserId(TEST_USER.email);
-		otherUserId = await createTestUser('other@playwright.local', 'Other Test User');
+		otherUserId = await createTestUser(
+			`other-${crypto.randomUUID()}@playwright.local`,
+			'Other Test User'
+		);
 		ownEventId = await createTestEvent(userId, { name: 'Auth Test - Own Event' });
 		otherEventId = await createTestEvent(otherUserId, { name: 'Auth Test - Other Event' });
 	});
 
-	test.afterAll(async () => {
+	test.afterEach(async () => {
 		await setUserRole(userId, 'user');
 		await deleteTestEvent(ownEventId);
 		await deleteTestEvent(otherEventId);
@@ -68,6 +62,7 @@ test.describe('admin role — authorization', () => {
 		await setUserRole(userId, 'user');
 		await signIn(page, context);
 		await page.goto(`/events/${otherEventId}/admin`);
+		await page.waitForLoadState('networkidle');
 		await expect(page).not.toHaveURL(/\/admin$/);
 	});
 
@@ -77,6 +72,7 @@ test.describe('admin role — authorization', () => {
 	}) => {
 		await context.clearCookies();
 		await page.goto(`/events/${otherEventId}/admin`);
+		await page.waitForLoadState('networkidle');
 		await expect(page).toHaveURL(/sign-in/);
 	});
 
@@ -87,6 +83,7 @@ test.describe('admin role — authorization', () => {
 		await setUserRole(userId, 'user');
 		await signIn(page, context);
 		await page.goto(`/events/${otherEventId}`);
+		await page.waitForLoadState('networkidle');
 		await expect(page.getByTestId('manage-event-link')).not.toBeVisible();
 	});
 
@@ -94,6 +91,7 @@ test.describe('admin role — authorization', () => {
 		await setUserRole(userId, 'admin');
 		await signIn(page, context);
 		await page.goto(`/events/${otherEventId}/admin`);
+		await page.waitForLoadState('networkidle');
 		await expect(page).toHaveURL(/\/admin$/);
 	});
 
@@ -101,6 +99,7 @@ test.describe('admin role — authorization', () => {
 		await setUserRole(userId, 'admin');
 		await signIn(page, context);
 		await page.goto(`/events/${otherEventId}`);
+		await page.waitForLoadState('networkidle');
 		// Edit and Manage were merged into a single entry point.
 		await expect(page.getByTestId('manage-event-link')).toBeVisible();
 		await expect(page.getByTestId('manage-event-link')).toHaveAttribute(
@@ -109,58 +108,82 @@ test.describe('admin role — authorization', () => {
 		);
 	});
 
-	// ─── Direct action POST bypass attempts ────────────────────────────────────
-	// Remote functions (form() from $app/server) return type "error" on thrown
-	// errors and 200 on success. We verify the response indicates failure AND
-	// that the DB was not mutated.
+	// Capture valid, owner-rendered forms before changing identity or target.
+	async function captureDelete(page: Page) {
+		await page.goto(`/events/${ownEventId}/admin`);
+		await page.waitForLoadState('networkidle');
+		return captureRemoteForm(page, 'deleteEvent');
+	}
 
-	test('non-admin non-owner gets error and event is not deleted', async ({ page, context }) => {
-		await setUserRole(userId, 'user');
-		await signIn(page, context);
+	async function captureSchedule(page: Page) {
+		await page.goto(`/events/${ownEventId}/admin/schedule`);
+		await page.waitForLoadState('networkidle');
+		await page.getByRole('button', { name: 'Add Schedule Item' }).click();
+		await page.locator('#schedule-name').fill('Injected Schedule');
+		await page.locator('button[aria-pressed]').first().click();
+		await page.locator('#schedule-start-time').fill('10:00');
+		await page.locator('#schedule-end-time').fill('12:00');
+		return captureRemoteForm(page, 'addSchedule');
+	}
 
-		const result = await postAction(page, `/events/${otherEventId}/admin?/deleteEvent`);
-		expect(result.type).not.toBe('success');
-		expect(await eventExists(otherEventId)).toBe(true);
+	test('non-admin non-owner gets error and event is not deleted', async ({ page }) => {
+		expectConsoleErrors(page);
+		const form = await captureDelete(page);
+		const result = await callRemoteForm(page, form, { eventId: otherEventId });
+		expect(result).toMatchObject({ type: 'error', error: { status: 403 } });
+		await expect.poll(() => eventExists(otherEventId)).toBe(true);
 	});
 
 	test('unauthenticated user gets error and event is not deleted', async ({ page, context }) => {
+		expectConsoleErrors(page);
+		const form = await captureDelete(page);
 		await context.clearCookies();
-
-		const result = await postAction(page, `/events/${otherEventId}/admin?/deleteEvent`);
-		expect(result.type).not.toBe('success');
-		expect(result.status).not.toBe(200);
-		expect(await eventExists(otherEventId)).toBe(true);
+		const result = await callRemoteForm(page, form);
+		expect(result).toMatchObject({ type: 'error', error: { status: 401 } });
+		await expect.poll(() => eventExists(ownEventId)).toBe(true);
 	});
 
-	test('non-admin non-owner gets error and schedule is not inserted', async ({ page, context }) => {
-		await setUserRole(userId, 'user');
-		await signIn(page, context);
-
-		const before = await getScheduleCount(otherEventId);
-		const result = await postAction(page, `/events/${otherEventId}/admin/schedule?/addSchedule`, {
-			name: 'Injected Schedule',
-			startDate: '2030-01-01T10:00',
-			endDate: '2030-01-01T12:00'
-		});
-		expect(result.type).not.toBe('success');
-		expect(await getScheduleCount(otherEventId)).toBe(before);
+	test('non-admin non-owner gets error and schedule is not inserted', async ({ page }) => {
+		expectConsoleErrors(page);
+		const form = await captureSchedule(page);
+		const result = await callRemoteForm(page, form, { eventId: otherEventId });
+		expect(result).toMatchObject({ type: 'error', error: { status: 403 } });
+		await expect.poll(() => getScheduleCount(otherEventId)).toBe(0);
 	});
 
 	test('unauthenticated user gets error and schedule is not inserted', async ({
 		page,
 		context
 	}) => {
+		expectConsoleErrors(page);
+		const form = await captureSchedule(page);
 		await context.clearCookies();
+		const result = await callRemoteForm(page, form);
+		expect(result).toMatchObject({ type: 'error', error: { status: 401 } });
+		await expect.poll(() => getScheduleCount(ownEventId)).toBe(0);
+	});
 
-		const before = await getScheduleCount(otherEventId);
-		const result = await postAction(page, `/events/${otherEventId}/admin/schedule?/addSchedule`, {
-			name: 'Injected Schedule',
-			startDate: '2030-01-01T10:00',
-			endDate: '2030-01-01T12:00'
-		});
-		expect(result.type).not.toBe('success');
-		expect(result.status).not.toBe(200);
-		expect(await getScheduleCount(otherEventId)).toBe(before);
+	test('a co-organizer cannot delete the event with a direct remote POST', async ({ page }) => {
+		expectConsoleErrors(page);
+		const form = await captureDelete(page);
+		await setOrganizing(otherEventId, userId);
+		const result = await callRemoteForm(page, form, { eventId: otherEventId });
+		expect(result).toMatchObject({ type: 'error', error: { status: 403 } });
+		await expect.poll(() => eventExists(otherEventId)).toBe(true);
+	});
+
+	test('the captured schedule payload succeeds for its owner', async ({ page }) => {
+		const form = await captureSchedule(page);
+		const result = await callRemoteForm(page, form);
+		expect(result.type).toBe('result');
+		await expect.poll(() => getScheduleCount(ownEventId)).toBe(1);
+	});
+
+	test('the captured delete payload succeeds for its owner', async ({ page }) => {
+		const form = await captureDelete(page);
+		const result = await callRemoteForm(page, form);
+		expect(result.type).toBe('result');
+		await expect.poll(() => eventExists(ownEventId)).toBe(false);
 	});
 
 	// ─── Role change takes immediate effect ────────────────────────────────────
@@ -173,6 +196,7 @@ test.describe('admin role — authorization', () => {
 
 		// Verify admin access works now
 		await page.goto(`/events/${otherEventId}/admin`);
+		await page.waitForLoadState('networkidle');
 		await expect(page).toHaveURL(/\/admin$/);
 
 		// Revoke admin in DB without re-logging in
@@ -180,6 +204,7 @@ test.describe('admin role — authorization', () => {
 
 		// The very next request must be denied
 		await page.goto(`/events/${otherEventId}/admin`);
+		await page.waitForLoadState('networkidle');
 		await expect(page).not.toHaveURL(/\/admin$/);
 	});
 
@@ -189,23 +214,23 @@ test.describe('admin role — authorization', () => {
 		page,
 		context
 	}) => {
+		expectConsoleErrors(page);
 		await setUserRole(userId, 'user');
 		await signIn(page, context);
 
 		// The manage area's load guard bounces a non-manager to the public event page.
 		await page.goto(`/events/${otherEventId}/admin/edit`);
+		await page.waitForLoadState('networkidle');
 		await expect(page).toHaveURL(`/events/${otherEventId}`);
 
-		// And the save action itself still rejects.
-		const result = await postAction(page, `/events/${otherEventId}/admin?/updateEvent`, {
-			name: 'Injected Name',
-			description: '',
-			startDate: '2030-01-01',
-			endDate: '2030-01-02',
-			location: 'Injected'
-		});
-		// updateEvent is a remote function, not a traditional action — 403 or error expected
-		expect(result.status).not.toBe(200);
+		// Capture the real edit form, then target the other event's route params.
+		await page.goto(`/events/${ownEventId}/admin/edit`);
+		await page.waitForLoadState('networkidle');
+		const form = await captureRemoteForm(page, 'updateEvent');
+		form.action = form.action.replace(ownEventId, otherEventId);
+		const result = await callRemoteForm(page, form, { name: 'Injected Name' });
+		expect(result).toMatchObject({ type: 'error', error: { status: 403 } });
+		await expect.poll(() => getEventName(otherEventId)).toBe('Auth Test - Other Event');
 	});
 
 	// ─── Edge cases ────────────────────────────────────────────────────────────
@@ -213,7 +238,9 @@ test.describe('admin role — authorization', () => {
 	test('admin accessing a non-existent event gets a not-found error', async ({ page, context }) => {
 		await setUserRole(userId, 'admin');
 		await signIn(page, context);
+		expectConsoleErrors(page);
 		await page.goto('/events/totally-fake-event-id-xyz/admin');
+		await page.waitForLoadState('networkidle');
 		await expect(page.getByText(/not found|404/i)).toBeVisible();
 	});
 
@@ -221,6 +248,7 @@ test.describe('admin role — authorization', () => {
 		await setUserRole(userId, 'admin');
 		await signIn(page, context);
 		await page.goto(`/events/${ownEventId}/admin`);
+		await page.waitForLoadState('networkidle');
 		await expect(page).toHaveURL(/\/admin$/);
 	});
 });

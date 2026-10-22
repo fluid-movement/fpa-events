@@ -1,6 +1,6 @@
 import { db } from '#lib/server/db';
 import { events, schedules, eventUser, user, eventMagicLinks } from '#lib/server/db/schema';
-import { count, eq } from 'drizzle-orm';
+import { count, eq, sql } from 'drizzle-orm';
 import { error, redirect } from '@sveltejs/kit';
 import { resolve } from '$app/paths';
 import { canManageEvent, isEventManager, requireSignedIn } from '#lib/server/authz';
@@ -39,7 +39,8 @@ export const load = (async ({ params, locals }) => {
 				status: eventUser.status,
 				userId: eventUser.userId,
 				name: user.name,
-				email: user.email
+				// Invite holders may see names, but only owners/admins receive addresses.
+				email: isOwner ? user.email : sql<null>`null`
 			})
 			.from(eventUser)
 			.innerJoin(user, eq(eventUser.userId, user.id))

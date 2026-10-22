@@ -18,18 +18,28 @@
 		magicLink: MagicLink | null;
 		magicLinkUrl: string | null;
 		organizers: Attendee[];
+		showEmails: boolean;
 	}
 
-	let { eventId, magicLink, magicLinkUrl, organizers }: Props = $props();
+	let { eventId, magicLink, magicLinkUrl, organizers, showEmails }: Props = $props();
 
 	const magicLinkExpired = $derived(
 		magicLink ? new Date(magicLink.expiresAt).getTime() < Date.now() : false
 	);
 
-	const columns: DataColumn<Attendee>[] = [
+	const columns: DataColumn<Attendee>[] = $derived([
 		{ header: 'Name', value: (o) => o.name, slot: 'primary' },
-		{ header: 'Email', value: (o) => o.email, slot: 'subtitle', muted: true }
-	];
+		...(showEmails
+			? [
+					{
+						header: 'Email',
+						value: (o: Attendee) => o.email,
+						slot: 'subtitle' as const,
+						muted: true
+					}
+				]
+			: [])
+	]);
 </script>
 
 <div class="max-w-lg space-y-8">

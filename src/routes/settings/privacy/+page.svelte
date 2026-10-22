@@ -27,7 +27,9 @@
 				<Label for="show-attendance" class="text-sm font-medium">Show my name on event pages</Label>
 				<p class="text-sm text-muted-foreground">
 					When this is off you're still counted as attending — you just appear in the “and N others”
-					total instead of by name. Event organizers can always see who has signed up.
+					total instead of by name. Event organizers can always see your name. Only the event owner
+					and site admins can see your email address in the manage area; co-organizers see names
+					only.
 				</p>
 			</div>
 			<!-- Take the new value from the callback argument and wait for the DOM to
