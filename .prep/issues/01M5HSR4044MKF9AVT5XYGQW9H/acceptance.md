@@ -1,0 +1,2 @@
+- [ ] A same-city, same-country, same-longitude, different-latitude event gets its own event_locations row; removing the latitude term from the match makes that test fail
+- [ ] A unit test of src/routes/dev/+layout.ts fails if the import.meta.env.DEV guard is removed

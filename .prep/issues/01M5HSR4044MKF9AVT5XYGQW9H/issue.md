@@ -1,0 +1,19 @@
+---
+title: Close two test gaps found in the security reviews
+kind: code
+parent: 01M57PY1QJJ0YFYZYQR93GCF0C
+tags:
+  - security
+priority: low
+---
+
+## Requirement
+
+Two regressions that reviewers showed no test catches (2026-10-22). Test-only; no app code changes.
+
+1. `findOrCreateEventLocation` (`src/lib/server/db/eventLocations.ts`) reuses a shared `event_locations` row only when city, country, latitude and longitude match (decision "Shared event locations are matched on city, country and coordinates"). Removing just the latitude term from the match still passes every test, because the existing planted-city case differs in longitude too. Add a case with the same city, country and longitude but a different latitude that must get its own row (integration spec `tests/integration/event-input-hardening.test.ts`, or a DB-backed test following its helpers).
+2. `src/routes/dev/+layout.ts` guards the dev-only pages with `import.meta.env.DEV`. No test covers it. Add a unit test of that `load` with DEV stubbed false (e.g. `vi.stubEnv('DEV', false)`) expecting a 404, and with DEV true expecting it to pass.
+
+## Acceptance
+
+## Open questions
