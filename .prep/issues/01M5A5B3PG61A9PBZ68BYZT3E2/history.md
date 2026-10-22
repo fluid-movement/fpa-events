@@ -1,0 +1,1 @@
+- 2026-10-22T09:13:40Z claude-code: Checked by the orchestrator: test-only diff, mutations per criterion reported (showAttendance filter, email in select, name in mail body/subject, trustedOrigins ['*'], options inlined); after rebase 841 unit and privacy.test.ts 15/15.
