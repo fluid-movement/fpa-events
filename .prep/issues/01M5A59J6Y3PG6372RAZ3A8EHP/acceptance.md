@@ -1,2 +1,2 @@
-- [ ] getPlayerProfile, getEventResults and getScoringResults no longer cost one fpa-api request per call for repeated ids (short in-process cache) and/or remote-query traffic has a per-IP limit
-- [ ] Unit test for the cache or limiter logic (hit, expiry, outage result not cached)
+- [x] getPlayerProfile, getEventResults and getScoringResults no longer cost one fpa-api request per call for repeated ids (short in-process cache) and/or remote-query traffic has a per-IP limit
+- [x] Unit test for the cache or limiter logic (hit, expiry, outage result not cached)
