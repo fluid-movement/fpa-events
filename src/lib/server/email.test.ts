@@ -1,19 +1,19 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 
-const mockCreate = vi.hoisted(() => vi.fn().mockResolvedValue({}));
+const mockCreate = vi.hoisted(() => vi.fn());
 
-// `email.ts` calls `new Mailgun(...)`, so the stand-in has to be constructible:
-// a `function`, not an arrow.
 vi.mock('mailgun.js', () => ({
-	default: vi.fn(function () {
-		return { client: vi.fn(() => ({ messages: { create: mockCreate } })) };
-	})
+	default: class {
+		client() {
+			return { messages: { create: mockCreate } };
+		}
+	}
 }));
 
 // Default env has no MAILGUN_API_KEY — uses console fallback
-import { sendPasswordResetEmail, sendVerificationEmail } from './email';
-import { getTemplate } from '#lib/email/templates';
 import { setEnv } from '../../test/mocks/app-env-private';
+import { sendEmail, sendPasswordResetEmail, sendVerificationEmail } from './email';
+import { getTemplate } from '#lib/email/templates';
 
 describe('sendPasswordResetEmail', () => {
 	beforeEach(() => {
@@ -54,6 +54,68 @@ describe('sendVerificationEmail', () => {
 		expect(calls).toContain('user@test.com');
 		expect(calls).toContain('Verify your FPA Events account');
 		expect(calls).toContain(url);
+	});
+});
+
+// Better Auth awaits `sendResetPassword` and `sendVerificationEmail`, and answers
+// the same way whether or not an address exists. A provider failure that reached
+// the response (or escaped as an unhandled rejection) would tell a caller which
+// addresses have accounts, or take the flow down.
+describe('when the mail provider rejects', () => {
+	const unhandled = vi.fn();
+
+	beforeEach(() => {
+		setEnv({ MAILGUN_API_KEY: 'synthetic-key', MAILGUN_DOMAIN: 'mg.example.test' });
+		mockCreate.mockReset().mockRejectedValue(new Error('mailgun 503'));
+		vi.spyOn(console, 'error').mockImplementation(() => {});
+		vi.spyOn(console, 'log').mockImplementation(() => {});
+		process.on('unhandledRejection', unhandled);
+	});
+
+	afterEach(() => {
+		process.off('unhandledRejection', unhandled);
+		unhandled.mockReset();
+		setEnv({ MAILGUN_API_KEY: undefined, MAILGUN_DOMAIN: undefined });
+		vi.restoreAllMocks();
+	});
+
+	/** Long enough for a rejected promise to be reported as unhandled. */
+	const flush = () => new Promise((resolve) => setTimeout(resolve, 20));
+
+	it.each([
+		['reset', sendPasswordResetEmail],
+		['verification', sendVerificationEmail]
+	])('the %s callback returns at once and swallows the failure', (_name, send) => {
+		const url = 'https://events.example.test/api/auth/verify-email?token=abc';
+		// Never settles: the callback must not wait for the provider at all.
+		mockCreate.mockReturnValue(new Promise(() => {}));
+
+		const result = send({ user: { email: 'user@test.com' }, url });
+
+		expect(result).toBeUndefined();
+		expect(mockCreate).toHaveBeenCalledOnce();
+	});
+
+	it.each([
+		['reset', sendPasswordResetEmail],
+		['verification', sendVerificationEmail]
+	])('the %s callback logs a rejected send without an unhandled rejection', async (_name, send) => {
+		send({ user: { email: 'user@test.com' }, url: 'https://events.example.test/x?token=abc' });
+		await flush();
+
+		expect(mockCreate).toHaveBeenCalledOnce();
+		expect(console.error).toHaveBeenCalledWith(
+			expect.stringContaining('[email] Failed to send'),
+			expect.any(Error)
+		);
+		expect(unhandled).not.toHaveBeenCalled();
+	});
+
+	it('sendEmail resolves rather than throws', async () => {
+		await expect(
+			sendEmail({ to: 'user@test.com', subject: 'Hi', html: '<p>hi</p>' })
+		).resolves.toBeUndefined();
+		expect(mockCreate).toHaveBeenCalledOnce();
 	});
 });
 
