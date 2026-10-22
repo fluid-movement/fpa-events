@@ -1,0 +1,1 @@
+- 2026-10-22T07:38:22Z claude-code: Implemented, ready for check: coordinates validated (finite, in range), city/country bounded, shared rows keyed by coordinates too so first writer cannot pin a city (chose per-coordinate rows, no schema change), map skips non-finite.

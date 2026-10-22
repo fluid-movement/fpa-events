@@ -1,0 +1,1 @@
+- 2026-10-22T07:38:22Z claude-code: Implemented, ready for check: create/update store sanitizeRichText(description); read-side sanitizing kept.

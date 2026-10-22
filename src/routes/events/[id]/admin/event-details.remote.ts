@@ -66,7 +66,8 @@ export const updateEvent = form(eventFormSchema, async (data) => {
 			.update(events)
 			.set({
 				name: data.name,
-				description: data.description,
+				// Sanitized on write; see createEvent.
+				description: sanitizeRichText(data.description),
 				startDate: new Date(data.startDate),
 				endDate: new Date(data.endDate),
 				location: data.location,

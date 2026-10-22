@@ -1,1 +1,3 @@
 - 2026-10-22T06:45:19Z claude-code: From the error-handling review 2026-10-22: Better Auth's own updateUser endpoint accepts a NUL-bearing name and reaches the DB adapter; the NUL check in settings/profile/data.remote.ts only covers the wrapper. Enforce validation at the auth API boundary (e.g. a Better Auth before-hook on update-user and sign-up) and test direct requests.
+
+- 2026-10-22T07:38:22Z claude-code: Implemented, ready for check: Better Auth user create/update before-hooks drop image (chosen: no avatar feature) and refuse non-string/over-long/control-char names; profile form shares the schema.

@@ -1,0 +1,1 @@
+`createEvent` (`src/routes/events/create/data.remote.ts`) and `updateEvent` (`src/routes/events/[id]/admin/event-details.remote.ts`) store `sanitizeRichText(description)`; read-side sanitizing is unchanged. Existing raw rows stay protected by the read-side sanitizing. Integration tests in `tests/integration/event-input-hardening.test.ts`.

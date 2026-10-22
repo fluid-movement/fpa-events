@@ -25,7 +25,10 @@
 	let mapContainer: HTMLDivElement | null = $state(null);
 
 	const locatedEvents = $derived(
-		events.filter((e): e is LocatedEvent => e.latitude != null && e.longitude != null)
+		events.filter(
+			// Finite, not just non-null: one NaN row would make Leaflet throw and blank the map.
+			(e): e is LocatedEvent => Number.isFinite(e.latitude) && Number.isFinite(e.longitude)
+		)
 	);
 	const hasLocatedEvents = $derived(locatedEvents.length > 0);
 

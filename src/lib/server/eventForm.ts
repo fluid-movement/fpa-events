@@ -16,6 +16,27 @@ import { withPictureLock, type PictureTransaction } from '#lib/server/picture-st
  * fields are filled in by `EventLocationInput` only when a geocoding suggestion
  * was picked, so they are all optional and only honoured as a complete set.
  */
+/**
+ * A geocoder coordinate as `EventLocationInput` posts it: blank (no pick) or a
+ * plain finite decimal within `limit`. `parseFloat` alone accepts `NaN`,
+ * `Infinity` and `1e999`, all of which Postgres `real` stores and Leaflet
+ * then throws on.
+ */
+const coordinate = (limit: number) =>
+	v.optional(
+		v.pipe(
+			text,
+			v.check(
+				(value) =>
+					value === '' ||
+					(/^-?\d+(\.\d+)?$/.test(value) &&
+						Number.isFinite(Number(value)) &&
+						Math.abs(Number(value)) <= limit),
+				'Invalid coordinates.'
+			)
+		)
+	);
+
 export const eventFormSchema = v.pipe(
 	v.object({
 		name: v.pipe(text, v.minLength(1), v.maxLength(100)),
@@ -23,10 +44,10 @@ export const eventFormSchema = v.pipe(
 		startDate: calendarDate,
 		endDate: calendarDate,
 		location: text,
-		city: v.optional(text),
-		country: v.optional(text),
-		latitude: v.optional(text),
-		longitude: v.optional(text),
+		city: v.optional(v.pipe(text, v.maxLength(100))),
+		country: v.optional(v.pipe(text, v.maxLength(100))),
+		latitude: coordinate(90),
+		longitude: coordinate(180),
 		picture: v.optional(text),
 		pictureWidth: pictureDimension,
 		pictureHeight: pictureDimension,

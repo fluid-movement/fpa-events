@@ -6,6 +6,7 @@ import { withPictureLock } from '#lib/server/picture-storage';
 import { events, eventUser } from '#lib/server/db/schema';
 import { eventFormSchema, parsePictureFields, resolveEventLocationId } from '#lib/server/eventForm';
 import { requireSignedInRequest } from '#lib/server/authz';
+import { sanitizeRichText } from '#lib/utils/html';
 import { requireTurnstile } from '#lib/server/turnstile';
 
 const NO_PICTURE = { picture: null, pictureWidth: null, pictureHeight: null };
@@ -22,7 +23,9 @@ export const createEvent = form(eventFormSchema, async (data) => {
 			id: eventId,
 			userId: signedIn.id,
 			name: data.name,
-			description: data.description,
+			// Sanitized on write too (schedule items do the same): the render sites stay
+			// the last line of defence, but listings ship this column to the browser raw.
+			description: sanitizeRichText(data.description),
 			startDate: new Date(data.startDate),
 			endDate: new Date(data.endDate),
 			location: data.location,

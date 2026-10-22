@@ -4,6 +4,7 @@ import { captcha } from 'better-auth/plugins';
 import { db } from '#lib/server/db';
 import { BETTER_AUTH_SECRET, BETTER_AUTH_URL, TURNSTILE_SECRET_KEY } from '$app/env/private';
 import { sendPasswordResetEmail, sendVerificationEmail } from './email';
+import { guardUserWrite } from './userInput';
 import { hashPassword, verifyPassword } from './password';
 import { logLibraryMessage } from './errors';
 
@@ -51,6 +52,12 @@ export const auth = betterAuth({
 	// Redacted like our own error log: a failed query's message names its params.
 	logger: {
 		log: (level, message, ...args) => logLibraryMessage('better-auth', level, message, ...args)
+	},
+	databaseHooks: {
+		user: {
+			create: { before: async (user) => guardUserWrite(user, { requireName: true }) },
+			update: { before: async (data) => guardUserWrite(data, { requireName: false }) }
+		}
 	},
 	secret: BETTER_AUTH_SECRET,
 	baseURL: BETTER_AUTH_URL,

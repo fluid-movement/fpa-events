@@ -230,3 +230,45 @@ describe('picture dimension validation', () => {
 		}
 	);
 });
+
+describe('eventFormSchema location fields', () => {
+	const form = (fields: Record<string, string>) => ({
+		name: 'Jam',
+		description: '',
+		location: 'Berlin',
+		startDate: '2026-10-14',
+		endDate: '2026-10-17',
+		...fields
+	});
+	const ok = (fields: Record<string, string>) => v.safeParse(eventFormSchema, form(fields)).success;
+
+	it.each([
+		['blank', '', ''],
+		['ordinary', '52.52', '13.405'],
+		['negative', '-33.87', '-151.2'],
+		['the limits', '90', '-180']
+	])('accepts %s coordinates', (_label, latitude, longitude) => {
+		expect(ok({ latitude, longitude })).toBe(true);
+	});
+
+	it.each([
+		['NaN', 'NaN', '10'],
+		['Infinity', 'Infinity', '10'],
+		['-Infinity', '10', '-Infinity'],
+		['an overflowing exponent', '1e999', '10'],
+		['a real-column overflow', '1e100', '10'],
+		['a huge plain number', '1'.padEnd(101, '0'), '10'],
+		['a latitude over 90', '90.01', '10'],
+		['a longitude under -180', '10', '-180.5'],
+		['hex', '0x10', '10'],
+		['trailing text', '10abc', '10']
+	])('rejects %s', (_label, latitude, longitude) => {
+		expect(ok({ latitude, longitude })).toBe(false);
+	});
+
+	it('limits city and country length', () => {
+		expect(ok({ city: 'x'.repeat(100), country: 'y'.repeat(100) })).toBe(true);
+		expect(ok({ city: 'x'.repeat(101) })).toBe(false);
+		expect(ok({ country: 'y'.repeat(101) })).toBe(false);
+	});
+});

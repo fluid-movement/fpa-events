@@ -74,6 +74,22 @@ export async function getUserName(email: string): Promise<string | null> {
 	return rows[0]?.name ?? null;
 }
 
+export async function getUserImage(email: string): Promise<string | null> {
+	const rows = await sql()<[{ image: string | null }]>`
+		SELECT image FROM "user" WHERE email = ${email} LIMIT 1
+	`;
+	return rows[0]?.image ?? null;
+}
+
+export async function userExists(email: string): Promise<boolean> {
+	const rows = await sql()`SELECT 1 FROM "user" WHERE email = ${email} LIMIT 1`;
+	return rows.length > 0;
+}
+
+export async function deleteUserByEmail(email: string): Promise<void> {
+	await sql()`DELETE FROM "user" WHERE email = ${email}`;
+}
+
 export async function getSessionIds(email: string): Promise<string[]> {
 	const rows = await sql()<{ id: string }[]>`
 		SELECT s.id FROM session s JOIN "user" u ON u.id = s.user_id
@@ -113,6 +129,56 @@ export async function getEventIdByName(name: string): Promise<string | null> {
 /** Cleanup for UI-created events — safe to call when nothing was created. */
 export async function deleteEventsByName(name: string): Promise<void> {
 	await sql()`DELETE FROM events WHERE name = ${name}`;
+}
+
+export async function getEventDescription(eventId: string): Promise<string | null> {
+	const rows = await sql()<[{ description: string }]>`
+		SELECT description FROM events WHERE id = ${eventId} LIMIT 1
+	`;
+	return rows[0]?.description ?? null;
+}
+
+/** The shared city row an event points at, or null when it has none. */
+export async function getEventLocation(
+	eventId: string
+): Promise<{ id: number; latitude: number; longitude: number } | null> {
+	const rows = await sql()<[{ id: number; latitude: number; longitude: number }]>`
+		SELECT l.id, l.latitude, l.longitude FROM events e
+		JOIN event_locations l ON l.id = e.event_location_id
+		WHERE e.id = ${eventId} LIMIT 1
+	`;
+	return rows[0] ?? null;
+}
+
+export async function countEventLocations(country: string): Promise<number> {
+	const rows = await sql()<[{ n: number }]>`
+		SELECT count(*)::int AS n FROM event_locations WHERE country = ${country}
+	`;
+	return rows[0].n;
+}
+
+/** Inserts straight into the table, so a test can plant rows the app would now refuse. */
+export async function insertEventLocation(
+	city: string,
+	country: string,
+	latitude: number | 'NaN',
+	longitude: number | 'NaN'
+): Promise<number> {
+	const rows = await sql()<[{ id: number }]>`
+		INSERT INTO event_locations (city, country, latitude, longitude)
+		VALUES (${city}, ${country}, ${String(latitude)}::real, ${String(longitude)}::real)
+		RETURNING id
+	`;
+	return rows[0].id;
+}
+
+export async function pointEventAtLocation(eventId: string, locationId: number): Promise<void> {
+	await sql()`UPDATE events SET event_location_id = ${locationId} WHERE id = ${eventId}`;
+}
+
+/** Removes a spec's location rows; the events' FK is ON DELETE SET NULL. */
+export async function deleteEventLocations(country: string): Promise<void> {
+	await sql()`DELETE FROM event_locations WHERE country = ${country}`;
 }
 
 export async function setAttending(eventId: string, userId: string): Promise<void> {
