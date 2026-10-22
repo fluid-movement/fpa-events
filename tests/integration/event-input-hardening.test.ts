@@ -115,6 +115,26 @@ test.describe('event form input hardening', () => {
 		expect(await countEventLocations(COUNTRY)).toBe(2);
 	});
 
+	test('the same city, country and longitude at another latitude gets its own row', async ({
+		page
+	}) => {
+		// Only latitude differs, so a match that ignored latitude would reuse the planted row.
+		const planted = await insertEventLocation('Latville', COUNTRY, 40, 2.35);
+		const id = await ownEvent();
+		await submitEdit(page, id, {
+			city: 'Latville',
+			country: COUNTRY,
+			latitude: '48.85',
+			longitude: '2.35'
+		});
+
+		await expect.poll(() => getEventLocation(id)).not.toBeNull();
+		const location = await getEventLocation(id);
+		expect(location!.id).not.toBe(planted);
+		expect(location!.latitude).toBeCloseTo(48.85, 2);
+		expect(await countEventLocations(COUNTRY)).toBe(2);
+	});
+
 	test('the same city at the same coordinates shares one row', async ({ page }) => {
 		const first = await ownEvent();
 		const second = await ownEvent();
