@@ -3,3 +3,5 @@
 - 2026-10-22T08:22:04Z claude-code: Check passed (code side): .dockerignore excludes .prep/.agents/tools/tests/env; keeps src+migrations, package*.json, drizzle.config.ts, build config; build passes. tools/ exclusion does not break cutover: tools/migrate/README runbook builds a separate credential-free image from tools/migrate (own Dockerfile/.dockerignore) via docker on host and forbids running in the app container; note cutover issue 01M4B48HENZTKHQ88QZ83E0EBH text still says app container Coolify terminal and is stale. Pending owner: nixpacks/Coolify honoring .dockerignore and start-command change, only verifiable on a deploy.
 
 - 2026-10-22T08:54:44Z claude-code: Root .dockerignore merged in 6ea6bc8. Owner after the next deploy: in the container shell check that /app/.prep, /app/tests and /app/tools are absent and that npm run db:migrate ran; that checks criterion 1.
+
+- 2026-10-22T13:36:22Z claude-code: Deploy 8243b04 (2026-10-22): container log shows 'npm run db:migrate' -> migrations applied successfully, then 'Listening on http://0.0.0.0:3000'. Still to check by the owner in the container terminal: /app/.prep, /app/tests, /app/tools absent.
