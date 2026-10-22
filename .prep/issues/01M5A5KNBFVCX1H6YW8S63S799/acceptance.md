@@ -1,2 +1,2 @@
-- [ ] createEvent and updateEvent store sanitizeRichText(description), as the schedule forms do; read-side sanitizing stays
-- [ ] Integration test: submitting the create form with a description containing a script tag and an event-handler attribute stores a sanitized description (expect.poll on the row)
+- [x] createEvent and updateEvent store sanitizeRichText(description), as the schedule forms do; read-side sanitizing stays
+- [x] Integration test: submitting the create form with a description containing a script tag and an event-handler attribute stores a sanitized description (expect.poll on the row)
