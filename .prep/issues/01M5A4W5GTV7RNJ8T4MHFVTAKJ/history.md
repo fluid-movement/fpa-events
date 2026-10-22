@@ -1,1 +1,3 @@
 - 2026-10-22T08:54:12Z claude-code: Implemented, ready for check: remote-guards registry unit test, authz-lockin integration spec and two leaf-only redirect tests, each mutation-checked; criterion 1 already covered by authz.test.ts.
+
+- 2026-10-22T08:56:10Z claude-code: Check passed: ran npm run check (0 errors) and vp test run (742 pass); re-ran 3 mutations (drop requireEventOwner in deleteEvent, drop requireSignedInRequest in privacy, add unlisted export) - each failed the registry test, reverted, tree clean. Criterion 1 already met by authz.test.ts describe.each; 2-4 covered by authz-lockin and schedule-access tests (not run, orchestrator runs Playwright). Dev-route build test not a criterion (issue says none asked).
