@@ -1,5 +1,5 @@
-- [ ] Unit tests for requireEventManager and requireEventOwner in src/lib/server/authz.test.ts (401 / 404 / 403 / allowed for owner, admin, co-organizer) — shared with 01M5A4TE7KPBQEDTVNCYXKX1GN, do not duplicate
-- [ ] Integration: a signed-in non-manager submitting updateEvent, regenerateLink and createEventLocation for another user's event is refused and the event, its magic link and its venues are unchanged (expect.poll)
-- [ ] Integration: an anonymous direct submit of createEvent creates no event, and an anonymous POST to /api/events/upload-image is 401
-- [ ] Integration: a leaf-only data request (x-sveltekit-invalidated) for a self-guarded page (organizing or settings/profile) is still redirected to sign-in, next to the schedule regression of 01M5A4T2FTPAV4Y429PTTQZKJ7
-- [ ] Every vector in the list whose test is named as existing still has that test; the rest are covered by the tests above or by 01M5A4T2FTPAV4Y429PTTQZKJ7 / 01M5A4TMS5RCVCN77GMG8HNH5V
+- [x] Unit tests for requireEventManager and requireEventOwner in src/lib/server/authz.test.ts (401 / 404 / 403 / allowed for owner, admin, co-organizer) — shared with 01M5A4TE7KPBQEDTVNCYXKX1GN, do not duplicate
+- [x] Integration: a signed-in non-manager submitting updateEvent, regenerateLink and createEventLocation for another user's event is refused and the event, its magic link and its venues are unchanged (expect.poll)
+- [x] Integration: an anonymous direct submit of createEvent creates no event, and an anonymous POST to /api/events/upload-image is 401
+- [x] Integration: a leaf-only data request (x-sveltekit-invalidated) for a self-guarded page (organizing or settings/profile) is still redirected to sign-in, next to the schedule regression of 01M5A4T2FTPAV4Y429PTTQZKJ7
+- [x] Every vector in the list whose test is named as existing still has that test; the rest are covered by the tests above or by 01M5A4T2FTPAV4Y429PTTQZKJ7 / 01M5A4TMS5RCVCN77GMG8HNH5V
