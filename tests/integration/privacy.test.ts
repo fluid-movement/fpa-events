@@ -214,3 +214,68 @@ test.describe('manage-area attendee email privacy', () => {
 	}
 	test.afterAll(closeDb);
 });
+
+// The public page's UI hides opted-out attendees (above); this checks what the
+// server actually sends. A load that selected one column too many would leak it
+// to every visitor while the rendered page looked exactly the same.
+test.describe('public event page serialized data', () => {
+	const suffix = crypto.randomUUID();
+	const ownerEmail = `public-owner-${suffix}@playwright.local`;
+	const shownEmail = `public-shown-${suffix}@playwright.local`;
+	const hiddenEmail = `public-hidden-${suffix}@playwright.local`;
+	const hiddenName = `Hidden Attendee ${suffix.slice(0, 8)}`;
+	const shownName = `Shown Attendee ${suffix.slice(0, 8)}`;
+	const ids: string[] = [];
+	let publicEventId: string;
+
+	test.beforeAll(async () => {
+		// The signed-in viewer is the shared test user: neither admin nor on the event.
+		await setUserRole(await getTestUserId(TEST_USER.email), 'user');
+		const ownerId = await createTestUser(ownerEmail, 'Public Owner');
+		const shownId = await createTestUser(shownEmail, shownName);
+		const hiddenId = await createTestUser(hiddenEmail, hiddenName);
+		ids.push(ownerId, shownId, hiddenId);
+		publicEventId = await createTestEvent(ownerId, { name: 'Public Data Event' });
+		await setAttending(publicEventId, shownId);
+		await setAttending(publicEventId, hiddenId);
+		await setShowAttendance(shownId, true);
+		await setShowAttendance(hiddenId, false);
+	});
+
+	test.afterAll(async () => {
+		if (publicEventId) await deleteTestEvent(publicEventId);
+		for (const id of ids) await deleteTestUser(id);
+		await closeDb();
+	});
+
+	for (const viewer of ['signed-out', 'signed-in non-manager'] as const) {
+		test(`${viewer}: no opted-out name and no attendee email reach the browser`, async ({
+			page,
+			context
+		}) => {
+			if (viewer === 'signed-out') await context.clearCookies();
+			else await signIn(page, context);
+
+			const path = `/events/${publicEventId}`;
+			const response = await page.goto(path);
+			await page.waitForLoadState('networkidle');
+			expect(response?.status()).toBe(200);
+			const html = await response!.text();
+
+			const dataResponse = await page.request.get(`${path}/__data.json`);
+			expect(dataResponse.status()).toBe(200);
+			const data = await dataResponse.text();
+
+			for (const serialized of [html, data]) {
+				// Control: the attendee list did come through, so the absences below mean something.
+				expect(serialized).toContain(shownName);
+				expect(serialized).not.toContain(hiddenName);
+				for (const email of [ownerEmail, shownEmail, hiddenEmail]) {
+					expect(serialized).not.toContain(email);
+				}
+				// No address of any kind — not just the ones this test created.
+				expect(serialized).not.toMatch(/@playwright\.local/);
+			}
+		});
+	}
+});
