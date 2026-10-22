@@ -75,3 +75,24 @@ test('the owner still receives the leaf data', async ({ page }) => {
 		await deleteTestEvent(ownedId);
 	}
 });
+
+// The pages below guard themselves instead of leaning on a layout, so a request
+// that skips every layout must still be turned away. One flag per node: root
+// layout, then any intermediate layout, then the leaf.
+for (const [path, invalidated] of [
+	['/organizing', '01'],
+	['/settings/profile', '001']
+] as const) {
+	test(`anonymous leaf-only request for ${path} redirects to sign-in`, async ({
+		page,
+		context
+	}) => {
+		await context.clearCookies();
+		const response = await page.request.get(
+			`${path}/__data.json?x-sveltekit-invalidated=${invalidated}`
+		);
+		const data = JSON.parse(await response.text());
+		expect(data.type).toBe('redirect');
+		expect(new URL(data.location, response.url()).pathname).toBe('/sign-in');
+	});
+}

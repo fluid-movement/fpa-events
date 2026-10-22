@@ -1,0 +1,1 @@
+- 2026-10-22T08:54:12Z claude-code: Implemented, ready for check: remote-guards registry unit test, authz-lockin integration spec and two leaf-only redirect tests, each mutation-checked; criterion 1 already covered by authz.test.ts.
