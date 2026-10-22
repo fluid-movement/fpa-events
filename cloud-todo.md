@@ -48,10 +48,10 @@ the Status section as you go. The orchestrator removes this file before merging.
 
 ## Acceptance criteria (from the issue)
 
-- [ ] 1. Integration (`privacy.test.ts`): the public event page's serialized data contains neither an opted-out attendee's name nor any attendee email, for a signed-out and a signed-in non-manager view
-- [ ] 2. Unit (`src/lib/server/email.test.ts`): verification and reset messages carry only the URL — a user name containing markup appears in neither subject nor body
-- [ ] 3. `svelte-options.js` keeps Kit's csrf origin check on (no `csrf.checkOrigin: false`), pinned by a test; the cross-site remote/upload 403s were verified on a production build and are re-checked by hand after a Kit upgrade (write the repeatable manual check as a short section in the Status below)
-- [ ] 4. Every vector whose test is named as existing still has that test; none are removed
+- [x] 1. Integration (`privacy.test.ts`): the public event page's serialized data contains neither an opted-out attendee's name nor any attendee email, for a signed-out and a signed-in non-manager view
+- [x] 2. Unit (`src/lib/server/email.test.ts`): verification and reset messages carry only the URL — a user name containing markup appears in neither subject nor body
+- [x] 3. `svelte-options.js` keeps Kit's csrf origin check on (no `csrf.checkOrigin: false`), pinned by a test; the cross-site remote/upload 403s were verified on a production build and are re-checked by hand after a Kit upgrade (write the repeatable manual check as a short section in the Status below)
+- [x] 4. Every vector whose test is named as existing still has that test; none are removed
 
 ## Full audit text (for reference)
 
@@ -102,8 +102,56 @@ Important for anyone re-checking: SvelteKit 3 skips both Origin checks when `__S
 ## Status (fill in)
 
 - Done:
+  - Criterion 1: `tests/integration/privacy.test.ts` has a new describe, "public event page serialized data", with
+    two tests: one signed out, one signed in as the shared test user (role `user`, no seat on the event). The event
+    is owned by a throwaway user and has one opted-in and one opted-out attendee. The page HTML and
+    `/events/<id>/__data.json` must both contain the opted-in name (a control). Neither may contain the opted-out
+    name, the owner's or attendees' emails, or any `@playwright.local` address. The manage-area cases are untouched.
+  - Criterion 2: `src/lib/server/email.test.ts` has a new describe, "auth messages carry only the URL". Mailgun is
+    configured through `setEnv`. `sendVerificationEmail` and `sendPasswordResetEmail` each receive a full user row
+    with markup in `name` and `image`. The captured message must be exactly
+    `{ to, subject: template.subject, html: template.render(url) }`, and neither subject nor body may contain the
+    markup. The existing `mailgun.js` mock was an arrow function, which `new Mailgun(...)` cannot construct, so it
+    is now a `function` (using `vi.hoisted`). The two existing tests are unchanged.
+  - Criterion 3: `src/svelte-options.test.ts` checks three things: `csrf` has no `checkOrigin`;
+    `csrf.trustedOrigins` is absent or empty; `vite.config.ts` still imports `./svelte-options.js` and calls
+    `sveltekit(svelteOptions)`. Note: Kit 3.0.0 removed `csrf.checkOrigin` and throws at config load if the key is
+    present. The check is now opened with `trustedOrigins: ['*']` (or a foreign origin), and the second assertion
+    catches that.
+  - Criterion 4: every existing test named in the audit is still present: privacy x3 (the manage-area one is now
+    called "the owner still sees opted-out attendees and their emails in the manage area"), calendar-feed x2,
+    auth-email re-registration, rsvp, organizing, turnstile, upload-image server, upload-limit, fpa-api cache and
+    remote-guards. None were removed. The only deleted lines in the diff are the rewritten mailgun mock.
 - Mutation checks (defense removed → test that failed):
-- Integration specs not run (environment):
-- Check results (`npm run check`, `npx vp test run` counts):
-- Manual Kit-upgrade check (criterion 3):
-- Blocked:
+  - In `events/[id]/+page.server.ts`, `eq(user.showAttendance, true)` changed to
+    `eq(user.showAttendance, user.showAttendance)`: both new privacy tests failed on `not.toContain(hiddenName)`.
+  - Same load, attendee select plus `email: user.email`: both new privacy tests failed on `not.toContain(email)`.
+  - In `email.ts`, `sendTemplate` prepends `<p>Hi ${user.name}</p>` to the body: both new email tests failed.
+  - In `email.ts`, the subject changed to `${template.subject} ${to}`: both new email tests failed.
+  - `svelte-options.js` plus `csrf: { trustedOrigins: ['*'] }`: "trusts no other origin" failed.
+  - In `vite.config.ts`, `sveltekit({ ...svelteOptions, csrf: { trustedOrigins: ['*'] } })`: "is the config Kit
+    actually gets" failed.
+  - `svelte-options.js` plus `csrf: { checkOrigin: false }`: the whole Vitest run fails at startup, because Kit 3
+    throws `config_option_removed_check_origin`.
+  - Every mutation was reverted. `git diff` against the branch base shows only test files and this file.
+- Integration specs not run (environment): none. `tests/integration/privacy.test.ts` ran in full (15 passed) on the
+  local shared test DB, through the orchestrator's lock wrapper (`itest-locked.sh`). The mutation runs used
+  `-g "public event page serialized" --retries=0`. No DB reset, `createdb` or `playwright install` was run.
+- Check results: `npm ci` ok. `npm run check`: 3918 files, 0 errors, 0 warnings. `npx vp test run`: 59 files,
+  819 tests passed. `npx eslint` and `npx prettier --check` on the three changed test files: clean.
+- Manual Kit-upgrade check (criterion 3). Run this after any `@sveltejs/kit` bump:
+  1. Run `npm run build && PORT=4999 node build`. The dev DB env is fine, and `ORIGIN` is not needed: adapter-node
+     takes the origin from Host, with protocol `https`. A build is required because the origin checks are skipped
+     under `vite dev` and `dev:test`.
+  2. Remote call: get the hashed id of `toggleRsvp` from the built client (or from devtools on `/events/<id>`).
+     POST to `/_app/remote/<id>` three times: with `-H 'Origin: https://evil.example'`, with `Origin: null`, and
+     with no Origin. Each must return 403 "Cross-site remote requests are forbidden". Then send a same-origin
+     control (`Origin: https://localhost:4999`, `Host: localhost:4999`). It must reach the handler (an auth error
+     or 200, not that 403).
+  3. Upload: send
+     `curl -i -X POST http://localhost:4999/api/events/upload-image -H 'Origin: https://evil.example' -F file=@x.png`,
+     then the same request with `-H 'Content-Type: text/plain' --data x`. Both must return 403 "Cross-site POST form
+     submissions are forbidden". The same-origin control must return 401 (anonymous).
+  4. Check that `npx vp test run src/svelte-options.test.ts` still passes. Check Kit's changelog for renamed `csrf`
+     or `paths.origin` options.
+- Blocked: nothing. Every defense held.
