@@ -1,19 +1,21 @@
 import { error } from '@sveltejs/kit';
 import { TURNSTILE_SECRET_KEY } from '$app/env/private';
+import { assertProductionConfig } from './production-config';
 
 const SITEVERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 
 /**
  * Verify a Cloudflare Turnstile token server-side.
  *
- * Returns `true` when `TURNSTILE_SECRET_KEY` is unset (captcha disabled — dev/test),
- * otherwise validates the token against Cloudflare's siteverify endpoint. Returns
+ * Returns `true` when `TURNSTILE_SECRET_KEY` is unset (captcha disabled — dev/test
+ * only: in production it throws instead), otherwise validates the token against Cloudflare's siteverify endpoint. Returns
  * `false` on a missing token, a failed challenge, or a network error.
  *
  * The Better Auth captcha plugin already guards the auth endpoints; use this for
  * non-auth surfaces (e.g. the create-event remote function) that the plugin doesn't cover.
  */
 export async function verifyTurnstile(token: string | undefined): Promise<boolean> {
+	assertProductionConfig();
 	const secret = TURNSTILE_SECRET_KEY;
 	if (!secret) return true;
 	if (!token) return false;

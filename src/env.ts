@@ -10,8 +10,9 @@ import { defineEnvVars } from '@sveltejs/kit/env';
  * already treats "unset" and "blank" as the same thing — `email.ts` falls back
  * to logging, `turnstile.ts` short-circuits to `true`, `r2.ts` builds its
  * client with `?? ''`, and `db/index.ts` throws its own message. Declaring
- * them as required instead would move those failures to app startup and break
- * `.env.test`, which blanks most of them on purpose.
+ * them as required instead would break `.env.test`, which blanks most of them on
+ * purpose, and the build. The keys production cannot run without are checked at
+ * runtime instead, by `assertProductionConfig()` in `production-config.ts`.
  *
  * None are `static`, so all are read from the environment at runtime rather
  * than inlined at build time — `FPA_API_URL` in particular is deliberately
@@ -32,9 +33,13 @@ export const variables = defineEnvVars({
 	},
 	MAILGUN_API_KEY: {
 		schema: (value) => value,
-		description: 'Blank in dev/test, which makes email.ts log to the console instead of sending.'
+		description:
+			'Required in production (the server refuses to start without it). Blank in dev/test makes email.ts log to the console instead of sending.'
 	},
-	MAILGUN_DOMAIN: { schema: (value) => value },
+	MAILGUN_DOMAIN: {
+		schema: (value) => value,
+		description: 'Required in production alongside MAILGUN_API_KEY.'
+	},
 	MAILGUN_FROM_EMAIL: { schema: (value) => value },
 	R2_ACCOUNT_ID: { schema: (value) => value },
 	R2_ACCESS_KEY_ID: { schema: (value) => value },
@@ -43,7 +48,8 @@ export const variables = defineEnvVars({
 	R2_PUBLIC_URL: { schema: (value) => value },
 	TURNSTILE_SECRET_KEY: {
 		schema: (value) => value,
-		description: 'Blank disables captcha verification (verifyTurnstile returns true).'
+		description:
+			'Required in production (the server refuses to start without it). Blank in dev/test disables captcha verification.'
 	},
 	GLITCHTIP_DSN: {
 		schema: (value) => value,

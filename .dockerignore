@@ -1,0 +1,45 @@
+# Build context for the Coolify/nixpacks image. Everything excluded here is
+# neither needed to `npm install`, `npm run build`, `npm run db:migrate` nor
+# `node build`, and would otherwise be copied into the runtime image.
+#
+# Still needed, so NOT listed: src/ (including the migrations under
+# src/lib/server/db/migrations), static/, package.json, package-lock.json,
+# .npmrc, svelte-options.js, vite.config.ts, tsconfig.json, drizzle.config.ts,
+# components.json.
+
+# Version control and local installs (rebuilt in the image)
+.git
+node_modules
+build
+.svelte-kit
+
+# Security audit records and agent tooling, including open findings
+.prep
+.agents
+skills-lock.json
+tools
+
+# Tests and their output
+tests
+playwright
+playwright-report
+test-results
+playwright.config.ts
+**/*.test.ts
+src/test
+
+# Environment files: the app's variables come from Coolify at runtime
+.env
+.env.*
+!.env.example
+
+# Git hooks, linters and notes: dev-machine only
+.husky
+.lintstagedrc.json
+.prettierrc
+.prettierignore
+eslint.config.js
+AGENTS.md
+TODO.md
+UPDATE.md
+README.md

@@ -35,22 +35,25 @@ alone to apply migrations without seeding.
 
 Every variable is declared in `src/env.ts`. All are read at runtime except the
 two marked as build-time below. Blank or unset values fall back to each
-service's development behaviour.
+service's development behaviour, except in production: a built server
+(`node build`) refuses to start unless `TURNSTILE_SECRET_KEY`, `MAILGUN_API_KEY`
+and `MAILGUN_DOMAIN` are set, and the error names the missing keys. The build
+itself needs none of them.
 
 | Variable                    | Purpose                                                                                                    |
 | --------------------------- | ---------------------------------------------------------------------------------------------------------- |
 | `DATABASE_URL`              | Postgres connection string. Required; `src/lib/server/db/index.ts` throws without it.                      |
 | `BETTER_AUTH_SECRET`        | Signs Better Auth sessions.                                                                                |
 | `BETTER_AUTH_URL`           | Origin Better Auth validates requests against. Must match the port the app is served on.                   |
-| `MAILGUN_API_KEY`           | Mailgun key. Blank logs emails to the console instead of sending them.                                     |
-| `MAILGUN_DOMAIN`            | Mailgun sending domain.                                                                                    |
+| `MAILGUN_API_KEY`           | Mailgun key. Required in production; blank in dev logs emails to the console.                              |
+| `MAILGUN_DOMAIN`            | Mailgun sending domain. Required in production.                                                            |
 | `MAILGUN_FROM_EMAIL`        | Sender address for outgoing email.                                                                         |
 | `R2_ACCOUNT_ID`             | Cloudflare account that holds the R2 image bucket.                                                         |
 | `R2_ACCESS_KEY_ID`          | R2 API access key id.                                                                                      |
 | `R2_SECRET_ACCESS_KEY`      | R2 API secret.                                                                                             |
 | `R2_BUCKET_NAME`            | R2 bucket for event images.                                                                                |
 | `R2_PUBLIC_URL`             | Public base URL that serves images from the R2 bucket.                                                     |
-| `TURNSTILE_SECRET_KEY`      | Server-side Turnstile secret. Blank skips captcha verification.                                            |
+| `TURNSTILE_SECRET_KEY`      | Server-side Turnstile secret. Required in production; blank in dev skips captcha.                          |
 | `PUBLIC_TURNSTILE_SITE_KEY` | Browser Turnstile site key. Blank hides the widget.                                                        |
 | `FPA_API_URL`               | Read-only rankings and results API. Unset shows an "unavailable" notice on the rankings pages.             |
 | `GLITCHTIP_DSN`             | Server-side GlitchTip DSN. Blank disables server error reporting.                                          |
@@ -172,7 +175,14 @@ firewalled, so production database work runs inside the Coolify terminal.
 Coolify build settings:
 
 - Build command: `npm run build`
-- Start command: `node build`
+- Start command: `npm run db:migrate && node build`
+
+The `.dockerignore` at the repository root keeps `.prep`, `.agents`, `tools`,
+tests, env files and dev-machine config out of the build context, so they never
+reach the runtime image. `src/` (with the migrations), `package*.json`,
+`drizzle.config.ts` and the build config stay, because `npm run db:migrate`
+(drizzle-kit) runs from that image. The build needs `DATABASE_URL`,
+`BETTER_AUTH_SECRET` and `BETTER_AUTH_URL` but not the Turnstile or Mailgun keys.
 
 The Node version is pinned in Coolify through `NIXPACKS_NODE_VERSION`; see the
 deployment decisions via `prep knowledge find deploy`.

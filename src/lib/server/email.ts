@@ -1,5 +1,6 @@
 import { MAILGUN_API_KEY, MAILGUN_DOMAIN, MAILGUN_FROM_EMAIL } from '$app/env/private';
 import Mailgun from 'mailgun.js';
+import { assertProductionConfig } from './production-config';
 import { getTemplate, type EmailTemplateId } from '#lib/email/templates';
 
 type Message = { to: string; subject: string; html: string };
@@ -32,10 +33,18 @@ function logToConsole({ to, subject, html }: Message) {
  * Send a message, or log it when Mailgun is not configured — which is how local
  * dev and the integration suite read verification links without real delivery.
  *
- * Never throws: a failed send must not take down the sign-up or reset flow that
+ * In production a missing key refuses the send instead of logging it. Never
+ * throws: a failed send must not take down the sign-up or reset flow that
  * triggered it.
  */
 export async function sendEmail(message: Message): Promise<void> {
+	// Before the console fallback can print a bearer link. Logs key names only.
+	try {
+		assertProductionConfig();
+	} catch (err) {
+		console.error(`[email] Not sent: ${(err as Error).message}`);
+		return;
+	}
 	const mailgun = getClient();
 	if (!mailgun) {
 		logToConsole(message);

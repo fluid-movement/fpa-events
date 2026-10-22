@@ -8,8 +8,8 @@
 export const DATABASE_URL: string | undefined = 'postgresql://test';
 export const BETTER_AUTH_SECRET: string | undefined = 'test-secret';
 export const BETTER_AUTH_URL: string | undefined = 'http://localhost:5173';
-export const MAILGUN_API_KEY: string | undefined = undefined;
-export const MAILGUN_DOMAIN: string | undefined = undefined;
+export let MAILGUN_API_KEY: string | undefined = undefined;
+export let MAILGUN_DOMAIN: string | undefined = undefined;
 export const MAILGUN_FROM_EMAIL: string | undefined = undefined;
 export const R2_ACCOUNT_ID: string | undefined = 'test-account-id';
 export const R2_ACCESS_KEY_ID: string | undefined = 'test-access-key-id';
@@ -23,8 +23,12 @@ export let FPA_API_URL: string | undefined = 'https://fpa-api.test';
 /** Override one or more variables for the duration of a test. */
 export function setEnv(values: {
 	TURNSTILE_SECRET_KEY?: string | undefined;
+	MAILGUN_API_KEY?: string | undefined;
+	MAILGUN_DOMAIN?: string | undefined;
 	FPA_API_URL?: string | undefined;
 }) {
 	if ('TURNSTILE_SECRET_KEY' in values) TURNSTILE_SECRET_KEY = values.TURNSTILE_SECRET_KEY;
+	if ('MAILGUN_API_KEY' in values) MAILGUN_API_KEY = values.MAILGUN_API_KEY;
+	if ('MAILGUN_DOMAIN' in values) MAILGUN_DOMAIN = values.MAILGUN_DOMAIN;
 	if ('FPA_API_URL' in values) FPA_API_URL = values.FPA_API_URL;
 }

@@ -7,10 +7,15 @@ import { sendPasswordResetEmail, sendVerificationEmail } from './email';
 import { guardUserWrite } from './userInput';
 import { hashPassword, verifyPassword } from './password';
 import { logLibraryMessage } from './errors';
+import { assertProductionConfig } from './production-config';
+
+// Refuse to start a production server that would run without CAPTCHA or mail.
+assertProductionConfig();
 
 // Only guard endpoints with Turnstile when a secret key is configured; otherwise
 // leave captcha off so local dev and tests work without keys (mirrors the Mailgun
-// console fallback in ./email.ts).
+// console fallback in ./email.ts). Production never gets here without a key:
+// assertProductionConfig() above has already refused to start.
 const plugins = TURNSTILE_SECRET_KEY
 	? [
 			captcha({
