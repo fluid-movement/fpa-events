@@ -1,6 +1,6 @@
-- [ ] Integration: a page response and the calendar-feed response carry referrer-policy strict-origin-when-cross-origin, x-content-type-options nosniff and a content-security-policy whose script-src has no unsafe-inline (vectors 5 and 22)
-- [ ] html.test.ts adds the raw-text-container cases (textarea, template, noembed holding an img onerror) and a javascript: anchor (vector 17)
-- [ ] invite-sign-in.test.ts asserts an unknown invite token is a 404 (vector 13)
-- [ ] An integration check that an unexpected server error shows the error reference and no query text, driven without relying on the NUL-byte bug (vector 21)
-- [ ] geocoding.test.ts: a query containing / @ # ? still requests only the Photon host with the text in q (vector 27)
-- [ ] Every vector whose test is named as existing keeps that test; none are removed
+- [x] Integration: a page response and the calendar-feed response carry referrer-policy strict-origin-when-cross-origin, x-content-type-options nosniff and a content-security-policy whose script-src has no unsafe-inline (vectors 5 and 22)
+- [x] html.test.ts adds the raw-text-container cases (textarea, template, noembed holding an img onerror) and a javascript: anchor (vector 17)
+- [x] invite-sign-in.test.ts asserts an unknown invite token is a 404 (vector 13)
+- [x] An integration check that an unexpected server error shows the error reference and no query text, driven without relying on the NUL-byte bug (vector 21)
+- [x] geocoding.test.ts: a query containing / @ # ? still requests only the Photon host with the text in q (vector 27)
+- [x] Every vector whose test is named as existing keeps that test; none are removed

@@ -1,0 +1,1 @@
+- 2026-10-22T09:11:54Z claude-code: Checked by the orchestrator: five integration mutations (referrer-policy removed, raw error message, invite 404 -> redirect, unsafe-inline script-src, endpoint CSP removed) each failed its test; unit mutations done by the implementer; 836 unit, related specs green.
