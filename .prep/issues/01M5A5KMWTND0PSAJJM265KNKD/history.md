@@ -1,1 +1,3 @@
 - 2026-10-22T07:38:22Z claude-code: Implemented, ready for check: coordinates validated (finite, in range), city/country bounded, shared rows keyed by coordinates too so first writer cannot pin a city (chose per-coordinate rows, no schema change), map skips non-finite.
+
+- 2026-10-22T07:40:56Z claude-code: Check passed: ran npm run check (0 errors) and vp test run (529 pass); reviewed eventForm coordinate/length schema, eventLocations coord-keyed match, EventsMap isFinite filter; mutation-tested range check (fails). Criterion 6 (prod event_locations audit) pending, owner item. Advisory: schedule venue coords (locations.remote.ts) not range-checked; latitude term of match not covered by a test.
