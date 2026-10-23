@@ -9,5 +9,5 @@
 		"types": ["node"],
 		"noEmit": true
 	},
-	"include": ["src"]
+	"include": ["src", "test/**/*.ts", "smoke/**/*.ts", "*.config.ts"]
 }

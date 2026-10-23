@@ -5,9 +5,10 @@
 	"description": "One-off data migration from the legacy Laravel FPA app to fpa-events",
 	"type": "module",
 	"scripts": {
-		"geocode": "tsx src/geocode.ts",
-		"migrate": "tsx src/migrate.ts",
-		"migrate:pictures": "tsx src/pictures.ts"
+		"migrate:all": "tsx src/migrate-all.ts",
+		"check": "tsc --noEmit",
+		"test": "vitest run --config vitest.config.ts",
+		"test:smoke": "playwright test --config playwright.config.ts"
 	},
 	"dependencies": {
 		"@aws-sdk/client-s3": "^3.750.0",

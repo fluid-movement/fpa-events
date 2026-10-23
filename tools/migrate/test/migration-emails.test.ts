@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeLegacyEmails } from '../../tools/migrate/src/emails';
+import { normalizeLegacyEmails } from '../src/emails';
 import { migrationFixture, runMigrationCli, userId } from './helpers/migration-cli';
 
 describe('actual legacy user importer', () => {

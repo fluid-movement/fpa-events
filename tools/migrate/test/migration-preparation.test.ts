@@ -1,13 +1,12 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it } from 'vitest';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 
-const script = fileURLToPath(
-	new URL('../../tools/migrate/verify-preparation.mjs', import.meta.url)
-);
+const script = fileURLToPath(new URL('../verify-preparation.mjs', import.meta.url));
 const fixtures: string[] = [];
 const manifest = {
 	name: 'migration-fixture',
@@ -21,8 +20,7 @@ afterEach(() => {
 });
 
 function prepare(pkg: unknown, lock: unknown, env: Record<string, string> = {}) {
-	mkdirSync('.svelte-kit', { recursive: true });
-	const dir = mkdtempSync(path.resolve('.svelte-kit/preparation-test-'));
+	const dir = mkdtempSync(path.join(tmpdir(), 'migration-preparation-test-'));
 	fixtures.push(dir);
 	writeFileSync(path.join(dir, 'package.json'), JSON.stringify(pkg));
 	if (lock !== undefined) writeFileSync(path.join(dir, 'package-lock.json'), JSON.stringify(lock));

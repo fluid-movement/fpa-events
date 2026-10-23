@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { assertLegacyIds } from '../../tools/migrate/src/ids';
+import { assertLegacyIds } from '../src/ids';
 import { migrationFixture, runMigrationCli, type LegacyTable } from './helpers/migration-cli';
 
 const validId = '01M5A4X9AP5EG81X6ZCN9Q4JPJ';

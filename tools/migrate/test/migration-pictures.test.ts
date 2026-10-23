@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { copyLegacyPicture } from '../../tools/migrate/src/picture-copy';
-import { legacyPictureUrl } from '../../tools/migrate/src/picture-policy';
+import { copyLegacyPicture } from '../src/picture-copy';
+import { legacyPictureUrl } from '../src/picture-policy';
 import { migrationFixture, runMigrationCli, eventId } from './helpers/migration-cli';
 
 // The tool may resolve its own @aws-sdk copy (tools/migrate/node_modules), so
@@ -96,7 +96,7 @@ describe('actual picture migration CLI', () => {
 		expect(db.status, db.stderr).toBe(0);
 		expect(db.state.tables.events.map((params) => params[8])).toEqual([
 			...blankKeys.map(() => null),
-			`https://pictures.example/${realKey}`
+			'https://pictures.example/%20pictures/real.png%20'
 		]);
 		const pictures = runMigrationCli('pictures', fixture);
 		expect(pictures.status, pictures.stderr).toBe(0);
@@ -209,7 +209,7 @@ describe('legacy picture URLs', () => {
 			'https://pictures.example/pictures/photo.jpg'
 		);
 		expect(legacyPictureUrl('https://pictures.example', ' pictures/photo.jpg ')).toBe(
-			'https://pictures.example/ pictures/photo.jpg '
+			'https://pictures.example/%20pictures/photo.jpg%20'
 		);
 	});
 });

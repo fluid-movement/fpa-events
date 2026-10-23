@@ -1,114 +1,109 @@
-// Step 3: copy event pictures from the legacy R2 bucket to the target bucket.
-// Keys are kept as-is (pictures/<name>), matching the URLs migrate.ts wrote
-// into events.picture. Idempotent: safe objects already in the target are skipped;
-// the legacy bucket is only ever read.
-import { S3Client, ListObjectsV2Command, DeleteObjectsCommand } from '@aws-sdk/client-s3';
-import { legacyPool, requireEnv } from './db';
+// Bucket operations used only by the orchestrator. The legacy bucket is read-only.
+import {
+	ListObjectsV2Command,
+	DeleteObjectsCommand,
+	HeadObjectCommand,
+	type S3Client
+} from '@aws-sdk/client-s3';
+import type pg from 'pg';
 import { copyLegacyPicture } from './picture-copy';
-import { hasLegacyPicture } from './picture-policy';
+import { ALLOWED_PICTURE_TYPES, hasLegacyPicture } from './picture-policy';
 
-// --wipe-target deletes every object in the target bucket before copying, so
-// the bucket converges to exactly the legacy pictures (drops orphaned dev
-// uploads). npm swallows the flag when the `--` separator is forgotten but
-// records it as npm_config_wipe_target, so honor both.
-const wipeTarget =
-	process.argv.includes('--wipe-target') || process.env.npm_config_wipe_target === 'true';
-
-// TARGET_* falls back to the app's own R2_* names (see src/lib/server/r2.ts)
-// so the tool can run inside the deployed app container without extra config.
-function targetEnv(suffix: string): string {
-	return requireEnv(`TARGET_R2_${suffix}`, `R2_${suffix}`);
+export interface Picture {
+	id: string;
+	name: string;
+	picture: string;
 }
 
-function r2Client(prefix: 'LEGACY' | 'TARGET'): S3Client {
-	const env = (suffix: string) =>
-		prefix === 'TARGET' ? targetEnv(suffix) : requireEnv(`LEGACY_R2_${suffix}`);
-	return new S3Client({
-		region: 'auto',
-		endpoint: `https://${env('ACCOUNT_ID')}.r2.cloudflarestorage.com`,
-		credentials: {
-			accessKeyId: env('ACCESS_KEY_ID'),
-			secretAccessKey: env('SECRET_ACCESS_KEY')
-		}
-	});
+export async function listPictures(legacy: Pick<pg.Pool, 'query'>): Promise<Picture[]> {
+	const { rows } = await legacy.query<Picture>(
+		`SELECT id, name, picture FROM events WHERE picture IS NOT NULL ORDER BY id`
+	);
+	return rows.filter(({ picture }) => hasLegacyPicture(picture));
 }
 
-async function emptyBucket(client: S3Client, bucket: string): Promise<number> {
-	let deleted = 0;
+export async function emptyBucket(
+	client: S3Client,
+	bucket: string,
+	dryRun: boolean,
+	log: (message: string) => void
+): Promise<void> {
 	let token: string | undefined;
 	do {
 		const page = await client.send(
 			new ListObjectsV2Command({ Bucket: bucket, ContinuationToken: token })
 		);
-		const keys = (page.Contents ?? []).flatMap((o) => (o.Key ? [{ Key: o.Key }] : []));
-		if (keys.length > 0) {
-			await client.send(new DeleteObjectsCommand({ Bucket: bucket, Delete: { Objects: keys } }));
-			deleted += keys.length;
+		const keys = (page.Contents ?? []).flatMap((o) =>
+			o.Key !== undefined ? [{ Key: o.Key }] : []
+		);
+		for (const { Key } of keys)
+			log(`${dryRun ? 'Would delete' : 'Deleting'} R2 ${JSON.stringify(Key)}`);
+		if (!dryRun && keys.length > 0) {
+			const result = await client.send(
+				new DeleteObjectsCommand({ Bucket: bucket, Delete: { Objects: keys } })
+			);
+			if (result.Errors?.length) {
+				throw new Error(`R2 deletion failed: ${JSON.stringify(result.Errors)}`);
+			}
+		}
+		if (page.IsTruncated && (!page.NextContinuationToken || page.NextContinuationToken === token)) {
+			throw new Error('R2 listing truncated without a new continuation token');
 		}
 		token = page.IsTruncated ? page.NextContinuationToken : undefined;
 	} while (token);
-	return deleted;
 }
 
-async function main() {
-	const legacyBucket = requireEnv('LEGACY_R2_BUCKET_NAME');
-	const targetBucket = targetEnv('BUCKET_NAME');
-	const legacyR2 = r2Client('LEGACY');
-	const targetR2 = r2Client('TARGET');
-
-	if (wipeTarget) {
-		// Paranoia guard: never wipe the bucket we are about to read from.
-		if (targetBucket === legacyBucket) {
-			console.error(`Refusing --wipe-target: target and legacy bucket are both "${targetBucket}".`);
-			process.exit(1);
+/** HEAD only: used for dry-run source checks and final target verification. */
+export async function verifyPictures(
+	client: S3Client,
+	bucket: string,
+	keys: string[]
+): Promise<string[]> {
+	const errors: string[] = [];
+	for (const key of new Set(keys)) {
+		try {
+			const object = await client.send(new HeadObjectCommand({ Bucket: bucket, Key: key }));
+			if (!object.ContentType || !ALLOWED_PICTURE_TYPES.has(object.ContentType)) {
+				errors.push(
+					`Disallowed picture ${JSON.stringify(key)} in ${bucket}: Content-Type ${JSON.stringify(object.ContentType ?? '(missing)')}`
+				);
+			}
+		} catch (err) {
+			if (!(err instanceof Error && ['NotFound', 'NoSuchKey'].includes(err.name))) throw err;
+			errors.push(`Missing picture ${JSON.stringify(key)} in ${bucket}`);
 		}
-		const deleted = await emptyBucket(targetR2, targetBucket);
-		console.log(`Wiped target bucket "${targetBucket}": ${deleted} object(s) deleted.`);
 	}
+	return errors;
+}
 
-	const legacy = legacyPool();
-	const { rows } = await legacy.query<{ id: string; name: string; picture: string }>(
-		`SELECT id, name, picture FROM events WHERE picture IS NOT NULL ORDER BY id`
-	);
-	await legacy.end();
-	// Use exactly the URL mapper's JS whitespace rule, including tabs/newlines.
-	const pictures = rows.filter(({ picture }) => hasLegacyPicture(picture));
-	console.log(`${pictures.length} event picture(s) to check…`);
-
+export async function copyPictures(
+	legacy: S3Client,
+	target: S3Client,
+	legacyBucket: string,
+	targetBucket: string,
+	pictures: Picture[],
+	log: (message: string) => void
+): Promise<void> {
+	const failures: string[] = [];
 	let copied = 0;
-	let skipped = 0;
-	const missing: string[] = [];
-	const rejected: string[] = [];
-
+	let present = 0;
 	for (const { name, picture: key } of pictures) {
-		const result = await copyLegacyPicture(legacyR2, targetR2, legacyBucket, targetBucket, key);
-		if (result.status === 'present') {
-			skipped++;
-			continue;
-		}
-		if (result.status === 'missing') {
-			missing.push(`${key} (event "${name}")`);
-			continue;
-		}
-		if (result.status === 'rejected') {
-			rejected.push(
-				`${JSON.stringify(key)} (event ${JSON.stringify(name)}): ${result.bucket} Content-Type ${JSON.stringify(result.contentType ?? '(missing)')}`
+		const result = await copyLegacyPicture(legacy, target, legacyBucket, targetBucket, key);
+		if (result.status === 'present') present++;
+		else if (result.status === 'copied') {
+			copied++;
+			log(`copied ${JSON.stringify(key)} (${result.bytes} bytes)`);
+		} else if (result.status === 'missing') {
+			failures.push(`missing: ${JSON.stringify(key)} (event ${JSON.stringify(name)})`);
+		} else {
+			failures.push(
+				`rejected: ${JSON.stringify(key)} (event ${JSON.stringify(name)}): ${result.bucket} Content-Type ${JSON.stringify(result.contentType ?? '(missing)')}`
 			);
-			continue;
 		}
-		copied++;
-		console.log(`  copied ${key} (${(result.bytes / 1024).toFixed(0)} KiB)`);
 	}
-
-	console.log(
-		`\nDone: ${copied} copied, ${skipped} already present, ${missing.length} missing in legacy bucket, ${rejected.length} rejected by content type.`
+	log(
+		`${copied} copied, ${present} already present, ${failures.filter((f) => f.startsWith('missing')).length} missing in legacy bucket, ${failures.filter((f) => f.startsWith('rejected')).length} rejected by content type.`
 	);
-	for (const m of missing) console.log(`  ⚠ missing: ${m}`);
-	for (const r of rejected) console.log(`  ⚠ rejected: ${r}`);
-	if (missing.length > 0 || rejected.length > 0) process.exit(1);
+	for (const failure of failures) log(failure);
+	if (failures.length) throw new Error('Picture import failed; see missing/rejected objects above');
 }
-
-main().catch((err) => {
-	console.error(err);
-	process.exit(1);
-});

@@ -1,199 +1,336 @@
-# Legacy → fpa-events data migration
+# Legacy → FPA Events migration bundle
 
-Standalone one-off tool that migrates data from the old Laravel FPA app into
-this app's database and R2 bucket. It is a separate application in everything
-but location: own `package.json`, no imports from the app, configured purely
-via env vars. It lives in this repo so schema changes and migration changes
-ship together; delete the whole folder after the final cutover.
+This temporary, standalone package contains the whole legacy migration: one
+command, helpers, offline tests, an opt-in browser smoke suite and this runbook.
+Delete `tools/migrate` after go-live. Nothing in the app imports this bundle.
 
-**What migrates:** users (incl. bcrypt password hashes — the app verifies them
-via `src/lib/server/password.ts`), events, RSVPs (`event_user`), magic links,
-schedules (+ venue locations), event map locations (via the geocode mapping
-file), and event pictures.
+## One command
 
-**What doesn't:** sessions, password reset tokens, cache/jobs, Pulse telemetry,
-and the unfinished competition feature (divisions, rounds, teams, pools,
-players, results, active_years). A dump of the old DB is the archive for those.
-
-The three steps, all idempotent (re-run any time):
+From `tools/migrate`, with dependencies already prepared **before** supplying
+credentials:
 
 ```sh
-npm run geocode            # 1. refresh data/event-locations.json (only new strings hit Photon)
-npm run migrate -- --dry-run   # 2a. full run in a transaction, rolled back; prints the report
-npm run migrate            # 2b. wipe-and-reload of the target DB, IDs preserved 1:1
-npm run migrate:pictures   # 3. copy R2 objects (skips objects already in the target bucket)
+npm run migrate:all -- --dry-run
+npm run migrate:all
 ```
 
-`migrate` **deletes all rows** in the target tables it owns (users, events,
-RSVPs, schedules, sessions, accounts…) before reloading them from the legacy
-DB, so every run converges to the state of the legacy source. Never point
-`TARGET_DATABASE_URL`/`DATABASE_URL` at a database whose data you want to keep.
+The command reads the legacy database and bucket only. It:
 
-Picture content types are matched **exactly** against `image/jpeg`, `image/png`,
-`image/webp`, `image/gif` and `image/avif`: lowercase only, with no parameters
-(for example, `image/jpeg; charset=binary` is rejected). This applies both to
-legacy objects before copying and to objects already present in the target.
-Every rejected key and its type are listed in the summary, including unsafe
-target objects. Any rejected/unsafe or missing object makes the run **exit 1**;
-existing unsafe target objects are reported for owner repair, never silently
-accepted or automatically deleted. Blank picture keys (including tabs/newlines)
-are skipped consistently by the DB and picture steps.
+1. Geocodes location strings absent from `data/event-locations.json` through
+   Photon. Existing entries, including explicit `null`, stay intact. It prints
+   full new mappings, saves the file, then requires an explicit `yes` to import
+   them. Any other answer stops before deletion and leaves the file for review.
+2. Displays the target DB host, connected database name and R2 bucket, then
+   requires that **exact database name typed at the terminal**. There is no
+   confirmation environment variable or flag. Local, staging and production
+   targets are allowed. A wrong answer stops before deletion. Identical source
+   and target database URLs (host/port/name), or bucket names, are refused.
+3. Checks source picture existence/types, starts a DB transaction, wipes the
+   target tables and imports all legacy rows, preserving IDs and bcrypt hashes.
+4. Performs **DB-only verification first**: actual stored counts, location
+   references and browser-resolvable picture URLs. Failure rolls back the DB
+   and leaves every target bucket object untouched.
+5. Only after those checks pass, deletes **every object** in the target R2
+   bucket, across all prefixes and listing pages, then copies legacy pictures.
+6. Verifies the target picture objects, then commits the DB transaction.
 
-## Prepare dependencies before supplying credentials
+The exact write order is **DB import → DB-only verification → R2 wipe → R2 copy
+→ target-picture verification → COMMIT**. Every failure exits nonzero. DB
+changes roll back on failure, but **R2 has no transaction**: a copy, final-picture
+check or COMMIT failure after the wipe can leave the **old DB with a changed,
+empty or partially replaced bucket**. Before a real run the operator **must take
+a target bucket listing and backup** using the commands below. Keep target
+traffic stopped until verification and smoke checks succeed, or restore the
+bucket backup to match the rolled-back DB before resuming traffic.
 
-Build a separate migration image from the reviewed checkout, on the VPS host
-over SSH or a staging machine with the same architecture. Do this **before**
-creating any credential file. Do not install dependencies in the deployed app's
-container: it already has database and bucket secrets.
+`--dry-run` asks **no questions**, including the geocode review prompt. It saves
+new mappings, executes the DB wipe/import/verification in a transaction and
+**rolls everything back**. It lists each R2 deletion/copy it would perform and
+HEAD-checks source picture types/existence, with **no R2 deletes or uploads**.
+The report labels these as planned source checks, not verified target copies.
+Postgres serial sequences can advance despite rollback. Review mappings and
+report before the real run; a dry run does not approve mappings for a later run.
+
+The old `geocode`, `migrate`, and `migrate:pictures` scripts are now importable
+internals, not executable commands. Only `migrate:all` opens connections.
+
+### Verification and preserved safeguards
+
+The report prints **legacy / expected / actual target** counts for `user`,
+`account`, `events`, `event_user`, `event_magic_links`, `schedules`,
+`event_locations` and `schedule_locations`. It fails on any actual/expected
+mismatch. Expected counts account for the existing import rules:
+
+- One credential account per non-empty legacy password hash; passwordless users
+  remain users but need password reset. Imported established users are verified.
+- One RSVP per `(event_id, user_id)`; duplicate legacy rows are collapsed, with
+  organizing taking precedence as before.
+- Map locations deduplicated by mapped `(city, country)`, only for referenced
+  mappings; unresolved `null` entries remain unmapped. Venues deduplicated per
+  event/name/coordinates; name-only venues are preserved.
+
+Location tuples use unambiguous serialized arrays in the importer; the verifier
+compares the source fields independently, so delimiter characters cannot merge
+cities, countries or venue names with coordinates.
+
+Every event picture URL must resolve in a browser to its original object key,
+and every referenced
+object must exist with an exact allowed content type: `image/jpeg`, `image/png`,
+`image/webp`, `image/gif`, `image/avif`. Missing types, SVG/HTML, mixed case and
+parameters (e.g. `image/jpeg; charset=binary`) are rejected. The copy helper also
+rejects unsafe objects already in the target. Blank picture keys (including
+JS whitespace) remain `NULL`. Each nonblank key's path segments are URL-encoded:
+`#`, `?`, literal percent escapes, Unicode, whitespace and backslashes remain
+part of the object key. The independent verifier parses the stored URL and
+decodes the browser request pathname once; it never calls the importer's URL
+builder. Keys with standalone `.` or `..` segments are rejected before the
+bucket wipe, since browsers normalize even percent-encoded dot segments and
+cannot request those keys faithfully. Rename those source keys and update the
+legacy picture references before retrying. Email
+addresses are trimmed/lowercased and collisions abort; malformed/non-ASCII ULIDs
+abort. Events and schedules may not reference missing location rows.
+
+Sessions and reset tokens are wiped, not migrated. Cache/jobs, Pulse telemetry
+and the old unfinished competition feature are archived in the legacy dump.
+The target already needs the current app schema; this tool does not apply it.
+Stop writes to the target app during rehearsal/cutover to prevent concurrent
+edits interfering with verification or the bucket wipe.
+
+## Credential-free image preparation
+
+Build on the VPS or a staging machine with the same architecture, from the
+reviewed checkout, **before creating any credential file**:
 
 ```sh
-# From the repository root. No --build-arg, secret mounts or credential files.
+# Repository root; no build args, secret mounts or credential files.
 docker build --pull -f tools/migrate/Dockerfile -t fpa-migrate:reviewed tools/migrate
 ```
 
-The Docker context allowlist excludes `.env`, `.npmrc` and host `node_modules`.
-The image uses Node 24, checks the manifest against the lock before any registry
-resolution, installs it with `npm ci --ignore-scripts` (a missing or mismatched
-lock fails), then explicitly runs only esbuild's required
-install lifecycle. The other install-script package in this lock, `fsevents`, is
-macOS-only and unnecessary in this Linux image. Review those scripts again when
-changing the lock. A build step exercises real tsx TypeScript loading and the
-esbuild binary without opening a database or bucket connection. Do not replace
-this with an unresolved `npm install` or leave esbuild unprepared.
+The Docker context is an allowlist: no `.env`, `.npmrc`, host `node_modules`,
+smoke credentials or browser artifacts. Node 24 runs `verify-preparation.mjs`
+before resolution, then `npm ci --ignore-scripts`, then only esbuild's required
+install lifecycle. The Linux image does not need macOS-only fsevents. A build
+step exercises real tsx and the native esbuild binary without service access.
+No dependency installation happens at runtime. Do not replace locked preparation
+with `npm install` in a credential-bearing app/migration container.
 
-### Check the preparation boundary without real credentials
-
-These repeatable checks never execute a migration. From the repository root:
+Preparation boundary checks (no real credentials, from the repository root):
 
 ```sh
-# Harmless canaries exist on the host; the build assertion proves none reaches
-# the dependency-install environment. --no-cache forces the assertion to run.
 DATABASE_URL=canary LEGACY_DATABASE_URL=canary R2_SECRET_ACCESS_KEY=canary \
   docker build --no-cache -f tools/migrate/Dockerfile -t fpa-migrate:reviewed tools/migrate
-
-# Break only a scratch copy of the manifest; the committed lock stays intact.
-mkdir -p .svelte-kit
-fixture=$(mktemp -d "$PWD/.svelte-kit/migration-lock-check.XXXXXX")
-cp tools/migrate/Dockerfile tools/migrate/.dockerignore tools/migrate/package.json tools/migrate/package-lock.json tools/migrate/verify-preparation.mjs "$fixture/"
-cp -R tools/migrate/src tools/migrate/data "$fixture/"
-node --input-type=module -e '
-  import fs from "node:fs";
-  const file = process.argv[1];
-  const pkg = JSON.parse(fs.readFileSync(file, "utf8"));
-  pkg.dependencies.pg = "0.0.0-lock-mismatch";
-  fs.writeFileSync(file, JSON.stringify(pkg));
-' "$fixture/package.json"
-if docker build --network=none -t fpa-migrate:lock-mismatch "$fixture"; then
-  rm -rf "$fixture"
-  echo 'ERROR: mismatched manifest was accepted' >&2
-  exit 1
-fi
-# Confirm the build failed with "Manifest/lock mismatch", rather than a
-# Docker/network error. It must not reach npm ci, npm rebuild or the runtime.
-rm -rf "$fixture"
 ```
 
-## Running on the server (the real thing)
+The host canaries must not reach the build environment. Offline unit tests also
+exercise `verify-preparation.mjs` with mismatched/missing locks and credential
+canaries; it must fail before install. To rehearse Docker's mismatch boundary,
+copy the allowlisted inputs to a scratch directory, change a dependency range
+in that copy's manifest only, then build it with `--network=none`. Expect
+`Manifest/lock mismatch` before any registry resolution.
 
-The DB ports are firewalled; only containers on the VPS can reach the databases.
-Run the **already prepared** image on the event app's Docker network. On the VPS,
-find that network without displaying the app's environment:
+## Required target bucket listing and backup before a real run
+
+Prepare AWS CLI v2 separately, before credentials. These are **operator commands**,
+not commands the migration executes automatically. Keep target writes stopped
+through backup, migration and any restoration. Use a dedicated backup credential
+profile with access to the target and a **new, empty backup bucket in the same
+R2 account**, separate from both legacy and target. The migration's narrower
+runtime credential need not access the backup. Set the placeholders privately;
+no credential values go on the command line:
+
+```sh
+umask 077
+migration_r2_endpoint="https://${TARGET_R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+migration_backup_bucket='<new-empty-backup-bucket>'
+migration_backup_listing='<private-path-outside-checkout>/target-before-migration.json'
+# Verify the backup bucket is different from BOTH source and target first.
+test "$migration_backup_bucket" != "$TARGET_R2_BUCKET_NAME" && \
+  test "$migration_backup_bucket" != "$LEGACY_R2_BUCKET_NAME" || exit 1
+
+# AWS CLI paginates the listing; retain it with the cutover artifacts.
+aws --profile fpa-migration-backup --endpoint-url "$migration_r2_endpoint" \
+  s3api list-objects-v2 --bucket "$TARGET_R2_BUCKET_NAME" --output json \
+  > "$migration_backup_listing"
+# Server-side bucket backup; copy object metadata, including Content-Type.
+aws --profile fpa-migration-backup --endpoint-url "$migration_r2_endpoint" \
+  s3 sync "s3://$TARGET_R2_BUCKET_NAME" "s3://$migration_backup_bucket" --copy-props metadata-directive
+```
+
+The [AWS CLI metadata-directive copy mode](https://docs.aws.amazon.com/cli/latest/reference/s3/sync.html)
+preserves Content-Type and the other object metadata without the tagging API
+calls made by the default mode; [R2 does not support object tagging APIs](https://developers.cloudflare.com/r2/api/s3/api/).
+
+Require both commands to exit successfully and compare backup/target listings
+(keys and sizes), including every listing page, before starting the real
+migration. Confirm Content-Type metadata on representative copies. Retain the
+backup and its listing until the migrated app has passed smoke checks; an
+object listing alone is **not a backup**. Keep the backup bucket outside every
+migration target configuration.
+
+If a run fails **after the R2 wipe**, first confirm whether the target DB rolled
+back (a lost connection during COMMIT can make its outcome uncertain). With the
+app still stopped and the DB confirmed to be the pre-migration version, restore
+the saved bucket snapshot, removing new objects introduced by the failed run:
+
+```sh
+# Destructive recovery: inspect the two bucket names before running.
+aws --profile fpa-migration-backup --endpoint-url "$migration_r2_endpoint" \
+  s3 rm "s3://$TARGET_R2_BUCKET_NAME" --recursive
+aws --profile fpa-migration-backup --endpoint-url "$migration_r2_endpoint" \
+  s3 sync "s3://$migration_backup_bucket" "s3://$TARGET_R2_BUCKET_NAME" --copy-props metadata-directive
+```
+
+Check the restored listing against the saved listing and verify copied metadata
+before resuming the old app state. If DB commit succeeded, keep traffic stopped
+and resolve the matching DB/bucket state rather than restoring only one side.
+Do not run a second migration or remove the backup until recovery is settled.
+
+## Run the prepared image
+
+On the VPS, find the app's Docker network without displaying its environment:
 
 ```sh
 docker inspect --format '{{range $name, $_ := .NetworkSettings.Networks}}{{println $name}}{{end}}' <event-app-container>
 ```
 
-Only after preparation, create a temporary env file **on the VPS host**, outside
-the checkout/build context. For example, run `umask 077`, then
-`migration_env=$(mktemp /tmp/fpa-migration.XXXXXX)` and edit that file. Use the
-names in `.env.example`, including explicit `TARGET_DATABASE_URL` and
-`TARGET_R2_*` values rather than inheriting the app's environment. Use the
-databases' Coolify **internal** URLs. Supply a read-only legacy DB credential
-and bucket-read credential, and target credentials limited to the migration's
-database/tables and target bucket. The DB step needs `TARGET_R2_PUBLIC_URL` but
-no bucket credentials; supply bucket keys only for the picture step. Do not add
-`LEGACY_*` to the event app or pass credentials as build args or CLI literals.
+Only after the image is prepared, use `umask 077` and create a temporary runtime
+env file outside the checkout/build context. Fill in `.env.example`'s explicit
+`LEGACY_*` and `TARGET_*` names using Coolify internal database URLs. Use a
+read-only legacy DB user/bucket key and target credentials restricted to the
+target database/bucket. Do not add these secrets to the app or use CLI literals
+or build args. Keep source and target databases/buckets separate, even if DNS
+aliases could make their URLs look different.
+
+Bind-mount the **reviewed checkout's mapping directory** read-write so new
+geocodes survive `--rm`, including when review is declined. The image runs as
+`node` (UID 1000); grant that user access to the mapping directory on the host.
+The mapping contains locations, not credentials. Review and commit mapping
+changes in the checkout before the final run. Complete the required bucket
+listing/backup above before removing `--dry-run`. `-it` is required for real runs:
 
 ```sh
-# Replace <event-app-network> with the network found above.
-docker run --rm --network <event-app-network> --env-file "$migration_env" fpa-migrate:reviewed src/migrate.ts --dry-run
-# Review the report before continuing.
-docker run --rm --network <event-app-network> --env-file "$migration_env" fpa-migrate:reviewed src/migrate.ts
-# Edit the temporary file for the picture step's credentials first.
-docker run --rm --network <event-app-network> --env-file "$migration_env" fpa-migrate:reviewed src/pictures.ts
-rm -f "$migration_env"
+umask 077
+migration_env=$(mktemp /tmp/fpa-migration.XXXXXX)
+# Edit "$migration_env" with the runtime credentials; do not print it.
+# Ensure the file is removed even if a run fails.
+trap 'rm -f "$migration_env"' EXIT
+
+# From the repository root; replace the network name.
+docker run --rm -it --network <event-app-network> \
+  --env-file "$migration_env" \
+  --mount type=bind,src="$PWD/tools/migrate/data",dst=/migration/data \
+  fpa-migrate:reviewed src/migrate-all.ts --dry-run
+# Review report and mapping file. Then the same command, without --dry-run:
+docker run --rm -it --network <event-app-network> \
+  --env-file "$migration_env" \
+  --mount type=bind,src="$PWD/tools/migrate/data",dst=/migration/data \
+  fpa-migrate:reviewed src/migrate-all.ts
 ```
 
-No dependency installation occurs during these credential-bearing runs. Remove
-the temporary file even if a command fails, and expire the temporary credentials
-when done. Existing read-only credential work is tracked in
-`01M5A4X9DHFRA3HK0KQB1DY1CF`; post-cutover cleanup belongs to
-`01M4B48HQM4538H4JMG7942N2Y`. Coolify app build/runtime secret scoping remains
-with `01M5A34Z75BVD5BE4AZWWEDCPA`.
+Keep the terminal attached. A real run without a terminal fails closed, and
+EOF/cancel does not authorize anything. Remove the runtime file and expire its
+credentials after use. The DB ports are firewalled: use container networking,
+not dependency installation inside the app, if a hostname is unreachable.
 
-The new app isn't live yet, so its production DB is also the test target:
-migrate into it, browse the deployed app, re-run whenever the schema or the
-tool changes. The legacy side is only ever read, so pointing at the old app's
-live DB is safe — and at cutover it means zero data lag.
+## End-to-end rehearsal from a local legacy dump
 
-If the old DB's hostname doesn't resolve, join its Docker network or restore a
-legacy dump as a second database inside the new app's Postgres and point
-`LEGACY_DATABASE_URL` there. Reuse the prepared image; never install in the
-credential-bearing app container as a fallback.
+1. Export a fresh legacy dump on the VPS (`pg_dump -Fc`), transfer it securely,
+   and restore into a separate local database:
 
-### Geocoding
+   ```sh
+   createdb -U postgres fpa_legacy_rehearsal
+   pg_restore -U postgres -d fpa_legacy_rehearsal --no-owner --no-privileges fpa-legacy.dump
+   createdb -U postgres fpa_migrated_rehearsal
+   # Repository root: apply the app schema to the disposable target only.
+   DATABASE_URL=postgres://postgres@localhost:5432/fpa_migrated_rehearsal npx drizzle-kit migrate
+   ```
 
-`npm run geocode` edits `data/event-locations.json`, which must be
-**committed** — run it locally (see below), review/fix entries by hand (Photon
-returns localized country names, and some strings won't resolve → `null`),
-commit, redeploy. Don't run it in the container: filesystem changes are lost
-on redeploy. In a pinch, run it there, print the file, and paste it into the
-repo.
+2. Prepare the credential-free image above. Create the runtime env file only
+   afterward. Set the source/target DB URLs to the two local DBs and point R2 at
+   the legacy read-only bucket and a **dedicated disposable target bucket**
+   with a working public URL. That target bucket will be completely deleted.
+   On Docker Desktop use `host.docker.internal` in DB URLs; Linux may need
+   `--add-host=host.docker.internal:host-gateway` on `docker run`.
+3. Run `src/migrate-all.ts --dry-run` in the prepared image using the same
+   mapping bind mount. Inspect every warning/count, fix collisions/invalid IDs,
+   missing/unsafe pictures and unresolved maps in the source/mapping as needed.
+   Review new Photon mappings by hand; `null` is allowed for unresolved strings.
+4. Take the target bucket listing/backup above, then run `src/migrate-all.ts` interactively. Approve any new mappings and type
+   `fpa_migrated_rehearsal` at the deletion prompt. Require a successful final
+   verification report. Repeating it fully replaces the disposable target.
+5. Start the app against the migrated DB and target bucket/public URL (use a
+   local env file outside this bundle for the app's other required settings).
+   For local smoke use Turnstile's documented testing configuration/dev fallback;
+   a live CAPTCHA cannot be solved by this suite.
+6. Run the opt-in smoke below with a known legacy bcrypt user and representative
+   IDs from the restored dump. Fix any failure before the real cutover.
 
-## Cutover runbook
+At final cutover put Laravel into maintenance mode **before the final dump**
+(decision `01M57G914YAPXEZJNSRR2EHF2Y`), rehearse the same single command against
+that dump, run smoke against the deployed target, then switch the domain.
+Remove temporary secrets, archive the dump and remove this folder after go-live.
 
-1. Ahead of time: deploy the latest app, run `migrate:pictures` so the bulk of
-   the R2 copy is already done, run `geocode` locally against a fresh dump and
-   commit any new locations.
-2. Cutover: run the prepared image as above — DB dry run, review the report,
-   DB migration, then picture migration (stragglers).
-3. Switch the domain to the new app in Coolify.
-4. Clean up: remove temporary credential files and credentials; delete
-   `tools/migrate/` from the repo when you're confident (existing cleanup issue).
+## Offline tests and type check
 
-Sessions are not migrated — users log in again with their existing passwords
-(bcrypt hashes are verified transparently by the app).
-
-## Testing locally
-
-Local runs can't reach the server databases, so use a restored dump:
+No service credentials are needed or used. From `tools/migrate`:
 
 ```sh
-# On the VPS: dump the old app's DB, then scp it down
-docker exec <old-postgres-container> pg_dump -Fc -U <dbuser> <dbname> > fpa-legacy.dump
-
-# Locally (needs pg client tools, e.g. `brew install libpq`):
-createdb -U postgres fpa_legacy
-pg_restore -U postgres -d fpa_legacy --no-owner --no-privileges fpa-legacy.dump
-
-# Fresh target DB with the app schema:
-createdb -U postgres fpa_migrated
-DATABASE_URL=postgres://postgres@localhost:5432/fpa_migrated npx drizzle-kit migrate
-
-# Prepare the locked image BEFORE configuring any credentials (see above).
-# Use host.docker.internal instead of localhost in the DB URLs on Docker Desktop;
-# on Linux add --add-host=host.docker.internal:host-gateway to docker run.
-# For the existing local tsx commands, use a separate credential-free staging
-# checkout: node verify-preparation.mjs, npm ci --ignore-scripts, then
-# npm rebuild esbuild. Only afterwards
-# copy .env.example to .env and fill in both sides; never install with .env present.
-# Run geocode in that local checkout and review/commit its mapping as above.
-# Execute the prepared image with a temporary --env-file for the DB/picture steps.
-
-# Browse the result:
-DATABASE_URL=postgres://postgres@localhost:5432/fpa_migrated npm run dev
+npm test
+npm run check
 ```
 
-Best local checks: log in with your own legacy email + password (exercises the
-bcrypt path), events list + pictures, the events map, and schedules with and
-without venue coordinates.
+The bundle has its own Vitest config (Node environment) and script; in this
+checkout it resolves the already installed repository Vitest/Playwright tools
+from the parent `node_modules`. No new dependencies or lock changes are needed.
+Its own `tsc`, tsx, pg and AWS SDK are installed under this package. These test
+runners are development tooling only and are not required in the migration
+Docker image. The app's `npx vp test run` includes only `src/**/*.test.ts` and
+never this bundle; its type check also excludes `tools`.
+
+Offline tests run real import loops, guards, bucket commands and verification
+against in-memory adapters, with no real database, Photon or bucket. They cover
+prompt refusal, geocode persistence, dry-run rollback/no R2 writes, full paginated
+wipe, email collisions, ASCII IDs, blank keys, allowed/rejected content types,
+actual stored row-count mismatches before bucket deletion, delimiter-collision
+fixtures, browser-resolved picture URLs, dangling locations and failure exit
+status through the actual `src/migrate-all.ts` executable (with only services,
+TTY state and prompts mocked).
+
+## Opt-in migrated-app smoke
+
+This suite is **not** in the app's integration run. It starts no app server,
+seeds no rows, imports no app helpers and opens no SQL/bucket connections.
+Use it only against an explicitly selected migrated app with an account known
+to have a legacy bcrypt hash. It signs in, so it creates a normal session, and
+visiting Attending may mint the user's normal calendar token. It reads existing
+RSVPs rather than changing them; no account/event deletion or token rotation.
+
+Prepare the existing Playwright/Chromium tooling without credentials first.
+Then supply these environment variables through a private runtime env mechanism
+(do not commit them or put passwords in shell history):
+
+| Variable                                             | Meaning                                                                                                          |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `MIGRATION_SMOKE`                                    | Exactly `1` to opt in; otherwise the spec is skipped                                                             |
+| `MIGRATION_SMOKE_BASE_URL`                           | Full http(s) URL of the running migrated app                                                                     |
+| `MIGRATION_SMOKE_EMAIL` / `MIGRATION_SMOKE_PASSWORD` | Known legacy bcrypt account's credentials                                                                        |
+| `MIGRATION_SMOKE_PICTURE_EVENT_ID`                   | Migrated event with a published picture                                                                          |
+| `MIGRATION_SMOKE_SCHEDULE_EVENT_ID`                  | Migrated event with a schedule                                                                                   |
+| `MIGRATION_SMOKE_SCHEDULE_ITEM_NAME`                 | Exact known item text to find in that schedule                                                                   |
+| `MIGRATION_SMOKE_RSVP_EVENT_ID`                      | Event this user already **attends**, including a past event; organizing alone does not enter their calendar feed |
+| `MIGRATION_SMOKE_MAP_EVENT_ID`                       | An **upcoming** migrated event with a resolved map location                                                      |
+
+```sh
+# tools/migrate; env supplied privately. No automatic dotenv loading.
+npm run test:smoke
+```
+
+The spec uses existing app test IDs (`calendar-feed-url`, `rsvp-sign-in-link`),
+unambiguous labels/roles, and Leaflet's own marker/popup selectors. It waits for
+hydration after every navigation and for network idle after interactions.
+Pictures must actually load, the selected schedule item and existing RSVP must
+appear, a popup must link to the selected map event, and the calendar response
+must contain that RSVP's UID. Browser errors fail the run (external OSM tiles
+are best-effort). Traces, screenshots and video are off to avoid recording
+credentials/private calendar URLs. Live CAPTCHA/rate limits/network availability
+remain operator responsibilities.

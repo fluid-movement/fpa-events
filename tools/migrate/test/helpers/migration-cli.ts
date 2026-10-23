@@ -95,9 +95,9 @@ export function runMigrationCli(
 	fixture: MigrationFixture,
 	args: string[] = []
 ) {
-	const runner = path.resolve('src/test/helpers/migration-cli-runner.mjs');
-	const source = path.resolve(`tools/migrate/src/${entry}.ts`);
-	const result = spawnSync(process.execPath, ['--import', runner, source, ...args], {
+	const runner = path.resolve('test/helpers/migration-cli-runner.mjs');
+	const source = path.resolve(`src/${entry}.ts`);
+	const result = spawnSync(process.execPath, [runner, source, ...args], {
 		input: JSON.stringify(fixture),
 		encoding: 'utf8',
 		// Never inherit database/bucket credentials or load a real .env file.

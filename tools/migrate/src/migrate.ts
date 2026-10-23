@@ -7,19 +7,14 @@
 // Date in the local timezone.
 import pg from 'pg';
 import { ulid } from 'ulid';
-import { legacyPool, targetPool, requireEnv } from './db';
 import { Report } from './report';
-import { loadLocationMap } from './locations';
+import type { LocationMap } from './locations';
 import { normalizeLegacyEmails } from './emails';
 import { legacyPictureUrl } from './picture-policy';
 import { assertLegacyIds } from './ids';
 
-// Also honor `npm run migrate --dry-run` (without the `--` separator): npm
-// swallows the flag itself but records it as npm_config_dry_run.
-const dryRun = process.argv.includes('--dry-run') || process.env.npm_config_dry_run === 'true';
-
 // Reverse FK order: children before parents.
-const WIPE_ORDER = [
+export const WIPE_ORDER = [
 	'schedules',
 	'schedule_locations',
 	'event_magic_links',
@@ -87,7 +82,11 @@ interface LegacySchedule {
 	updated_at: string;
 }
 
-async function migrateUsers(legacy: pg.Pool, target: pg.PoolClient, report: Report): Promise<void> {
+async function migrateUsers(
+	legacy: Pick<pg.Pool, 'query'>,
+	target: pg.PoolClient,
+	report: Report
+): Promise<void> {
 	const { rows } = await legacy.query<LegacyUser>(
 		`SELECT id, name, email, password, role, created_at::text, updated_at::text
 		 FROM users ORDER BY id`
@@ -124,12 +123,12 @@ async function migrateUsers(legacy: pg.Pool, target: pg.PoolClient, report: Repo
 }
 
 async function migrateEvents(
-	legacy: pg.Pool,
+	legacy: Pick<pg.Pool, 'query'>,
 	target: pg.PoolClient,
-	report: Report
+	report: Report,
+	locationMap: LocationMap,
+	publicUrl: string
 ): Promise<void> {
-	const publicUrl = requireEnv('TARGET_R2_PUBLIC_URL', 'R2_PUBLIC_URL').replace(/\/$/, '');
-	const locationMap = loadLocationMap();
 	const { rows } = await legacy.query<LegacyEvent>(
 		`SELECT id, user_id, name, start_date::text, end_date::text, location, description,
 		        picture, picture_width, picture_height, created_at::text, updated_at::text
@@ -138,12 +137,12 @@ async function migrateEvents(
 	assertLegacyIds('events', rows, ['id', 'user_id']);
 
 	// Insert only the map locations actually referenced, deduped on (city, country).
-	const locationIds = new Map<string, number>(); // "city|country" → event_locations.id
+	const locationIds = new Map<string, number>(); // JSON tuple → event_locations.id
 	const unmapped = new Set<string>();
 	const unresolved = new Set<string>();
 
 	async function eventLocationId(location: string): Promise<number | null> {
-		if (!(location in locationMap)) {
+		if (!Object.hasOwn(locationMap, location)) {
 			unmapped.add(location);
 			return null;
 		}
@@ -152,7 +151,7 @@ async function migrateEvents(
 			unresolved.add(location);
 			return null;
 		}
-		const key = `${mapped.city}|${mapped.country}`;
+		const key = JSON.stringify([mapped.city, mapped.country]);
 		let id = locationIds.get(key);
 		if (id === undefined) {
 			const { rows } = await target.query<{ id: number }>(
@@ -194,7 +193,7 @@ async function migrateEvents(
 	report.count('event_locations', locationIds.size, locationIds.size);
 	for (const loc of unmapped) {
 		report.warn(
-			`Event location "${loc}" is missing from data/event-locations.json — run \`npm run geocode\`. Migrated without map location.`
+			`Event location "${loc}" is missing from data/event-locations.json — review the mapping file. Migrated without map location.`
 		);
 	}
 	for (const loc of unresolved) {
@@ -205,7 +204,7 @@ async function migrateEvents(
 }
 
 async function migrateEventUsers(
-	legacy: pg.Pool,
+	legacy: Pick<pg.Pool, 'query'>,
 	target: pg.PoolClient,
 	report: Report
 ): Promise<void> {
@@ -234,7 +233,7 @@ async function migrateEventUsers(
 }
 
 async function migrateMagicLinks(
-	legacy: pg.Pool,
+	legacy: Pick<pg.Pool, 'query'>,
 	target: pg.PoolClient,
 	report: Report
 ): Promise<void> {
@@ -253,7 +252,7 @@ async function migrateMagicLinks(
 }
 
 async function migrateSchedules(
-	legacy: pg.Pool,
+	legacy: Pick<pg.Pool, 'query'>,
 	target: pg.PoolClient,
 	report: Report
 ): Promise<void> {
@@ -281,9 +280,12 @@ async function migrateSchedules(
 			// only a location name still becomes a first-class venue rather than being
 			// flattened into the description.
 			const name = locationText;
-			const key = hasCoords
-				? `${s.event_id}|${name}|${s.latitude}|${s.longitude}`
-				: `${s.event_id}|${name}`;
+			const key = JSON.stringify([
+				s.event_id,
+				name,
+				hasCoords ? s.latitude : null,
+				hasCoords ? s.longitude : null
+			]);
 			let id = venueIds.get(key);
 			if (id === undefined) {
 				const { rows: inserted } = await target.query<{ id: number }>(
@@ -330,38 +332,19 @@ async function migrateSchedules(
 	}
 }
 
-async function main() {
-	const legacy = legacyPool();
-	const target = targetPool();
-	const client = await target.connect();
-	const report = new Report();
-
-	console.log(`Migrating legacy → target${dryRun ? ' (dry run, will roll back)' : ''}…`);
-	try {
-		await client.query('BEGIN');
-		for (const table of WIPE_ORDER) {
-			await client.query(`DELETE FROM ${table}`);
-		}
-		await migrateUsers(legacy, client, report);
-		await migrateEvents(legacy, client, report);
-		await migrateEventUsers(legacy, client, report);
-		await migrateMagicLinks(legacy, client, report);
-		await migrateSchedules(legacy, client, report);
-		await client.query(dryRun ? 'ROLLBACK' : 'COMMIT');
-		console.log(dryRun ? 'Dry run complete — all changes rolled back.' : 'Committed.');
-	} catch (err) {
-		await client.query('ROLLBACK').catch(() => {});
-		throw err;
-	} finally {
-		client.release();
-		await Promise.all([legacy.end(), target.end()]);
-	}
-
-	report.print();
-	if (!dryRun) console.log('\nNext: npm run migrate:pictures');
+/** Runs inside the caller's transaction; never opens connections or commits. */
+export async function importDatabase(
+	legacy: Pick<pg.Pool, 'query'>,
+	target: pg.PoolClient,
+	locationMap: LocationMap,
+	publicUrl: string,
+	report = new Report()
+): Promise<Report> {
+	for (const table of WIPE_ORDER) await target.query(`DELETE FROM ${table}`);
+	await migrateUsers(legacy, target, report);
+	await migrateEvents(legacy, target, report, locationMap, publicUrl);
+	await migrateEventUsers(legacy, target, report);
+	await migrateMagicLinks(legacy, target, report);
+	await migrateSchedules(legacy, target, report);
+	return report;
 }
-
-main().catch((err) => {
-	console.error(err);
-	process.exit(1);
-});

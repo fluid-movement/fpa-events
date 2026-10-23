@@ -13,5 +13,22 @@ export function hasLegacyPicture(key: string | null): key is string {
 }
 
 export function legacyPictureUrl(publicUrl: string, key: string | null): string | null {
-	return hasLegacyPicture(key) ? `${publicUrl}/${key}` : null;
+	if (!hasLegacyPicture(key)) return null;
+	// Even percent-encoded standalone dots are normalized by browsers. There
+	// is no single-decode URL path that preserves these object-key segments.
+	const segments = key.split('/');
+	if (segments.some((segment) => segment === '.' || segment === '..')) {
+		throw new Error(`Picture key contains an unresolvable dot segment: ${JSON.stringify(key)}`);
+	}
+	const base = new URL(publicUrl);
+	if (
+		!['http:', 'https:'].includes(base.protocol) ||
+		base.username ||
+		base.password ||
+		base.search ||
+		base.hash
+	) {
+		throw new Error('Picture public URL must be http(s) without credentials, query or fragment');
+	}
+	return `${base.href.replace(/\/$/, '')}/${segments.map((segment) => encodeURIComponent(segment)).join('/')}`;
 }

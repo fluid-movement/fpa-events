@@ -1,6 +1,6 @@
-- [ ] One command (e.g. npm run migrate:all) runs geocode-with-pause, typed confirmation, DB wipe, full R2 bucket wipe, full import and the verification report; the old separate scripts are removed or reduced to internals
-- [ ] --dry-run deletes nothing in the DB or R2 and needs no confirmation; a wrong typed name aborts before any deletion (unit-tested with mocked DB/R2)
-- [ ] The verification report exits non-zero on a count mismatch, a missing or disallowed picture, or an event with a missing location (unit-tested)
-- [ ] Opt-in Playwright smoke suite under tools/migrate runs against a migrated app: legacy bcrypt sign-in, event with picture, schedule, RSVPs, map, calendar feed
-- [ ] Everything migration-related lives under tools/migrate (the app's src/test/migration-*.test.ts moved there and still run); deleting tools/migrate leaves the app's check, unit and integration suites green
-- [ ] tools/migrate/README.md documents the single command, the credential-free image with docker run -it, and an end-to-end rehearsal against a local legacy dump
+- [x] One command (e.g. npm run migrate:all) runs geocode-with-pause, typed confirmation, DB wipe, full R2 bucket wipe, full import and the verification report; the old separate scripts are removed or reduced to internals
+- [x] --dry-run deletes nothing in the DB or R2 and needs no confirmation; a wrong typed name aborts before any deletion (unit-tested with mocked DB/R2)
+- [x] The verification report exits non-zero on a count mismatch, a missing or disallowed picture, or an event with a missing location (unit-tested)
+- [x] Opt-in Playwright smoke suite under tools/migrate runs against a migrated app: legacy bcrypt sign-in, event with picture, schedule, RSVPs, map, calendar feed
+- [x] Everything migration-related lives under tools/migrate (the app's src/test/migration-*.test.ts moved there and still run); deleting tools/migrate leaves the app's check, unit and integration suites green
+- [x] tools/migrate/README.md documents the single command, the credential-free image with docker run -it, and an end-to-end rehearsal against a local legacy dump

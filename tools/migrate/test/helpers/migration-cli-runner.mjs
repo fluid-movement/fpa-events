@@ -5,7 +5,7 @@ import { registerHooks, stripTypeScriptTypes } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
 const fixture = JSON.parse(readFileSync(0, 'utf8'));
-const migrationRoot = new URL('../../../tools/migrate/src/', import.meta.url);
+const migrationRoot = new URL('../../src/', import.meta.url);
 const state = {
 	queries: [],
 	tables: structuredClone(fixture.initialTables ?? {}),
@@ -147,3 +147,38 @@ registerHooks({
 process.on('exit', () =>
 	process.stdout.write(`\nMIGRATION_FIXTURE_STATE=${JSON.stringify(state)}\n`)
 );
+
+try {
+	const entry = process.argv[2].endsWith('/pictures.ts') ? 'pictures' : 'migrate';
+	if (entry === 'migrate') {
+		const { importDatabase } = await import(new URL('../../src/migrate.ts', import.meta.url));
+		await target.query('BEGIN');
+		try {
+			const report = await importDatabase(legacy, target, {}, 'https://pictures.example');
+			const dryRun = process.argv.includes('--dry-run');
+			await target.query(dryRun ? 'ROLLBACK' : 'COMMIT');
+			if (dryRun) console.log('Dry run complete — all changes rolled back.');
+			report.print();
+		} catch (err) {
+			await target.query('ROLLBACK');
+			throw err;
+		}
+	} else {
+		const { listPictures, copyPictures } = await import(
+			new URL('../../src/pictures.ts', import.meta.url)
+		);
+		const pictures = await listPictures(legacy);
+		console.log(`${pictures.length} event picture(s) to check…`);
+		await copyPictures(
+			new S3Client({ endpoint: 'legacy-account' }),
+			new S3Client({ endpoint: 'target-account' }),
+			'legacy',
+			'target',
+			pictures,
+			console.log
+		);
+	}
+} catch (err) {
+	console.error(err);
+	process.exitCode = 1;
+}

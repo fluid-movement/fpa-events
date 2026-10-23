@@ -8,11 +8,11 @@ RUN node verify-preparation.mjs \
     && npm rebuild --foreground-scripts esbuild
 
 COPY src/ ./src/
-COPY data/ ./data/
+COPY --chown=node:node data/ ./data/
 # Exercise actual TypeScript loading and esbuild's native binary, without
 # importing the executable entry points or opening a DB/bucket connection.
 RUN node --import tsx --input-type=module -e "import './src/emails.ts'; import { transformSync } from 'esbuild'; transformSync('const ok: boolean = true', { loader: 'ts' }); console.log('Credential-free tsx/esbuild preparation passed')"
 
 USER node
 ENTRYPOINT ["node", "--import", "tsx"]
-CMD ["src/migrate.ts", "--dry-run"]
+CMD ["src/migrate-all.ts", "--dry-run"]
