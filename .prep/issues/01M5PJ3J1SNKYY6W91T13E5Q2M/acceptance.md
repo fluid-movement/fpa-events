@@ -1,0 +1,4 @@
+- [x] Root .dockerignore no longer excludes tools/migrate source and does exclude tools/migrate/node_modules; all other exclusions unchanged
+- [x] Dockerfile, verify-preparation.mjs and their test/helpers are gone; nothing in tools/migrate references them
+- [x] README documents the Coolify-terminal run with npm ci and migrate:all (dry run, then real), the LEGACY_* env setup and its removal after cutover; no image instructions remain
+- [x] tools/migrate npm test and npm run check pass; app npm run check and npm run test pass

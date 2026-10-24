@@ -3,13 +3,15 @@
 # `node build`, and would otherwise be copied into the runtime image.
 #
 # Still needed, so NOT listed: src/ (including the migrations under
-# src/lib/server/db/migrations), static/, package.json, package-lock.json,
-# .npmrc, svelte-options.js, vite.config.ts, tsconfig.json, drizzle.config.ts,
-# components.json.
+# src/lib/server/db/migrations), static/, tools/migrate (the legacy migration,
+# run from the deployed app's Coolify terminal; only its node_modules is
+# excluded), package.json, package-lock.json, .npmrc, svelte-options.js,
+# vite.config.ts, tsconfig.json, drizzle.config.ts, components.json.
 
 # Version control and local installs (rebuilt in the image)
 .git
 node_modules
+tools/migrate/node_modules
 build
 .svelte-kit
 
@@ -17,7 +19,6 @@ build
 .prep
 .agents
 skills-lock.json
-tools
 
 # Tests and their output
 tests

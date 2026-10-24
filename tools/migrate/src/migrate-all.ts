@@ -43,7 +43,7 @@ async function main() {
 			photonFetch: fetch,
 			prompt: async (question) => {
 				if (!process.stdin.isTTY || !process.stdout.isTTY)
-					throw new Error('Interactive terminal required; use docker run -it.');
+					throw new Error('Interactive terminal required; run it from the Coolify terminal.');
 				terminal ??= createInterface({ input: process.stdin, output: process.stdout });
 				return terminal.question(question);
 			},

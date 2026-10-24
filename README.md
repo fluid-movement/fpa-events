@@ -177,11 +177,12 @@ Coolify build settings:
 - Build command: `npm run build`
 - Start command: `npm run db:migrate && node build`
 
-The `.dockerignore` at the repository root keeps `.prep`, `.agents`, `tools`,
-tests, env files and dev-machine config out of the build context, so they never
+The `.dockerignore` at the repository root keeps `.prep`, `.agents`, tests, env files and dev-machine config out of the build context, so they never
 reach the runtime image. `src/` (with the migrations), `package*.json`,
 `drizzle.config.ts` and the build config stay, because `npm run db:migrate`
-(drizzle-kit) runs from that image. The build needs `DATABASE_URL`,
+(drizzle-kit) runs from that image, and `tools/migrate` ships so the legacy
+migration can run from the app's Coolify terminal (its `node_modules` is
+excluded). The build needs `DATABASE_URL`,
 `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL` but not the Turnstile or Mailgun keys.
 
 The Node version is pinned in Coolify through `NIXPACKS_NODE_VERSION`; see the
