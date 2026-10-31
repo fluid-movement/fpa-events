@@ -1,0 +1,1 @@
+- 2026-10-31T19:31:09Z claude-code: Implemented, ready for check: added execArgv --no-experimental-webstorage to the vitest test block in vite.config.ts with a comment, so jsdom storage is used on Node 25+; npm run test (58 files, 763 tests) and npm run check pass on Node 26.13.0.

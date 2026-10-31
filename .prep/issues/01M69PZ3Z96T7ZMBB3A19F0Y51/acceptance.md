@@ -1,0 +1,3 @@
+- [x] npm run test passes on Node 26 including all SetupChecklist tests
+- [x] The fix is confined to test configuration (vite.config.ts test block and/or src/test/setup.ts) with a comment explaining the Node 25+ Web Storage clash; no tests skipped or weakened
+- [x] npm run check passes

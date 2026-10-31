@@ -1,0 +1,6 @@
+- [x] compose.yaml runs postgres:18 with a named volume, healthcheck and project name fpa-events; an init script creates fpa_events and fpa_events_test
+- [x] .env.example DATABASE_URL matches the compose credentials and database fpa_events; .env.test matches the compose credentials for fpa_events_test
+- [x] just up is idempotent: starts OrbStack if Docker is down, creates .env with a generated BETTER_AUTH_SECRET only when missing, refuses with a clear message when a foreign process holds 5432, waits for the healthcheck, installs deps only when stale, migrates, seeds only an empty DB
+- [x] just up starts the dev server in a new Rex pane when REX_SESSION is set, in the foreground otherwise, and does not start a second server when 5173 is taken
+- [x] justfile also has default (list), down, reset (with confirmation), psql and test-db recipes
+- [x] README.md and AGENTS.md local setup describe just up and just test-db; no DBngin or createdb instructions remain

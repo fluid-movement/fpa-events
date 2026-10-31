@@ -1,0 +1,1 @@
+- 2026-10-31T19:12:48Z claude-code: Implemented, ready for check: added compose.yaml (postgres:18, fpa-events project, init script for fpa_events_test), docker/postgres/init.sql, justfile with up/down/reset/psql/test-db and helper recipes, pointed .env.test at the compose credentials, and updated README.md and AGENTS.md local setup to just up and just test-db.
