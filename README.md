@@ -17,19 +17,26 @@ SvelteKit 3 takes its options through the `sveltekit(...)` plugin in
 
 ## Getting started
 
-Requires Node.js 22.17 or newer (the `engines` field in `package.json`) and a
-running PostgreSQL instance.
+Requires Node.js 22.17 or newer (the `engines` field in `package.json`),
+[OrbStack](https://orbstack.dev) (or another Docker engine) and
+[just](https://just.systems).
 
 ```bash
-npm install                  # also installs the git hooks (husky)
-cp .env.example .env         # then fill in DATABASE_URL and BETTER_AUTH_SECRET
-export DATABASE_URL=...      # drizzle-kit reads it from the shell, not from .env
-npm run db:reset             # apply migrations, then seed development data
-npm run dev                  # http://localhost:5173
+just up                      # brings up everything and runs the dev server
 ```
 
-`db:reset` runs `db:migrate` followed by `db:seed`. Run `npm run db:migrate`
-alone to apply migrations without seeding.
+`just up` is safe to rerun. It starts OrbStack if Docker is down, starts the
+Postgres container from `compose.yaml`, creates `.env` from `.env.example` with a
+generated `BETTER_AUTH_SECRET` (only when `.env` is missing), installs
+dependencies when they are stale, applies migrations, seeds the dev database
+only when it is empty, and starts `npm run dev` on http://localhost:5173. If
+that port is already served, it does not start a second server. Inside Rex it
+opens the dev server in a new pane. Run `just` to list the other recipes:
+`down` (keeps data), `reset` (wipes the dev database after confirmation),
+`psql` and `test-db`.
+
+Postgres listens on port 5432. If it is held by a DBngin instance, `just up`
+stops with a message; stop DBngin's Postgres first.
 
 ## Environment variables
 
@@ -125,8 +132,7 @@ Unit tests need nothing set up. The integration suite drives a real browser
 against a real database, so it gets its own:
 
 ```bash
-createdb fpa_events_test
-npm run db:reset:test     # migrate and seed the test database
+just test-db              # migrate and seed the fpa_events_test database
 npm run test:integration
 ```
 
@@ -204,7 +210,7 @@ Decisions and findings for this project are recorded in prep. Use:
 ## Troubleshooting
 
 - **"Missing required environment variable: DATABASE_URL"**: export `DATABASE_URL` in your shell before running a `db:` script.
-- **Missing tables or columns**: run `npm run db:migrate` (or `npm run db:reset` for a fresh local database).
+- **Missing tables or columns**: run `just up` (or `npm run db:migrate`); `just reset` wipes the local dev database and reseeds it.
 - **Sign-in or session problems**: check that `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL` are set and match the port you serve on.
 - **Corrupted dependencies**: `rm -rf node_modules .svelte-kit && npm install`.
 

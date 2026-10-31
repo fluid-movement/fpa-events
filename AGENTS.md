@@ -164,11 +164,7 @@ could, once the deployed patch clears every floor in the tree.
 this finite adapter limit aligned with `src/lib/server/upload-body.ts`. The
 code change does not set or verify the production environment variable.
 
-**Integration tests use their own database.** One-time setup:
-
-```
-createdb fpa_events_test && npm run db:reset:test
-```
+**Integration tests use their own database.** The compose Postgres creates `fpa_events_test`; migrate and seed it once with `just test-db` (re-run it after schema changes).
 
 `.env.test` is committed and holds no secrets; machine-specific overrides go in `.env.test.local`, which stays gitignored. Playwright serves the app on **port 5174** via `npm run dev:test` so it can never attach to a dev server on 5173 that is wired to the dev database. `tests/integration/helpers/db.ts` refuses to run against a database whose name does not contain `test`.
 
