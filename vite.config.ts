@@ -41,6 +41,12 @@ export default defineConfig({
 		include: ['src/**/*.test.ts'],
 		globals: true,
 		environment: 'jsdom',
+		// Node 25+ ships its own Web Storage global, and its accessor shadows
+		// jsdom's localStorage/sessionStorage in Vitest's jsdom environment, so
+		// `localStorage` is undefined in tests. Turn Node's copy off for the test
+		// workers so jsdom's storage is the one tests see. Node 22.4+ accepts the
+		// flag, so this is safe on the Node 24 deploy as well.
+		execArgv: ['--no-experimental-webstorage'],
 		setupFiles: ['src/test/setup.ts'],
 		// Exact matches only. A bare string alias also matches everything *under*
 		// the id, which would send `#lib/server/db/schema` to the db mock instead of
