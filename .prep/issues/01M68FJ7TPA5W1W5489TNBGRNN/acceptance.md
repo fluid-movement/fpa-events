@@ -1,0 +1,5 @@
+- [ ] Migration dry run reviewed and its summary handed to an agent; 01M5A4X8WHFKD6S0QHQCDPFMPP and 01M5A4X8ZCM3JDSD66MKD07F34 resolved (steps 1-3)
+- [ ] A real migrate:all into events-dev passed its verification report and the smoke test 01M4B48HHPX6ACYDHQV887AGTE passed (steps 4-5)
+- [ ] Coolify dashboard, app database role, prod DB backups and GlitchTip alerts/HSTS settled, each in its own issue (steps 6-9)
+- [ ] The eight owner questions in 01M5A7ZANWK8D315ZE8FD47HJZ answered (step 10)
+- [ ] Cutover done: Laravel in maintenance, final migrate:all passed, domain switched, Laravel read-only, deploy-check passes, LEGACY_* removed (steps 11-13)
