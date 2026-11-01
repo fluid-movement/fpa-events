@@ -17,6 +17,12 @@
     "latitude": 52.5173885,
     "longitude": 13.3951309
   },
+  "Berlin - Templehoferfeld": {
+    "city": "Berlin",
+    "country": "Deutschland",
+    "latitude": 52.5173885,
+    "longitude": 13.3951309
+  },
   "Berlin - tba": {
     "city": "Berlin",
     "country": "Deutschland",
@@ -95,6 +101,12 @@
     "latitude": 48.1371079,
     "longitude": 11.5753822
   },
+  "Poznań, Poland": {
+    "city": "Poznań",
+    "country": "Polska",
+    "latitude": 52.4082663,
+    "longitude": 16.9335199
+  },
   "Prague": {
     "city": "Praha",
     "country": "Česko",
@@ -130,5 +142,12 @@
     "country": "Nederland",
     "latitude": 52.3671876,
     "longitude": 4.5246479
-  }
+  },
+  "Zandvoort beach": {
+    "city": "Zandvoort",
+    "country": "Nederland",
+    "latitude": 52.3671876,
+    "longitude": 4.5246479
+  },
+  "online Teams call": null
 }

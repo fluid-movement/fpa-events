@@ -1,0 +1,21 @@
+---
+title: Rename local compose file to compose.dev.yaml and bind Postgres to loopback
+kind: code
+tags:
+  - devex
+priority: low
+---
+
+Make it unmistakable that the local Postgres compose file is for development only (production is built by Coolify/nixpacks and has no compose file in the repo).
+
+Requirement:
+1. Rename `compose.yaml` to `compose.dev.yaml` (git mv). Update every reference: the justfile (`docker compose ...` calls must pass `-f compose.dev.yaml`) and README.md.
+2. Change the compose `name:` to `fpa-events-dev`.
+3. Add `compose.dev.yaml` and `docker/` to `.dockerignore`, in the dev-only section.
+4. Bind the Postgres port to loopback: `127.0.0.1:${POSTGRES_HOST_PORT:-5432}:5432`.
+5. Keep the header comment saying local development only; keep `just up` working end to end (including the port-held check and `just down`/reset recipes).
+
+Out of scope: moving files into docker/, base+override compose, any Dockerfile, any other change.
+Note: the project name change makes the old `fpa-events_postgres-data` volume orphaned; mention in the README/log that devs may remove it (`docker volume rm fpa-events_postgres-data`) and re-run `just up`.
+
+## Open questions

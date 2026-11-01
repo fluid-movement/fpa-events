@@ -1,0 +1,4 @@
+- [x] compose.yaml is renamed to compose.dev.yaml and no reference to the old name remains (justfile, README.md)
+- [x] compose.dev.yaml has name fpa-events-dev and publishes Postgres on 127.0.0.1 only
+- [x] .dockerignore excludes compose.dev.yaml and docker/
+- [x] just recipes use -f compose.dev.yaml; docker compose -f compose.dev.yaml config validates

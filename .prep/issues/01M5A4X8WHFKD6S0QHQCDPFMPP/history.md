@@ -9,3 +9,5 @@
 - 2026-10-21T17:43:32Z claude-code: Check failed: tools/migrate/src/migrate.ts migrateUsers computes normalizeLegacyEmails(rows) -> {users} but the insert loop still iterates `rows` (for (const u of rows)), so raw emails are inserted; users is unused. Full suite has 1 failing test (migration-emails.test.ts "inserts canonical emails..."). Fix: iterate `users` in the loop. Other criteria (collision abort, count note) otherwise OK; real-dump dry run pending for owner.
 
 - 2026-10-21T17:44:23Z claude-code: Merged in c464c2d after review (orchestrator fixed the importer loop to insert the normalized users). Remaining: owner reviews the dry-run report / bucket summary before the final migration.
+
+- 2026-11-01T10:02:55Z claude-code: Owner dry run 2026-11-01 in the events-dev container against the real legacy dump: 57 users, 0 emails normalised, no collisions, DB verification passed, 19 picture URLs resolved, 19 planned copies, no rejected content types.

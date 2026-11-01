@@ -11,3 +11,5 @@
 - 2026-10-21T17:43:33Z claude-code: Check passed: source and target HEAD content-type exact allowlist verified; mutation-removing either check fails tests; blank-key JS filter shared by pictures.ts and migrate.ts; CLI reports rejected keys and exits 1 (tested); README documents exact MIME and exit 1. npm run check clean. Note: full suite currently red only due to the separate email-loop bug. Real-bucket summary review pending for owner.
 
 - 2026-10-21T17:44:23Z claude-code: Merged in c464c2d after review (orchestrator fixed the importer loop to insert the normalized users). Remaining: owner reviews the dry-run report / bucket summary before the final migration.
+
+- 2026-11-01T10:02:55Z claude-code: Owner dry run 2026-11-01 in the events-dev container against the real legacy dump: 57 users, 0 emails normalised, no collisions, DB verification passed, 19 picture URLs resolved, 19 planned copies, no rejected content types.
