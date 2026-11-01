@@ -1,0 +1,1 @@
+- 2026-11-01T11:24:03Z claude-code: 2026-11-01 owner report: event creation works on events-dev after the fix (live Turnstile). Edit form not yet confirmed by hand; the turnstile integration spec covers it. Pre-push gate hit one network-dependent timeout in that spec; wait lengthened, push pending.

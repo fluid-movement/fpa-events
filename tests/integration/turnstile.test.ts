@@ -17,16 +17,22 @@ installErrorGuard(test);
 const EVENT_NAME = 'Playwright Turnstile Event';
 const RENAMED = 'Playwright Turnstile Event Renamed';
 
-/** The widget solves itself with the test keys; submitting before it does sends no token. */
+/**
+ * The widget solves itself with the test keys; submitting before it does sends no token.
+ * It talks to Cloudflare, so give it far longer than the 5 s default: a slow answer
+ * from the network must not fail the pre-push gate.
+ */
 async function waitForTurnstileToken(page: Page): Promise<void> {
 	await expect
-		.poll(() =>
-			page.evaluate(
-				() =>
-					[...document.querySelectorAll<HTMLInputElement>('input[type="hidden"]')].find((i) =>
-						i.name.startsWith('turnstileToken')
-					)?.value ?? ''
-			)
+		.poll(
+			() =>
+				page.evaluate(
+					() =>
+						[...document.querySelectorAll<HTMLInputElement>('input[type="hidden"]')].find((i) =>
+							i.name.startsWith('turnstileToken')
+						)?.value ?? ''
+				),
+			{ timeout: 30_000 }
 		)
 		.not.toBe('');
 }
@@ -43,6 +49,9 @@ async function openCreatePage(page: Page): Promise<void> {
 }
 
 test.describe('forms behind a live Turnstile widget', () => {
+	// Two widget solves per test, each a round trip to Cloudflare.
+	test.describe.configure({ timeout: 90_000 });
+
 	test.beforeEach(async () => {
 		await deleteEventsByName(EVENT_NAME);
 		await deleteEventsByName(RENAMED);
