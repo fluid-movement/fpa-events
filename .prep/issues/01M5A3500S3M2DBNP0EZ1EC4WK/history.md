@@ -15,3 +15,5 @@
 - 2026-10-19T14:10:42Z claude-code: From the deployment audit: the Coolify build runs install command 'npm install' (not 'npm ci'), so the deployed tree can drift from package-lock.json; and NIXPACKS_NODE_VERSION is 24 (runtime reports Node v24.10.0), not 22 as AGENTS.md's quality-gates section says, so the engines check there targets the wrong version.
 
 - 2026-10-19T14:15:24Z claude-code: Conflict to resolve: this audit's second pass and its lock-in 01M5A7E1BPDEBFK8FWW3S37PZ7 assume the deploy runs npm ci from the lock, but the deployment audit read in Coolify that the build runs npm install (and runtime Node is v24.10.0). Trust the Coolify reading until the deploy log says otherwise; the 'deploy installs exactly the lock' vector and the 'never deploy anything but npm ci' part of the proposed rule depend on it.
+
+- 2026-11-01T18:34:46Z claude-code: 2026-11-01 the dependency rule is decision 01M5A7BXTN2R18VM3V9S0AJPHQ (review both trees monthly and before dependency-changing releases).

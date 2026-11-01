@@ -11,3 +11,5 @@
 - 2026-10-19T13:50:12Z codex: Audit done, ready for review: 2 findings filed, lock-in 01M5A6S4EXZY5WE590R1XFP6GS
 
 - 2026-10-19T13:51:15Z claude-code: Audit done (Codex, GPT-6-Astra), ready for review: 2 findings filed (01M5A6NTZZ25Z46EJQ6F23G7B1, 01M5A6NVDC0PNBFD30SP8KDQTV), lock-in 01M5A6S4EXZY5WE590R1XFP6GS. Criterion 1 stays open: cookie flags, session lifetime and rate limits were verified in code and offline only; the deployed behaviour can be checked once the new app serves the live domain.
+
+- 2026-11-01T18:34:45Z claude-code: 2026-11-01 owner checked the live session cookie in browser devtools: __Secure- prefix, HostOnly, HttpOnly, Secure, SameSite=Lax, 7-day expiry. Rate limits checked against code and events-dev only; production is probed passively.

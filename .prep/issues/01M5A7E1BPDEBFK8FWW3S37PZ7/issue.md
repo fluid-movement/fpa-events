@@ -1,7 +1,7 @@
 ---
 title: 'Lock in the verified defenses: dependencies'
 kind: code
-parent: 01M5A3500S3M2DBNP0EZ1EC4WK
+parent: 01M4B368MKSHRQWYJ2XMZD7TXV
 tags:
   - security
 priority: low

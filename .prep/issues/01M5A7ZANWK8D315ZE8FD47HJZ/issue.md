@@ -1,7 +1,7 @@
 ---
 title: 'Answer the deployment questions only the owner can check: firewall, backups, key scopes, proxy, GlitchTip members'
 kind: manual
-parent: 01M5A34Z75BVD5BE4AZWWEDCPA
+parent: 01M4B368MKSHRQWYJ2XMZD7TXV
 tags:
   - security
 ---
