@@ -1,9 +1,10 @@
 ---
 title: The app likely connects to Postgres as the superuser and migrates on every start
 kind: manual
-parent: 01M5A34Z75BVD5BE4AZWWEDCPA
+parent: 01M4B368MKSHRQWYJ2XMZD7TXV
 tags:
   - security
+priority: low
 ---
 
 Deployment audit, 2026-10-19, parent 01M5A34Z75BVD5BE4AZWWEDCPA.

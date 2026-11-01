@@ -1,11 +1,10 @@
 ---
 title: 'Make the foundational flows provable before cutover: close the gaps between the test environment and production'
 kind: code
-parent: 01M4B368HR728N7P81MK1DFQCR
+parent: 01M4B368MKSHRQWYJ2XMZD7TXV
 tags:
   - cutover
   - testing
-priority: high
 ---
 
 Source: the owner, 2026-11-01. Event creation was broken on events-dev (GlitchTip EVENTS-NEW-3, issue 01M6BA31PDYJJRKF1C948JD86R) while the whole integration suite passed. The cause: .env.test blanks the Turnstile, Mailgun and R2 keys, so the suite never ran the configuration production runs, and the integration tests use vite dev, not the production build. The owner wants to switch the app today only if the foundational functions can be relied on without testing each by hand.

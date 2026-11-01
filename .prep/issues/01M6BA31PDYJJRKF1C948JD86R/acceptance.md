@@ -1,3 +1,3 @@
-- [ ] Creating an event on a deployment with live Turnstile succeeds, and so does editing an event
-- [ ] A test or documented reason covers the blank-key blind spot: the widget's injected input must not reach Kit's form conversion
-- [ ] No form_field_unbound events from /events/create or the edit form in GlitchTip afterwards
+- [x] Creating an event on a deployment with live Turnstile succeeds, and so does editing an event
+- [x] A test or documented reason covers the blank-key blind spot: the widget's injected input must not reach Kit's form conversion
+- [x] No form_field_unbound events from /events/create or the edit form in GlitchTip afterwards

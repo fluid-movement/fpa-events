@@ -1,0 +1,1 @@
+Fix was in src/lib/components/Turnstile.svelte (response-field: false), commit 3ce4d98. Tested by tests/integration/turnstile.test.ts on a second dev server (port 5175, dummy keys). Verified on events-dev by owner.

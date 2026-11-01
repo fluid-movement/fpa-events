@@ -12,7 +12,6 @@ bun.lockb
 # Generated
 skills-lock.json
 /src/lib/server/db/migrations/
-/tools/migrate/data/
 
 # Vendored — third-party skill definitions, kept byte-for-byte as published
 /.agents/

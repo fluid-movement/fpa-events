@@ -22,9 +22,7 @@
 	// SvelteKit 3 writes its tsconfig to `node_modules/$app/tsconfig` and no
 	// longer supplies `include`/`exclude` (it can't — the generated file no
 	// longer sits next to the project). Without these, `svelte-check` walks
-	// `build/` and `tools/` too: the adapter output is not ours to type-check,
-	// and `tools/migrate` is a separate package with its own tsconfig and
-	// dependencies.
+	// `build/` and `tools/` too: the adapter output is not ours to type-check.
 	"include": [
 		".svelte-kit/types/**/$types.d.ts",
 		"src/**/*.js",
