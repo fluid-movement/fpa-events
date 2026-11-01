@@ -1,0 +1,51 @@
+import { test, expect } from '@playwright/test';
+import { getEventIdByName, deleteEventsByName, sql, closeDb } from './helpers/db';
+import { installErrorGuard } from './helpers/console';
+import { openCreateEventPage, pickEventDateRange } from './helpers/forms';
+
+installErrorGuard(test);
+
+const EVENT_NAME = 'Playwright Editor Event';
+
+async function storedDescription(name: string): Promise<string | undefined> {
+	const [row] = await sql()`select description from events where name = ${name}`;
+	return row?.description;
+}
+
+/**
+ * The rich-text editor feeds a hidden form field. Its value once stopped updating
+ * after the first keystroke (a `$derived` over an object that never changed identity),
+ * so a save kept one letter. Nothing else types into the editor, so nothing else
+ * would notice.
+ */
+test.describe('rich-text description', () => {
+	test.beforeEach(async () => {
+		await deleteEventsByName(EVENT_NAME);
+	});
+
+	test.afterAll(async () => {
+		await deleteEventsByName(EVENT_NAME);
+		await closeDb();
+	});
+
+	test('everything typed into the editor is saved, on create and on edit', async ({ page }) => {
+		await openCreateEventPage(page);
+		await page.getByLabel('Event name').fill(EVENT_NAME);
+		await pickEventDateRange(page);
+		await page.locator('.ProseMirror').click();
+		await page.keyboard.type('hello world');
+		await page.getByRole('button', { name: 'Create event' }).click();
+		await expect(page).toHaveURL(/\/events\/[^/]+\/admin$/);
+		await expect.poll(() => storedDescription(EVENT_NAME)).toBe('<p>hello world</p>');
+
+		const eventId = await getEventIdByName(EVENT_NAME);
+		await page.goto(`/events/${eventId}/admin/edit`);
+		await page.waitForLoadState('networkidle');
+		await page.locator('.ProseMirror').click();
+		await page.keyboard.press('End');
+		await page.keyboard.type(' and more');
+		await page.getByTestId('save-details').click();
+		await expect(page.getByTestId('event-details-view')).toBeVisible();
+		await expect.poll(() => storedDescription(EVENT_NAME)).toBe('<p>hello world and more</p>');
+	});
+});

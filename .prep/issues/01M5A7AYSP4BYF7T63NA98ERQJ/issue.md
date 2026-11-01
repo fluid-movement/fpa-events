@@ -2,6 +2,8 @@
 title: GlitchTip admin HTTPS responses omit HSTS
 kind: code
 parent: 01M5A34Z75BVD5BE4AZWWEDCPA
+depends_on:
+  - 01M4B48HMSZ3XMXPW8MKQJMP3T
 tags:
   - security
 priority: low

@@ -2,6 +2,8 @@
 title: GlitchTip has no alert rules, so production errors notify no one
 kind: manual
 parent: 01M5A34Z75BVD5BE4AZWWEDCPA
+depends_on:
+  - 01M4B48HMSZ3XMXPW8MKQJMP3T
 tags:
   - security
 priority: low

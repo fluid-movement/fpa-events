@@ -1,0 +1,1 @@
+- [ ] Coolify web terminal is disabled and the Coolify dashboard host sends HSTS (moved here from 01M5A7ZAEBDP706QYZDYBQBGH2, which is closed)

@@ -1,3 +1,2 @@
-- [ ] The owner records whether 2FA is on, whether 4.4.6 is current with Coolify security advisories, which API tokens exist and their abilities
-- [ ] The dashboard is reachable only from an allow-listed source, tunnel or access proxy (an anonymous GET from elsewhere no longer gets the login page), or the owner records an explicit decision to keep it public with 2FA
-- [ ] The web terminal is disabled if unused, and the dashboard host sends HSTS
+- [x] The owner records whether 2FA is on, whether 4.4.6 is current with Coolify security advisories, which API tokens exist and their abilities
+- [x] The dashboard is reachable only from an allow-listed source, tunnel or access proxy (an anonymous GET from elsewhere no longer gets the login page), or the owner records an explicit decision to keep it public with 2FA

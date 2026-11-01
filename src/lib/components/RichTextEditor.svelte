@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount, onDestroy, untrack } from 'svelte';
 	import { Editor, type ChainedCommands } from '@tiptap/core';
 	import StarterKit from '@tiptap/starter-kit';
 	import { cn } from '#lib/utils';
@@ -81,7 +81,11 @@
 	let holder = $state<{ editor: Editor | null }>({ editor: null });
 
 	const editor = $derived(holder.editor);
-	const htmlContent = $derived(editor?.getHTML() ?? value);
+	// The HTML has to be state of its own. A `$derived(editor.getHTML())` only reruns when
+	// `editor` changes, and every transaction hands back the same instance, so the hidden
+	// field below stayed at its first value and a save kept only the first keystroke.
+	// Seeded once: the component is rebuilt whenever the loaded value changes.
+	let htmlContent = $state(untrack(() => value));
 
 	onMount(() => {
 		holder = {
@@ -89,7 +93,10 @@
 				element,
 				extensions: [StarterKit],
 				content: value,
-				onTransaction: ({ editor }) => (holder = { editor })
+				onTransaction: ({ editor }) => {
+					holder = { editor };
+					htmlContent = editor.getHTML();
+				}
 			})
 		};
 	});
