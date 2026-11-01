@@ -1,2 +1,2 @@
-- [ ] Typing a multi-word description into the editor on create and on edit saves the full text
-- [ ] An integration test types into the editor, saves, and asserts the stored description (fails on the old code)
+- [x] Typing a multi-word description into the editor on create and on edit saves the full text
+- [x] An integration test types into the editor, saves, and asserts the stored description (fails on the old code)

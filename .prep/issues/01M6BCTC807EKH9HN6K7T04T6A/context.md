@@ -1,0 +1,1 @@
+RichTextEditor.svelte: htmlContent is now $state seeded with untrack(() => value) and set in onTransaction via editor.getHTML(). Verified by tests/integration/event-editor.test.ts (types on create and edit; fails on the old code). Fixed inline at the owner's request in commit 3e9503e.

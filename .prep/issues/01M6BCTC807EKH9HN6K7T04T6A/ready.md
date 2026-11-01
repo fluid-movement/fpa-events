@@ -1,0 +1,7 @@
+---
+by: claude-code
+at: 2026-11-01T11:12:08Z
+baseline: 20261101-111200
+---
+
+Fixed inline at the owner's request
