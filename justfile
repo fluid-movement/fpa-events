@@ -47,14 +47,14 @@ _db: _docker
     #!/usr/bin/env bash
     set -euo pipefail
     listeners=$(lsof -nP -iTCP:5432 -sTCP:LISTEN 2>/dev/null || true)
-    running=$(docker compose ps --status running -q postgres)
+    running=$(docker compose -f compose.dev.yaml ps --status running -q postgres)
     if [ -n "$listeners" ] && [ -z "$running" ]; then
         holder=$(printf '%s\n' "$listeners" | awk 'NR > 1 { print $1 }' | sort -u | paste -sd, -)
         echo "Port 5432 is already held by: $holder" >&2
         echo "That is most likely DBngin's Postgres. Stop it in DBngin, then rerun just up." >&2
         exit 1
     fi
-    docker compose up -d --wait
+    docker compose -f compose.dev.yaml up -d --wait
 
 # Install dependencies only when node_modules is missing or older than package-lock.json.
 _deps:
@@ -71,7 +71,7 @@ _migrate:
 _seed-if-empty:
     #!/usr/bin/env bash
     set -euo pipefail
-    users=$(docker compose exec -T postgres psql -U user -d fpa_events -tAc 'select count(*) from "user"' | tr -d '[:space:]')
+    users=$(docker compose -f compose.dev.yaml exec -T postgres psql -U user -d fpa_events -tAc 'select count(*) from "user"' | tr -d '[:space:]')
     if [ "$users" = "0" ]; then
         npm run db:seed
     else
@@ -102,7 +102,7 @@ up: _env _db _deps
 
 # Stop the local services. Data is kept.
 down:
-    docker compose down
+    docker compose -f compose.dev.yaml down
 
 # Wipe the local dev database and start again from the seed.
 reset:
@@ -113,13 +113,13 @@ reset:
         echo "Aborted."
         exit 1
     fi
-    docker compose down -v
+    docker compose -f compose.dev.yaml down -v
     just _env
     just _db _deps _migrate _seed-if-empty
 
 # Open an interactive psql on the dev database.
 psql: _db
-    docker compose exec postgres psql -U user -d fpa_events
+    docker compose -f compose.dev.yaml exec postgres psql -U user -d fpa_events
 
 # env -i drops the .env variables dotenv-load exported, so .env.test (via dotenv-cli) is what applies.
 [doc('Migrate and seed the integration-test database (fpa_events_test).')]

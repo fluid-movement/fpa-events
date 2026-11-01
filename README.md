@@ -26,7 +26,7 @@ just up                      # brings up everything and runs the dev server
 ```
 
 `just up` is safe to rerun. It starts OrbStack if Docker is down, starts the
-Postgres container from `compose.yaml`, creates `.env` from `.env.example` with a
+Postgres container from `compose.dev.yaml`, creates `.env` from `.env.example` with a
 generated `BETTER_AUTH_SECRET` (only when `.env` is missing), installs
 dependencies when they are stale, applies migrations, seeds the dev database
 only when it is empty, and starts `npm run dev` on http://localhost:5173. If

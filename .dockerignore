@@ -34,6 +34,10 @@ src/test
 .env.*
 !.env.example
 
+# Local development services and their data: dev-machine only
+compose.dev.yaml
+docker
+
 # Git hooks, linters and notes: dev-machine only
 .husky
 .lintstagedrc.json
