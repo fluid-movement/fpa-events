@@ -1,3 +1,3 @@
-- [ ] Sign-in with a legacy account's existing password works
-- [ ] Upcoming and past events, pictures from the new bucket, rich-text descriptions, the home map and schedules render correctly on the deployed app
-- [ ] Any defect found is filed as an issue or fixed before the domain moves
+- [x] Sign-in with a legacy account's existing password works
+- [x] Upcoming and past events, pictures from the new bucket, rich-text descriptions, the home map and schedules render correctly on the deployed app
+- [x] Any defect found is filed as an issue or fixed before the domain moves
