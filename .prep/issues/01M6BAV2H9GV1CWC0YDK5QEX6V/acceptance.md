@@ -1,0 +1,4 @@
+- [ ] A written list of test-vs-production differences exists, each marked covered, accepted or open with a reason
+- [ ] Event create and edit, sign-in and sign-up, password reset, RSVP, picture upload and magic-link invite each run in a configuration that matches production for the service they depend on, or have a recorded exception
+- [ ] A spec set runs against the production build and passes in the pre-push gate or by one documented command
+- [ ] A post-deploy smoke checklist exists for events-dev and events.freestyledisc.org, short enough to run in about five minutes

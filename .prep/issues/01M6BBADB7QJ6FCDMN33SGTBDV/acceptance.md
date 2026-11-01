@@ -1,0 +1,3 @@
+- [ ] The full integration suite runs with at least 2 workers and finishes in clearly less time than the serial run
+- [ ] No spec depends on state another worker created or deleted; two full runs in a row both pass
+- [ ] The pre-push hook runs the faster path, and AGENTS.md describes the per-worker databases and ports

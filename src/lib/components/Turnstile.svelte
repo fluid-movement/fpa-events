@@ -14,6 +14,7 @@
 				callback: (token: string) => void;
 				'error-callback'?: () => void;
 				'expired-callback'?: () => void;
+				'response-field'?: boolean;
 			}
 		) => string;
 		reset: (id?: string) => void;
@@ -70,7 +71,11 @@
 					sitekey: PUBLIC_TURNSTILE_SITE_KEY ?? '',
 					callback: (t) => (token = t),
 					'error-callback': () => (token = ''),
-					'expired-callback': () => (token = '')
+					'expired-callback': () => (token = ''),
+					// The widget would otherwise add a hidden `cf-turnstile-response` input to the
+					// enclosing <form>. Kit 3 rejects any field not built by `fields.as(...)`
+					// (form_field_unbound), and the token already travels via `bind:token`.
+					'response-field': false
 				});
 			})
 			.catch((err) => console.error('[turnstile]', err));

@@ -28,6 +28,11 @@ function glitchTipOrigin() {
 const config = {
 	preprocess: vitePreprocess(),
 
+	// The second test server (`dev:test:turnstile`) must not share generated files with
+	// the first: it writes its own env, including the Turnstile keys, and the other
+	// server would reload with them and start demanding captcha tokens.
+	outDir: process.env.SVELTEKIT_OUT_DIR || '.svelte-kit',
+
 	adapter: adapter({ out: 'build' }),
 
 	// Defence in depth for the organizer-written rich text the app renders.

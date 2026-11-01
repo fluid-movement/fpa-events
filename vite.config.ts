@@ -11,6 +11,8 @@ import svelteOptions from './svelte-options.js';
 const uploadSourceMaps = Boolean(process.env.SENTRY_AUTH_TOKEN);
 
 export default defineConfig({
+	// Same reason as `outDir` in svelte-options.js: a second dev server needs its own cache.
+	cacheDir: process.env.VITE_CACHE_DIR || undefined,
 	// Kit 3 takes what used to live in svelte.config.js as a plugin argument.
 	plugins: [
 		tailwindcss(),
@@ -34,7 +36,13 @@ export default defineConfig({
 			// `[vite] page reload` for each write. Reloading the page mid-test aborts
 			// whatever request is in flight, so keep these build artifacts out of the
 			// watcher.
-			ignored: ['**/node_modules/**', '**/.git/**', '**/test-results/**', '**/playwright-report/**']
+			ignored: [
+				'**/node_modules/**',
+				'**/.git/**',
+				'**/.svelte-kit-*/**',
+				'**/test-results/**',
+				'**/playwright-report/**'
+			]
 		}
 	},
 	test: {

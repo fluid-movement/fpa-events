@@ -10,6 +10,7 @@
 	"scripts": {
 		"dev": "vite dev",
 		"dev:test": "vite dev --mode test --port 5174 --strictPort",
+		"dev:test:turnstile": "SVELTEKIT_OUT_DIR=.svelte-kit-turnstile VITE_CACHE_DIR=node_modules/.vite-turnstile PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA BETTER_AUTH_URL=http://localhost:5175 vite dev --mode test --port 5175 --strictPort",
 		"build": "vite build",
 		"preview": "npm run build && node build",
 		"prepare": "svelte-kit sync || echo ''; husky || true",

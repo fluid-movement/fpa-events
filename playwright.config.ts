@@ -12,6 +12,9 @@ config({ path: ['.env.test.local', '.env.test'] });
 // `reuseExistingServer` silently attach to a dev server wired to the dev
 // database, which is exactly what this setup exists to prevent.
 const PORT = 5174;
+// A second server with Cloudflare's always-passing Turnstile test keys, for the
+// specs that need the real widget. Everything else keeps captcha off.
+const TURNSTILE_PORT = 5175;
 
 export default defineConfig({
 	testDir: './tests/integration',
@@ -27,12 +30,20 @@ export default defineConfig({
 		baseURL: `http://localhost:${PORT}`,
 		trace: 'retain-on-failure'
 	},
-	webServer: {
-		command: 'vp run dev:test',
-		url: `http://localhost:${PORT}`,
-		reuseExistingServer: !process.env.CI,
-		stdout: 'pipe'
-	},
+	webServer: [
+		{
+			command: 'vp run dev:test',
+			url: `http://localhost:${PORT}`,
+			reuseExistingServer: !process.env.CI,
+			stdout: 'pipe'
+		},
+		{
+			command: 'vp run dev:test:turnstile',
+			url: `http://localhost:${TURNSTILE_PORT}`,
+			reuseExistingServer: !process.env.CI,
+			stdout: 'pipe'
+		}
+	],
 	projects: [
 		{
 			name: 'setup',
@@ -40,8 +51,19 @@ export default defineConfig({
 		},
 		{
 			name: 'chromium',
+			testIgnore: /turnstile\.test\.ts/,
 			use: {
 				...devices['Desktop Chrome'],
+				storageState: 'playwright/.auth/user.json'
+			},
+			dependencies: ['setup']
+		},
+		{
+			name: 'turnstile',
+			testMatch: /turnstile\.test\.ts/,
+			use: {
+				...devices['Desktop Chrome'],
+				baseURL: `http://localhost:${TURNSTILE_PORT}`,
 				storageState: 'playwright/.auth/user.json'
 			},
 			dependencies: ['setup']
