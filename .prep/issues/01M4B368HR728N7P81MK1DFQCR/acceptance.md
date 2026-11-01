@@ -1,0 +1,1 @@
+- [x] All children are done or dropped and the app is live on events.freestyledisc.org
