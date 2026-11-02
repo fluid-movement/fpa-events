@@ -87,7 +87,8 @@ for path in / /login; do
 	[[ "$S" == 200 ]] && pass "GET $path 200" || fail "GET $path expected 200, got $S"
 	expect_header "$H" x-frame-options DENY "glitchtip $path"
 	expect_header "$H" x-content-type-options nosniff "glitchtip $path"
-	expect_header "$H" strict-transport-security max-age= "glitchtip $path (issue 01M5A7AYSP4BYF7T63NA98ERQJ)"
+	# GlitchTip sends no HSTS; accepted (decision 01M6DY3TAJCHYNJ31WA0QH74VD), so informational only.
+	grep -qi "^strict-transport-security:" <<<"$H" && pass "glitchtip $path: HSTS present" || info "glitchtip $path: no HSTS (accepted)"
 done
 SETTINGS=$(curl -sS --max-time 15 "https://$GLITCHTIP/api/settings/" 2>/dev/null)
 for flag in enableUserRegistration enableOrganizationCreation; do

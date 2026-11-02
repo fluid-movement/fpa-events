@@ -26,8 +26,9 @@ It checks:
   `base-uri 'self'`, `form-action 'self'`; `/healthz` answers 200 with body exactly `ok` and
   `content-security-policy: default-src 'none'; frame-ancestors 'none'`.
 - **GlitchTip** (`glitchtip.fluid-movement.de`): HTTP redirects to HTTPS; `/` and `/login`
-  answer 200 with `x-frame-options` and `nosniff`; HSTS is expected (issue
-  01M5A7AYSP4BYF7T63NA98ERQJ, still open until GlitchTip sends it); `/api/settings/` reports
+  answer 200 with `x-frame-options` and `nosniff`; HSTS is reported as
+  informational only (GlitchTip sends none; accepted, decision
+  01M6DY3TAJCHYNJ31WA0QH74VD); `/api/settings/` reports
   `enableUserRegistration` and `enableOrganizationCreation` as `false`.
 - **Coolify** (`coolify.fluid-movement.de/login`): status and security headers are printed as
   `INFO` only. The public dashboard is a known finding (01M5A7ZAEBDP706QYZDYBQBGH2).
