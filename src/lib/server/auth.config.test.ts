@@ -240,7 +240,9 @@ describe('session cookie', () => {
 		expect(session).toMatch(/;\s*Max-Age=604800(;|$)/i);
 		// The stored session expires when the cookie does.
 		const [stored] = memdb.session as { expiresAt: Date; createdAt: Date }[];
-		expect(stored.expiresAt.getTime() - stored.createdAt.getTime()).toBe(604800 * 1000);
+		// Better Auth reads the clock separately for each timestamp, so they can
+		// differ by a millisecond; an exact match made this test fail now and then.
+		expect(stored.expiresAt.getTime() - stored.createdAt.getTime()).toBeCloseTo(604800 * 1000, -3);
 	});
 });
 
