@@ -1,0 +1,1 @@
+- [x] Decision made: plain vite and vitest, vite-plus removed (decision 01M6E5866X1QTSHNQ8M6384XWN)

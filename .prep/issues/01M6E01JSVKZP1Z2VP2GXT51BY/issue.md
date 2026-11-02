@@ -1,9 +1,10 @@
 ---
 title: Serve event pictures from a custom domain, not the r2.dev development endpoint
 kind: manual
-parent: 01M4B368MKSHRQWYJ2XMZD7TXV
+parent: 01M6DZRPCTBMBH2D0BCE51EZKZ
 tags:
   - ops
+priority: low
 ---
 
 Source: the owner, 2026-11-02, while answering the deployment owner questions (R2): the production app still serves pictures from Cloudflare's r2.dev development endpoint. Cloudflare rate-limits r2.dev and does not cache it, and says it is not for production traffic, so pictures could stall or be throttled under load.

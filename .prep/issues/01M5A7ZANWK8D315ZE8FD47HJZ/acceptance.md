@@ -1,2 +1,3 @@
-- [ ] Each of the eight questions has an answer in the work log (no secret values)
-- [ ] Any answer that reveals a gap is filed as its own security finding under 01M5A34Z75BVD5BE4AZWWEDCPA, and the R2 host answer is added to 01M5A4X8ZCM3JDSD66MKD07F34
+- [x] Each of the eight questions has an answer in the work log (no secret values)
+- [x] Any answer that reveals a gap is filed as its own security finding under 01M5A34Z75BVD5BE4AZWWEDCPA, and the R2 host answer is added to 01M5A4X8ZCM3JDSD66MKD07F34
+- [x] All eight questions answered or deferred by the owner; findings filed (R2 domain, parked in Backlog)

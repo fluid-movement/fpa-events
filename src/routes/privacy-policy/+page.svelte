@@ -79,8 +79,9 @@
 				<p>
 					When something goes wrong, our server logs the page, the time and your user ID so we can
 					find and fix the error. When the site sends you an email, the log records the address it
-					went to. Legal basis: our legitimate interest in running the service reliably (Art.
-					6(1)(f)).
+					went to. The hosting proxy also keeps anonymized traffic statistics (the last part of your
+					IP address is removed) and a short-lived access log. Legal basis: our legitimate interest
+					in running the service reliably (Art. 6(1)(f)).
 				</p>
 			</div>
 

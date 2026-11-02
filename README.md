@@ -118,8 +118,8 @@ npm run db:seed          # Seed development data
 npm run db:reset         # db:migrate, then db:seed
 
 # Tests
-npm run test             # Runs `vp test run`: unit tests (Vitest), single run
-npm run test:watch       # Runs `vp test watch`: unit tests, watch mode
+npm run test             # Runs `vitest run`: unit tests (Vitest), single run
+npm run test:watch       # Runs `vitest`: unit tests, watch mode
 npm run test:integration # Playwright integration tests
 ```
 

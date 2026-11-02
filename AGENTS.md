@@ -141,10 +141,8 @@ warning becomes a fatal `EBADENGINE` and aborts `npm install`, which is what
 broke the 2026-09-15 deploy (then on Node 22.19.0) when `lint-staged` raised its
 floor to `>=22.22.1`. Git-hook and dev tooling never executes in the container,
 so failing the build on its Node floor buys nothing. The deploy of 2026-10-22
-ran **Node 24.10.0**, and at that version the only packages whose floor is missed
-are `vite-plus` and its bundled `vite` (`>=24.11.0` on the 24 line) — dev-only:
-`npm run build` uses the app's own `vite` (8.3.x, `>=22.12.0`) and `node build`
-uses neither.
+ran **Node 24.10.0**. Dev-only tooling never runs in the container, and
+`npm run build` uses the app's own `vite` (8.3.x, `>=22.12.0`).
 
 To check the whole tree against the deployed Node before pushing something
 dependency-shaped, pass the version from the deploy log:

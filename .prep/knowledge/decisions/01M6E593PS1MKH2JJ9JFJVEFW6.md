@@ -1,0 +1,16 @@
+---
+type: decision
+title: Plain vite and vitest for local tooling; vite-plus removed
+description: 'Owner decision 2026-11-02: no vp; dev is vite dev, tests are vitest run'
+date: "2026-11-02"
+issue: 01M4B3VDAV4VWMP44FB39Y77MQ
+supersedes:
+  - 01M6E5866X1QTSHNQ8M6384XWN
+outcome: true
+---
+
+Decided by the owner on 2026-11-02, closing issue 01M4B3VDAV4VWMP44FB39Y77MQ.
+
+- Local development uses plain tools: `vite dev` for dev and dev:test, `vitest run` and `vitest` for unit tests. vite-plus (vp) and its dependency overrides are removed from package.json and the lock file. This reverses the earlier preference (kept only in assistant memory, not in prep) that vp should run dev, build, test, lint and dependency management.
+- Reason: `vp dev` cannot run the SvelteKit 3 dev server ("The configured Vite SSR environment must be a RunnableDevEnvironment"), so vite-plus covered only the test runner, while adding a dependency tree with a Node 24.11 floor above the deployed Node 24.10. Adopting vite-plus 1.0 (vite aliased to its core, test imports rewritten, vitest 5) was real work for little gain on an app that is going to rest.
+- Verified on removal: 763 of 763 unit tests pass with `vitest run`, `npm run check` is clean and `npm run build` completes. Formatting stays on Prettier and linting on ESLint, as before.
