@@ -1,7 +1,7 @@
 ---
 title: Rate-limit repeated wrong passwords on account deletion
 kind: code
-parent: 01M4B368MKSHRQWYJ2XMZD7TXV
+parent: 01M6DYXTF0P34AKMJYDJJQHGKS
 tags:
   - security
 priority: low

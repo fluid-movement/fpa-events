@@ -1,7 +1,7 @@
 ---
 title: Decide how 'N attending' is counted
 kind: decision
-parent: 01M4B368MKSHRQWYJ2XMZD7TXV
+parent: 01M6DYXTJDJQ87J8PTZHQARDP2
 tags:
   - attendance
 priority: low

@@ -1,7 +1,7 @@
 ---
 title: City map on the event detail page
 kind: code
-parent: 01M4B368MKSHRQWYJ2XMZD7TXV
+parent: 01M6DYXTJDJQ87J8PTZHQARDP2
 tags:
   - feature
   - maps

@@ -1,7 +1,7 @@
 ---
 title: Orphaned uploads and unbounded image uploads
 kind: code
-parent: 01M4B368MKSHRQWYJ2XMZD7TXV
+parent: 01M6DYXTF0P34AKMJYDJJQHGKS
 tags:
   - r2
 priority: low

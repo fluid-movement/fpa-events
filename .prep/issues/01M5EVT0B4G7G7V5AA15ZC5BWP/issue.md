@@ -1,7 +1,7 @@
 ---
 title: create Crews
 kind: code
-parent: 01M4B368MKSHRQWYJ2XMZD7TXV
+parent: 01M6DYXTJDJQ87J8PTZHQARDP2
 ---
 
 users can create a "crew". a crew has members and a city homebase. there is a new crew listing with details links. on a crew details page all members of the crew can edit the following:
