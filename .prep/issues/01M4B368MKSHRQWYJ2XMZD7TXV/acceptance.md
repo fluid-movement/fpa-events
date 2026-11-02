@@ -1,0 +1,1 @@
+- [x] Every child is done or dropped; remaining ideas live under Bugs, Features and Backlog
