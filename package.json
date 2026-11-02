@@ -103,7 +103,6 @@
 	"engines": {
 		"node": ">=22.17"
 	},
-	"packageManager": "npm@11.12.1",
 	"overrides": {
 		"vite-plus": {
 			"vitest": "4.1.12",
