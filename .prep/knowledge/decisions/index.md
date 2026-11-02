@@ -45,5 +45,7 @@
 * [Build with Railpack on Node 24 and no packageManager field](/decisions/01M6E0JQERE7BKY23AYM58ETHK.md) - Coolify builds the app with Railpack; Node 24 is pinned by RAILPACK_NODE_VERSION
 * [Plain vite and vitest for local tooling; vite-plus removed](/decisions/01M6E5866X1QTSHNQ8M6384XWN.md) - Owner decision 2026-11-02 for issue 01M4B3VDAV4VWMP44FB39Y77MQ
 * [Plain vite and vitest for local tooling; vite-plus removed](/decisions/01M6E593PS1MKH2JJ9JFJVEFW6.md) - Owner decision 2026-11-02: no vp; dev is vite dev, tests are vitest run
+* [Keep Coolify traffic analytics with anonymized IPs and describe it in the privacy policy](/decisions/01M6E5B6FK1PPAA6HD58PZ7KPJ.md) - Owner decision 2026-11-02 on the traffic analytics setting
+* [Review the dependency tree monthly and before dependency-changing releases](/decisions/01M6E5B6KJNSPM3HATZGHD8G26.md) - Same rule, updated now that tools/migrate is deleted and vite-plus is removed
 * [One dark theme, no light mode](/decisions/dark-only-theme.md) - The app ships a single dark theme; no dark: variants, toggle or prefers-color-scheme handling.
 * [Product scope relative to the Laravel app](/decisions/product-scope.md) - What was dropped (judging, divisions, membership), what was kept and rebuilt differently, and why there is no /admin area.
