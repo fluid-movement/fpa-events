@@ -1,0 +1,1 @@
+- 2026-11-02T11:19:30Z claude-code: 2026-11-02 owner created the backup; verified via the Coolify MCP: daily, enabled, saved to S3 (storage jwsgo80g4s8g0sk4448wswc8). A test restore has not been done.

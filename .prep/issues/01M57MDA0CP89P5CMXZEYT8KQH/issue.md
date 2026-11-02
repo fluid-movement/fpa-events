@@ -1,7 +1,7 @@
 ---
 title: Alert on new GlitchTip issues by email and Telegram
 kind: manual
-parent: 01M4B368MKSHRQWYJ2XMZD7TXV
+parent: 01M6DZRPCTBMBH2D0BCE51EZKZ
 tags:
   - observability
   - ops

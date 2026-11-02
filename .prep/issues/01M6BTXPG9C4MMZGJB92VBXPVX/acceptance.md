@@ -1,0 +1,1 @@
+- [x] A daily scheduled backup of events-postgres to S3 is enabled

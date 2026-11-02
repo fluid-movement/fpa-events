@@ -1,0 +1,1 @@
+- 2026-11-02T11:24:25Z claude-code: Correction: svelte-options.js img-src already allows https:, so no CSP change is needed for a new picture host; criterion 2 reduces to the stored URLs.
