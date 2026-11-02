@@ -42,5 +42,6 @@
 * [Go live with four pictures unsized; audit, database role and dedicated backups follow launch](/decisions/01M6BWWN3QAWJJ3BY4WJNXDWSM.md) - Owner decisions 2026-11-01 on what is not a go-live blocker
 * [Keep the Coolify web terminal on and skip HSTS on the Coolify and GlitchTip hosts](/decisions/01M6DY3TAJCHYNJ31WA0QH74VD.md) - Owner decision 2026-11-02 closing the last post-cutover hardening items
 * [No deploy check script: headers are tested in the app, infrastructure is checked by hand](/decisions/01M6DYNGBAM43XA5CYARSKS050.md) - Owner decision 2026-11-02 to keep the repo simple
+* [Build with Railpack on Node 24 and no packageManager field](/decisions/01M6E0JQERE7BKY23AYM58ETHK.md) - Coolify builds the app with Railpack; Node 24 is pinned by RAILPACK_NODE_VERSION
 * [One dark theme, no light mode](/decisions/dark-only-theme.md) - The app ships a single dark theme; no dark: variants, toggle or prefers-color-scheme handling.
 * [Product scope relative to the Laravel app](/decisions/product-scope.md) - What was dropped (judging, divisions, membership), what was kept and rebuilt differently, and why there is no /admin area.

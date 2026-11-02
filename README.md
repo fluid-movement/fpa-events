@@ -189,7 +189,7 @@ reach the runtime image. `src/` (with the migrations), `package*.json`,
 (drizzle-kit) runs from that image. The build needs `DATABASE_URL`,
 `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL` but not the Turnstile or Mailgun keys.
 
-The Node version is pinned in Coolify through `NIXPACKS_NODE_VERSION`; see the
+The Node version is pinned in Coolify through `RAILPACK_NODE_VERSION`; see the
 deployment decisions via `prep knowledge find deploy`.
 
 ## Project knowledge

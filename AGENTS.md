@@ -126,11 +126,12 @@ Git hooks are the only thing between a commit and a Coolify production deploy â€
 - **pre-commit** (~20s): `lint-staged` (Prettier + ESLint on staged files only), then `npm run check`, then `npm run test`. Note `npm run lint` is deliberately _not_ used â€” it runs `prettier --check .` over the whole repo and would fail on files the commit never touched.
 - **pre-push** (~2-4 min): `npm run build`, then `npm run db:migrate:test`, then `npm run test:integration`. The build runs first because a build failure is the likeliest cause of a broken deploy and it fails fastest.
 
-**The deploy runs Node 24, pinned by major only.** Coolify builds with nixpacks
-at `NIXPACKS_NODE_VERSION=24` (decision `01M59PK8QMF1B7Z8BMMDMD6PH5`, which
-replaced the earlier exact Node 22 pin). The patch release moves with the
-nixpacks resolver, so it can sit behind your machine: read the actual version
-from the `node -v` / nixpacks setup lines in the deploy's debug log before
+**The deploy runs Node 24, pinned by major only.** Coolify builds with Railpack
+at `RAILPACK_NODE_VERSION=24`, a build variable (decision
+`01M6E0JQERE7BKY23AYM58ETHK`, which replaced the Nixpacks pin of
+`01M59PK8QMF1B7Z8BMMDMD6PH5`). The patch release moves with the Railpack
+resolver, so it can sit behind your machine: read the actual version
+from the `node -v` / setup lines in the deploy's debug log before
 trusting a dependency's `engines.node` floor. A dependency whose floor lands
 above the deployed patch will still install (npm just warns), but it may not
 _run_ in the container.

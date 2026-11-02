@@ -5,3 +5,5 @@
 - 2026-11-01T18:34:45Z edited by claude-code: parent
 
 - 2026-11-02T11:32:05Z claude-code: 2026-11-02 owner: Q4 R2 - production still serves pictures from the r2.dev development endpoint (filed as 01M6E01JSVKZP1Z2VP2GXT51BY; token scope still unchecked); Q5 Mailgun - key left as it is, owner says the setup is fine; Q6 proxy - read via the Coolify MCP: the Traefik config has no forwardedHeaders settings (safe default) and DNS points straight at the Hetzner IP with no Cloudflare proxy in front. Q7 GlitchTip members and Q8 analytics retention still to answer.
+
+- 2026-11-02T11:32:46Z claude-code: 2026-11-02 owner: Q7 GlitchTip - the owner is the only user and has set up authentication.

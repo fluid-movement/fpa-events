@@ -1,4 +1,4 @@
-# Build context for the Coolify/nixpacks image. Everything excluded here is
+# Build context for the Coolify/Railpack image. Everything excluded here is
 # neither needed to `npm install`, `npm run build`, `npm run db:migrate` nor
 # `node build`, and would otherwise be copied into the runtime image.
 #
