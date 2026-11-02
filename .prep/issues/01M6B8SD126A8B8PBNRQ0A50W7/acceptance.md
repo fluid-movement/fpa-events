@@ -1,3 +1,3 @@
-- [x] Node 24 pin replaced by the Railpack equivalent; decision 01M59PK8QMF1B7Z8BMMDMD6PH5 superseded and AGENTS.md updated
 - [x] Coolify app builds with Railpack and passes its /healthz check (deploy 445666a, 2026-11-02)
-- [ ] Migrations run at start, GlitchTip source maps upload at build, and a picture upload works after the switch
+- [x] Node 24 pin replaced by RAILPACK_NODE_VERSION; decision 01M59PK8QMF1B7Z8BMMDMD6PH5 superseded by 01M6E0JQERE7BKY23AYM58ETHK and AGENTS.md updated
+- [x] Migrations run at start and source maps upload at build; a picture upload was not tested, accepted by the owner on 2026-11-02

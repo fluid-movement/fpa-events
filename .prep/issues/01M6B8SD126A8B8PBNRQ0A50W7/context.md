@@ -1,0 +1,1 @@
+Done in Coolify configuration plus package.json (commit 445666a removed the packageManager field), AGENTS.md, README, .npmrc, .dockerignore (commit dee2fba). Decision: /decisions/01M6E0JQERE7BKY23AYM58ETHK.md.
