@@ -1,1 +1,3 @@
 - 2026-11-02T10:41:18Z claude-code: 2026-11-02 verified via the Coolify MCP: the new app has no LEGACY_* keys; the old fpa-app, its project and its Postgres are gone (only events-postgres and the player-profiles database remain). Live deploy-check passed on 2026-11-01. Open: whether a final legacy dump was archived (owner to confirm), Coolify terminal and dashboard HSTS.
+
+- 2026-11-02T10:44:22Z claude-code: 2026-11-02 owner: no final legacy dump was taken before the old database was deleted; owner will set up database dumps for the new environment (see 01M6BTXPG9C4MMZGJB92VBXPVX). Accepted as is.

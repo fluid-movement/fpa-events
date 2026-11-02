@@ -1,4 +1,4 @@
-- [ ] Coolify web terminal is disabled and the Coolify dashboard host sends HSTS (moved here from 01M5A7ZAEBDP706QYZDYBQBGH2, which is closed)
 - [x] LEGACY_* variables removed from the new app in Coolify
-- [ ] Final legacy database dump archived, then the stopped Laravel app and its database removed from Coolify
 - [x] scripts/deploy-check.sh run against the live domain and the production headers and CSP verified (closes the security audit criterion)
+- [x] Legacy database archive decision: none taken, accepted by the owner; old app and database removed from Coolify
+- [x] Coolify terminal and dashboard HSTS: decided to keep the terminal and skip HSTS (decision recorded 2026-11-02)
