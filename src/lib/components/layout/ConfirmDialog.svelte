@@ -72,8 +72,15 @@
 
 <AlertDialog.Root bind:open>
 	{#if trigger}
+		<!-- The trigger snippet is a Button of its own, so Trigger must not render a
+		     second <button> around it: nested buttons are invalid HTML and break
+		     hydration. A transparent span carries the trigger behaviour instead. -->
 		<AlertDialog.Trigger>
-			{@render trigger()}
+			{#snippet child({ props })}
+				<span {...props} class="contents">
+					{@render trigger()}
+				</span>
+			{/snippet}
 		</AlertDialog.Trigger>
 	{/if}
 	<AlertDialog.Content class={cn('sm:max-w-md', className)} data-testid={testIds.content}>

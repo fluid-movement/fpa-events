@@ -91,7 +91,7 @@ export async function postOverriding(
 export async function captureRemoteForm(page: Page, remote: string) {
 	const captured = await page.evaluate((remote) => {
 		const form = [...document.querySelectorAll('form')].find((form) =>
-			decodeURIComponent(form.action).endsWith(`/${remote}`)
+			new RegExp(`/${remote}(/|$)`).test(decodeURIComponent(form.action))
 		);
 		if (!form) return null;
 		return {
