@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildPopupHtml } from './mapPopup';
+import { buildCrewPopupHtml, buildPopupHtml } from './mapPopup';
 
 const event = {
 	id: '01M5A4X9AP5EG81X6ZCN9Q4JPJ',
@@ -53,4 +53,19 @@ describe('map popup HTML security', () => {
 			`/events/${event.id.toLowerCase()}`
 		]);
 	});
+});
+
+it('escapes crew marker names, cities, countries and links', () => {
+	const crew = {
+		id: 'x"><img src=x onerror="alert(1)">',
+		name: '<svg onload="alert(1)">',
+		city: '" & <city>',
+		country: "<country> & '"
+	};
+	const popup = parse(buildCrewPopupHtml(crew));
+	expect(popup.querySelector('p')?.textContent).toBe(crew.name);
+	expect(popup.querySelectorAll('p')[1].textContent).toBe(`${crew.city}, ${crew.country}`);
+	expect(popup.querySelector('a')?.getAttribute('href')).toBe(`/crews/${crew.id}`);
+	expect(popup.querySelectorAll('a')).toHaveLength(1);
+	expect(popup.querySelector('img, svg, script, [onerror], [onload]')).toBeNull();
 });

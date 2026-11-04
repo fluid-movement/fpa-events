@@ -18,6 +18,21 @@ import {
 } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 
+/** Ongoing events stay upcoming until they end. Order both lists by start date. */
+export function splitEventsByEndDate<T extends { startDate: Date; endDate: Date }>(
+	rows: T[],
+	now: Date
+) {
+	return {
+		upcoming: rows
+			.filter((event) => event.endDate >= now)
+			.sort((a, b) => a.startDate.getTime() - b.startDate.getTime()),
+		past: rows
+			.filter((event) => event.endDate < now)
+			.sort((a, b) => b.startDate.getTime() - a.startDate.getTime())
+	};
+}
+
 /** Years that have at least one event already started, most recent first. */
 export async function getArchiveYears(): Promise<number[]> {
 	const yearExpr = sql<number>`EXTRACT(YEAR FROM ${events.startDate})::int`;

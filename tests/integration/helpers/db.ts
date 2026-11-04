@@ -416,3 +416,35 @@ export async function getUserCrewIds(userId: string): Promise<string[]> {
 	>`SELECT crew_id FROM crew_members WHERE user_id = ${userId}`;
 	return rows.map((row) => row.crew_id);
 }
+
+export async function getCrewCityId(crewId: string): Promise<number> {
+	const [row] = await sql()<[{ city_id: number }]>`SELECT city_id FROM crews WHERE id = ${crewId}`;
+	if (!row) throw new Error(`Test crew not found: ${crewId}`);
+	return row.city_id;
+}
+
+/** Serial suite only: preserve seeded crews and their cascading rows around the empty-page test. */
+export async function withEmptyCrewListing(run: () => Promise<void>): Promise<void> {
+	const snapshot = await sql().begin(async (tx) => {
+		const members = await tx`SELECT * FROM crew_members`;
+		const links = await tx`SELECT * FROM crew_magic_links`;
+		const crews = await tx`DELETE FROM crews RETURNING *`;
+		return { crews: [...crews], members: [...members], links: [...links] };
+	});
+	try {
+		await run();
+	} finally {
+		await sql().begin(async (tx) => {
+			if (snapshot.crews.length) await tx`INSERT INTO crews ${tx(snapshot.crews)}`;
+			if (snapshot.members.length) await tx`INSERT INTO crew_members ${tx(snapshot.members)}`;
+			if (snapshot.links.length) await tx`INSERT INTO crew_magic_links ${tx(snapshot.links)}`;
+		});
+	}
+}
+
+/** A crew with no seats, for public listing/count tests. */
+export async function createTestCrewAtCity(cityId: number, name: string): Promise<string> {
+	const id = ulid().toLowerCase();
+	await sql()`INSERT INTO crews (id, name, city_id) VALUES (${id}, ${name}, ${cityId})`;
+	return id;
+}

@@ -2,6 +2,20 @@ import { resolve } from '$app/paths';
 import { escapeHtml } from '#lib/utils/html';
 import { formatShortDateRange } from '#lib/utils/dates';
 
+/** Crew markers use the same escaping boundary as event popups. */
+export function buildCrewPopupHtml(crew: {
+	id: string;
+	name: string;
+	city: string;
+	country: string;
+}): string {
+	return `<div style="min-width:180px;font-size:0.85rem;line-height:1.4">
+		<p style="font-weight:600;margin:0 0 2px">${escapeHtml(crew.name)}</p>
+		<p>${escapeHtml(crew.city)}, ${escapeHtml(crew.country)}</p>
+		<a href="${escapeHtml(resolve('/crews/[id]', { id: crew.id }))}">View crew →</a>
+	</div>`;
+}
+
 type PopupEvent = {
 	id: string;
 	name: string;
