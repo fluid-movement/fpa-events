@@ -447,6 +447,8 @@ export async function createTestCrewAtCity(cityId: number, name: string): Promis
 	const id = ulid().toLowerCase();
 	await sql()`INSERT INTO crews (id, name, city_id) VALUES (${id}, ${name}, ${cityId})`;
 	return id;
+}
+
 /** Stored attachment and visibility are separate: hiding a badge retains the host. */
 export async function getEventHost(eventId: string) {
 	const [row] = await sql()<{ crew_id: string | null; show_crew: boolean }[]>`

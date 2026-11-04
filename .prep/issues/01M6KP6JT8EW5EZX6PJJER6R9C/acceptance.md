@@ -1,3 +1,3 @@
-- [ ] /crews lists every crew (grouped member counts) with a map of non-NaN coordinates and cards linking to details; empty state links to creation; Crews appears in the sidebar
-- [ ] Details page shows all upcoming and all past events in the crew's city and none from other cities, via listEventsWithAttendeeCount; looks distinct from an event page; existing member list and leave/manage controls still work
-- [ ] Vitest for the upcoming/past split and a Playwright spec cover these; npm run check and npm run test pass
+- [x] /crews lists every crew (grouped member counts) with a map of non-NaN coordinates and cards linking to details; empty state links to creation; Crews appears in the sidebar
+- [x] Details page shows all upcoming and all past events in the crew's city and none from other cities, via listEventsWithAttendeeCount; looks distinct from an event page; existing member list and leave/manage controls still work
+- [x] Vitest for the upcoming/past split and a Playwright spec cover these; npm run check and npm run test pass

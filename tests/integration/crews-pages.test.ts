@@ -116,7 +116,9 @@ test.describe('public crew pages', () => {
 			'Soon city event',
 			'Later city event'
 		]);
-		await expect(upcoming.locator(`a[href="/events/${ongoing}"]`)).toContainText('1');
+		await expect(
+			upcoming.locator('.card-link').filter({ has: page.locator(`a[href="/events/${ongoing}"]`) })
+		).toContainText('1');
 		await expect(past.locator('h2')).toHaveText(
 			Array.from({ length: 10 }, (_, i) => `Past city event ${i + 1}`)
 		);
