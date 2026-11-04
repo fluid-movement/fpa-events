@@ -1,9 +1,18 @@
+import { sortJams } from '#lib/crew-jams';
 import { error } from '@sveltejs/kit';
 import { getCrewStats } from '#lib/server/crewStats';
 import { crewExitBlocked } from '#lib/crew-membership-policy';
 import { eq, and, asc, count } from 'drizzle-orm';
 import { db } from '#lib/server/db';
-import { cities, crews, crewMembers, events, user } from '#lib/server/db/schema';
+import {
+	cities,
+	crews,
+	crewMembers,
+	events,
+	user,
+	crewLinks,
+	crewJams
+} from '#lib/server/db/schema';
 import { listEventsWithAttendeeCount, splitEventsByEndDate } from '#lib/server/utils/events';
 import { storedIdParam } from '#lib/server/validation';
 import type { PageServerLoad } from './$types';
@@ -28,7 +37,7 @@ export const load = (async ({ params, locals, url }) => {
 		.limit(1);
 	if (!crew) error(404, 'Crew not found');
 	const now = new Date();
-	const [namedMembers, counts, ownMembership, roles, cityEvents] = await Promise.all([
+	const [namedMembers, counts, ownMembership, roles, cityEvents, links, jams] = await Promise.all([
 		db
 			.select({ id: user.id, name: user.name })
 			.from(crewMembers)
@@ -43,7 +52,9 @@ export const load = (async ({ params, locals, url }) => {
 					.where(and(eq(crewMembers.crewId, id), eq(crewMembers.userId, locals.user.id)))
 			: Promise.resolve([]),
 		db.select({ role: crewMembers.role }).from(crewMembers).where(eq(crewMembers.crewId, id)),
-		listEventsWithAttendeeCount(eq(events.cityId, crew.cityId))
+		listEventsWithAttendeeCount(eq(events.cityId, crew.cityId)),
+		db.select().from(crewLinks).where(eq(crewLinks.crewId, id)),
+		db.select().from(crewJams).where(eq(crewJams.crewId, id))
 	]);
 	const { upcoming, past } = splitEventsByEndDate(cityEvents, now);
 	const pageSize = 10;
@@ -56,6 +67,8 @@ export const load = (async ({ params, locals, url }) => {
 	return {
 		stats: await getCrewStats(id, crew.cityId, now),
 		title: crew.name,
+		links,
+		jams: sortJams(jams),
 		upcoming,
 		past: past.slice((pastPage - 1) * pageSize, pastPage * pageSize),
 		pastPage,

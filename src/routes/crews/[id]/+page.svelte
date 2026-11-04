@@ -1,6 +1,8 @@
 <script lang="ts">
 	import CrewStats from '#lib/components/CrewStats.svelte';
 	import TranslatableText from '#lib/components/TranslatableText.svelte';
+	import CrewLinks from '#lib/components/CrewLinks.svelte';
+	import CrewJams from '#lib/components/CrewJams.svelte';
 	import { resolve } from '$app/paths';
 	import { Button } from '#lib/components/ui/button';
 	import ConfirmSubmit from '#lib/components/layout/ConfirmSubmit.svelte';
@@ -33,8 +35,8 @@
 	{#if data.crew.body && data.crew.bodyLang}
 		<TranslatableText content={data.crew.body} bodyLang={data.crew.bodyLang} />
 	{/if}
-	<!-- Contact links: reserved for the crew contact issue. -->
-	<!-- Regular jams: reserved for the crew jams issue. -->
+	<CrewLinks links={data.links} />
+	<CrewJams jams={data.jams} />
 	<CrewStats stats={data.stats} />
 	<section class="flex flex-col gap-4" aria-label="Crew members">
 		<h2>Members</h2>

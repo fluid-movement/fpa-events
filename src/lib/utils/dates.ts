@@ -1,3 +1,4 @@
+import { weekdayName } from '#lib/crew-jams';
 /**
  * Every date format the app renders lives here.
  *
@@ -193,4 +194,15 @@ export function formatApiDateRange(
 export function formatDatesAtPlace(start: DateLike, end: DateLike, place: string): string {
 	const dates = formatFullDateRange(start, end);
 	return place.trim() ? `${dates} · ${place.trim()}` : dates;
+}
+
+/** Recurring jams keep their entered 24-hour wall time. */
+export function formatJamTime(startTime: string): string {
+	return startTime;
+}
+
+export { weekdayName as formatJamWeekday } from '#lib/crew-jams';
+
+export function formatNextJam(jam: { weekday: number; startTime: string }): string {
+	return `${weekdayName(jam.weekday, 'short')} ${formatJamTime(jam.startTime)}`;
 }

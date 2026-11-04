@@ -428,8 +428,16 @@ export async function withEmptyCrewListing(run: () => Promise<void>): Promise<vo
 	const snapshot = await sql().begin(async (tx) => {
 		const members = await tx`SELECT * FROM crew_members`;
 		const links = await tx`SELECT * FROM crew_magic_links`;
+		const contactLinks = await tx`SELECT * FROM crew_links`;
+		const jams = await tx`SELECT * FROM crew_jams`;
 		const crews = await tx`DELETE FROM crews RETURNING *`;
-		return { crews: [...crews], members: [...members], links: [...links] };
+		return {
+			crews: [...crews],
+			members: [...members],
+			links: [...links],
+			contactLinks: [...contactLinks],
+			jams: [...jams]
+		};
 	});
 	try {
 		await run();
@@ -438,6 +446,9 @@ export async function withEmptyCrewListing(run: () => Promise<void>): Promise<vo
 			if (snapshot.crews.length) await tx`INSERT INTO crews ${tx(snapshot.crews)}`;
 			if (snapshot.members.length) await tx`INSERT INTO crew_members ${tx(snapshot.members)}`;
 			if (snapshot.links.length) await tx`INSERT INTO crew_magic_links ${tx(snapshot.links)}`;
+			if (snapshot.contactLinks.length)
+				await tx`INSERT INTO crew_links ${tx(snapshot.contactLinks)}`;
+			if (snapshot.jams.length) await tx`INSERT INTO crew_jams ${tx(snapshot.jams)}`;
 		});
 	}
 }

@@ -5,6 +5,7 @@ import {
 	check,
 	text,
 	integer,
+	smallint,
 	index,
 	uniqueIndex,
 	real,
@@ -369,4 +370,39 @@ export const crewMagicLinks = pgTable(
 			.default(sql`now()`)
 	},
 	(table) => [index('crew_magic_links_crew_id_index').on(table.crewId)]
+);
+
+export const crewLinks = pgTable(
+	'crew_links',
+	{
+		crewId: text('crew_id')
+			.notNull()
+			.references(() => crews.id, { onDelete: 'cascade' }),
+		kind: text('kind').notNull(),
+		url: text('url').notNull(),
+		createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull()
+	},
+	(table) => [uniqueIndex('crew_links_crew_kind_unique').on(table.crewId, table.kind)]
+);
+
+export const crewJams = pgTable(
+	'crew_jams',
+	{
+		id: text('id').primaryKey(),
+		crewId: text('crew_id')
+			.notNull()
+			.references(() => crews.id, { onDelete: 'cascade' }),
+		weekday: smallint('weekday').notNull(),
+		startTime: text('start_time').notNull(),
+		venueName: text('venue_name').notNull(),
+		address: text('address'),
+		latitude: real('latitude'),
+		longitude: real('longitude'),
+		note: text('note'),
+		createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull()
+	},
+	(table) => [
+		check('crew_jams_weekday_check', sql`${table.weekday} between 0 and 6`),
+		index('crew_jams_crew_id_index').on(table.crewId)
+	]
 );

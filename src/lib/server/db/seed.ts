@@ -471,6 +471,8 @@ async function main() {
 	await db.delete(schema.eventMagicLinks);
 	await db.delete(schema.eventUser);
 	await db.delete(schema.events);
+	await db.delete(schema.crewLinks);
+	await db.delete(schema.crewJams);
 	await db.delete(schema.crewMagicLinks);
 	await db.delete(schema.crewMembers);
 	await db.delete(schema.crews);
@@ -558,6 +560,32 @@ async function main() {
 		])
 	);
 
+	await db.insert(schema.crewLinks).values({
+		crewId: seededCrews[0].id,
+		kind: 'website',
+		url: 'https://example.com/berlin-freestylers'
+	});
+	await db.insert(schema.crewJams).values([
+		{
+			id: id(),
+			crewId: seededCrews[0].id,
+			weekday: 1,
+			startTime: '19:00',
+			venueName: 'Tempelhofer Feld',
+			address: 'Tempelhofer Damm, Berlin',
+			latitude: 52.473,
+			longitude: 13.403,
+			note: 'Weather permitting'
+		},
+		{
+			id: id(),
+			crewId: seededCrews[0].id,
+			weekday: 5,
+			startTime: '14:00',
+			venueName: 'City park',
+			note: 'Bring a disc'
+		}
+	]);
 	await db.insert(schema.crewMagicLinks).values({
 		id: id(),
 		crewId: seededCrews[0].id,

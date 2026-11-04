@@ -24,6 +24,14 @@
 		href={resolve('/crews/[id]/admin/members', { id: data.crew.id })}
 		data-testid="manage-crew-members">Manage members and invitations</Button
 	>
+	<Button
+		href={resolve('/crews/[id]/admin/links', { id: data.crew.id })}
+		data-testid="manage-crew-links">Manage contact links</Button
+	>
+	<Button
+		href={resolve('/crews/[id]/admin/jams', { id: data.crew.id })}
+		data-testid="manage-crew-jams">Manage regular jams</Button
+	>
 	<form {...formAction} data-testid="crew-form">
 		<Field.Group>
 			<Field.Field>

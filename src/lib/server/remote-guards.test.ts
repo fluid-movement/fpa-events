@@ -36,6 +36,9 @@ const GUARD_CALL: Record<Exclude<Guard, 'public'>, string> = {
 };
 
 const REGISTRY: Record<string, Guard> = {
+	'/src/routes/crews/[id]/admin/links/data.remote.ts#saveCrewLinks': 'crewAdmin',
+	'/src/routes/crews/[id]/admin/jams/data.remote.ts#saveJam': 'crewAdmin',
+	'/src/routes/crews/[id]/admin/jams/data.remote.ts#deleteJam': 'crewAdmin',
 	'/src/routes/crews/[id]/data.remote.ts#leaveCrew': 'signedIn',
 	'/src/routes/crews/join/[token]/data.remote.ts#acceptInvite': 'signedIn',
 	'/src/routes/crews/[id]/admin/members/data.remote.ts#generateLink': 'crewAdmin',

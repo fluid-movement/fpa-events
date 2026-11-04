@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { nextJam } from '#lib/crew-jams';
+	import { formatNextJam } from '#lib/utils/dates';
 	import { resolve } from '$app/paths';
 	import CrewsMap from '#lib/components/CrewsMap.svelte';
 	import PageShell from '#lib/components/layout/PageShell.svelte';
@@ -9,6 +12,11 @@
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
+	// No coordinate-to-zone lookup exists; compute in the viewer's local zone after hydration.
+	let viewerNow = $state<Date | null>(null);
+	onMount(() => {
+		viewerNow = new Date();
+	});
 </script>
 
 <PageShell class="flex flex-col gap-6">
@@ -21,15 +29,19 @@
 		{#key data.crews}<CrewsMap crews={data.crews} />{/key}
 		<div class="grid gap-4 sm:grid-cols-2" data-testid="crew-list">
 			{#each data.crews as crew (crew.id)}
+				{@const upcomingJam = viewerNow ? nextJam(crew.jams, viewerNow) : undefined}
 				<a href={resolve('/crews/[id]', { id: crew.id })} data-testid="crew-card">
 					<Card.Root class="h-full">
 						<Card.Header>
 							<Card.Title>{crew.name}</Card.Title>
 							<Card.Description>{crew.city}, {crew.country}</Card.Description>
 						</Card.Header>
-						<Card.Content
-							>{crew.memberCount} {crew.memberCount === 1 ? 'member' : 'members'}</Card.Content
-						>
+						<Card.Content>
+							<p>{crew.memberCount} {crew.memberCount === 1 ? 'member' : 'members'}</p>
+							{#if upcomingJam}<p data-testid="crew-next-jam">
+									Next jam: {formatNextJam(upcomingJam)}
+								</p>{/if}
+						</Card.Content>
 					</Card.Root>
 				</a>
 			{/each}

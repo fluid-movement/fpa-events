@@ -1,6 +1,6 @@
 import { asc, count, eq } from 'drizzle-orm';
 import { db } from '#lib/server/db';
-import { cities, crews, crewMembers } from '#lib/server/db/schema';
+import { cities, crews, crewMembers, crewJams } from '#lib/server/db/schema';
 import type { PageServerLoad } from './$types';
 
 export const load = (async () => {
@@ -19,5 +19,12 @@ export const load = (async () => {
 		.leftJoin(crewMembers, eq(crewMembers.crewId, crews.id))
 		.groupBy(crews.id, cities.id)
 		.orderBy(asc(cities.country), asc(cities.city), asc(crews.name));
-	return { crews: rows };
+	const jams = await db.select().from(crewJams);
+	const byCrew = new Map<string, typeof jams>();
+	for (const jam of jams) {
+		const group = byCrew.get(jam.crewId) ?? [];
+		group.push(jam);
+		byCrew.set(jam.crewId, group);
+	}
+	return { crews: rows.map((crew) => ({ ...crew, jams: byCrew.get(crew.id) ?? [] })) };
 }) satisfies PageServerLoad;
