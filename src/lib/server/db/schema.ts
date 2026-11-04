@@ -134,6 +134,11 @@ export const cities = pgTable(
 export const crews = pgTable('crews', {
 	id: text('id').primaryKey(),
 	name: text('name').notNull(),
+	picture: text('picture'),
+	pictureWidth: integer('picture_width'),
+	pictureHeight: integer('picture_height'),
+	body: text('body'),
+	bodyLang: text('body_lang'),
 	cityId: integer('city_id')
 		.notNull()
 		.unique()

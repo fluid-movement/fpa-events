@@ -91,7 +91,7 @@ describe('ImageUpload — with existing image (edit mode)', () => {
 		render(ImageUpload, {
 			props: { fields, currentUrl: 'https://example.com/photo.jpg' }
 		});
-		const img = screen.getByAltText('Event cover preview') as HTMLImageElement;
+		const img = screen.getByAltText('Cover preview') as HTMLImageElement;
 		expect(img.src).toBe('https://example.com/photo.jpg');
 	});
 
@@ -127,7 +127,7 @@ describe('ImageUpload — successful upload', () => {
 		selectFile(input, makeFile());
 
 		await waitFor(() => {
-			const img = screen.getByAltText('Event cover preview') as HTMLImageElement;
+			const img = screen.getByAltText('Cover preview') as HTMLImageElement;
 			// Shows the blob preview URL before the upload resolves
 			expect(img.src).toMatch(/blob:|https:/);
 		});
@@ -236,5 +236,24 @@ describe('ImageUpload — body size failures', () => {
 			'https://test.r2.dev/events/existing.jpg'
 		);
 		expect(screen.getByTestId('image-upload')).not.toBeDisabled();
+	});
+});
+
+describe('ImageUpload removal', () => {
+	it('clears all picture fields ', async () => {
+		const { container } = render(ImageUpload, {
+			props: {
+				fields,
+				currentUrl: 'https://example.com/old.jpg',
+				currentWidth: 640,
+				currentHeight: 480
+			}
+		});
+		await fireEvent.click(screen.getByTestId('remove-image'));
+		for (const name of ['picture', 'pictureWidth', 'pictureHeight']) {
+			expect((container.querySelector(`input[name="${name}"]`) as HTMLInputElement).value).toBe('');
+		}
+		expect(screen.queryByAltText('Cover preview')).not.toBeInTheDocument();
+		expect(screen.getByText('Upload image')).toBeInTheDocument();
 	});
 });

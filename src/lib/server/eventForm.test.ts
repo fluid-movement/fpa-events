@@ -4,7 +4,9 @@ import {
 	eventFormSchema,
 	isUploadedPictureUrl,
 	releaseEventPictures,
-	releasePicture
+	releasePicture,
+	pictureUsedElsewhere,
+	parsePictureFields
 } from './eventForm';
 
 const mocks = vi.hoisted(() => ({ select: vi.fn(), deleteImage: vi.fn() }));
@@ -270,5 +272,47 @@ describe('eventFormSchema location fields', () => {
 		expect(ok({ city: 'x'.repeat(100), country: 'y'.repeat(100) })).toBe(true);
 		expect(ok({ city: 'x'.repeat(101) })).toBe(false);
 		expect(ok({ country: 'y'.repeat(101) })).toBe(false);
+	});
+});
+
+// Check the actual table predicates, including equal IDs across entity kinds.
+describe('picture references across events and crews', () => {
+	it('counts crews when releasing an event and excludes only the owning crew', async () => {
+		mocks.deleteImage.mockReset();
+		const { crews } = await import('#lib/server/db/schema');
+		const { PgDialect } = await import('drizzle-orm/pg-core');
+		const conditions: string[] = [];
+		mocks.select.mockReturnValue({
+			from: (table: unknown) => ({
+				where: (condition: import('drizzle-orm').SQL) => ({
+					limit: async () => {
+						conditions.push(new PgDialect().sqlToQuery(condition).sql);
+						return table === crews ? [{ id: 'crew' }] : [];
+					}
+				})
+			})
+		});
+		await releasePicture('https://test.r2.dev/events/shared.jpg', 'same-id');
+		expect(mocks.deleteImage).not.toHaveBeenCalled();
+		expect(conditions[0]).toContain('"events"."id" <>');
+		expect(conditions[1]).not.toContain('"crews"."id" <>');
+		conditions.length = 0;
+		await pictureUsedElsewhere('url', 'same-id', { select: mocks.select } as never, 'crew');
+		expect(conditions[0]).not.toContain('"events"."id" <>');
+		expect(conditions[1]).toContain('"crews"."id" <>');
+	});
+});
+
+describe('picture removal', () => {
+	it('clears the stored dimensions along with an explicitly removed image', async () => {
+		expect(
+			await parsePictureFields(
+				{ picture: '' },
+				{ picture: 'old', pictureWidth: 800, pictureHeight: 600 },
+				'crew',
+				{} as never,
+				'crew'
+			)
+		).toEqual({ picture: null, pictureWidth: null, pictureHeight: null });
 	});
 });

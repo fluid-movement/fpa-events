@@ -1,11 +1,13 @@
 // @vitest-environment node
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import { PgDialect } from 'drizzle-orm/pg-core';
+import { crews } from '#lib/server/db/schema';
 import type { SQL } from 'drizzle-orm';
 
 const state = vi.hoisted(() => ({
 	objects: new Map<string, { key: string; url: string; modified: Date }>(),
 	references: new Set<string>(),
+	crewReferences: new Set<string>(),
 	locks: new Map<string, Promise<void>>(),
 	failDelete: false,
 	failReferenceCheck: false,
@@ -42,12 +44,14 @@ vi.mock('#lib/server/db', () => ({
 					await previous;
 				},
 				select: () => ({
-					from: () => ({
+					from: (table: unknown) => ({
 						where: (condition: SQL) => ({
 							limit: async () => {
 								if (state.failReferenceCheck) throw new Error('DB unavailable');
 								const url = String(new PgDialect().sqlToQuery(condition).params[0]);
-								return state.references.has(url) ? [{ id: 'event' }] : [];
+								return (table === crews ? state.crewReferences : state.references).has(url)
+									? [{ id: 'owner' }]
+									: [];
 							}
 						})
 					})
@@ -87,6 +91,7 @@ function object(n: number, age = UPLOAD_GRACE_MS + 1) {
 beforeEach(() => {
 	state.objects.clear();
 	state.references.clear();
+	state.crewReferences.clear();
 	state.locks.clear();
 	state.failDelete = false;
 	state.failReferenceCheck = false;
@@ -175,6 +180,27 @@ describe('unused upload sweep', () => {
 		});
 		expect(state.objects.size).toBe(0);
 		expect(state.references.size).toBe(0);
+	});
+
+	it('retains crew banners and rejects adopting a crew or event picture', async () => {
+		for (const references of [state.references, state.crewReferences]) {
+			const upload = object(4);
+			references.add(upload.url);
+			await sweepUnusedUploads(now);
+			expect(state.objects.has(upload.url)).toBe(true);
+			await expect(
+				withPictureLock(upload.url, (tx) =>
+					parsePictureFields(
+						{ picture: upload.url },
+						{ picture: null, pictureWidth: null, pictureHeight: null },
+						'new-crew',
+						tx,
+						'crew'
+					)
+				)
+			).rejects.toMatchObject({ status: 400 });
+			references.clear();
+		}
 	});
 
 	it('rejects unsafe keys and unknown timestamps as cleanup candidates', () => {

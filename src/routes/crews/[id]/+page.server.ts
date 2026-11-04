@@ -11,7 +11,17 @@ import type { PageServerLoad } from './$types';
 export const load = (async ({ params, locals, url }) => {
 	const id = storedIdParam(params.id, 'Crew not found');
 	const [crew] = await db
-		.select({ name: crews.name, cityId: crews.cityId, city: cities.city, country: cities.country })
+		.select({
+			name: crews.name,
+			picture: crews.picture,
+			pictureWidth: crews.pictureWidth,
+			pictureHeight: crews.pictureHeight,
+			body: crews.body,
+			bodyLang: crews.bodyLang,
+			cityId: crews.cityId,
+			city: cities.city,
+			country: cities.country
+		})
 		.from(crews)
 		.innerJoin(cities, eq(cities.id, crews.cityId))
 		.where(eq(crews.id, id))

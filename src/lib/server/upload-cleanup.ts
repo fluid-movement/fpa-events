@@ -1,5 +1,4 @@
-import { eq } from 'drizzle-orm';
-import { events } from '#lib/server/db/schema';
+import { pictureUsedElsewhere } from '#lib/server/eventForm';
 import { deleteImage, listUploadedImages, r2Configured } from '#lib/server/r2';
 import { withPictureLock } from '#lib/server/picture-storage';
 
@@ -18,12 +17,7 @@ export async function sweepUnusedUploads(now = Date.now()): Promise<void> {
 	for await (const object of listUploadedImages()) {
 		if (!isExpiredUpload(object.key, object.modified, now)) continue;
 		await withPictureLock(object.url, async (tx) => {
-			const [reference] = await tx
-				.select({ id: events.id })
-				.from(events)
-				.where(eq(events.picture, object.url))
-				.limit(1);
-			if (!reference) await deleteImage(object.url);
+			if (!(await pictureUsedElsewhere(object.url, null, tx))) await deleteImage(object.url);
 		});
 	}
 }

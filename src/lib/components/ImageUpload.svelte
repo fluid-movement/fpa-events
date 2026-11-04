@@ -5,7 +5,7 @@
 	interface Props {
 		// SvelteKit 3 rejects form fields not built by `fields.<name>.as(...)`,
 		// so the owning form hands its fields down.
-		fields: RemoteFormFields<EventFormData>;
+		fields: RemoteFormFields<Pick<EventFormData, 'picture' | 'pictureWidth' | 'pictureHeight'>>;
 		currentUrl?: string | null;
 		currentWidth?: number | null;
 		currentHeight?: number | null;
@@ -19,11 +19,12 @@
 	// those plus the props, so there is one source of truth for each.
 	let upload = $state<Upload | null>(null);
 	let localPreview = $state('');
+	let removed = $state(false);
 	let uploading = $state(false);
 	let uploadError = $state('');
 
-	const previewUrl = $derived(localPreview || currentUrl || '');
-	const pictureUrl = $derived(upload?.url ?? currentUrl ?? '');
+	const previewUrl = $derived(removed ? '' : localPreview || currentUrl || '');
+	const pictureUrl = $derived(removed ? '' : (upload?.url ?? currentUrl ?? ''));
 	const pictureWidth = $derived(upload?.width ?? currentWidth ?? 0);
 	const pictureHeight = $derived(upload?.height ?? currentHeight ?? 0);
 
@@ -76,6 +77,7 @@
 				);
 			}
 
+			removed = false;
 			upload = { url: payload.url, ...dimensions };
 		} catch (err) {
 			uploadError = err instanceof Error ? err.message : 'Upload failed';
@@ -94,7 +96,7 @@
 <div class="flex flex-col gap-3">
 	{#if previewUrl}
 		<div class="w-full max-w-md overflow-hidden rounded-lg border border-border">
-			<img src={previewUrl} alt="Event cover preview" class="max-h-48 w-full object-cover" />
+			<img src={previewUrl} alt="Cover preview" class="max-h-48 w-full object-cover" />
 		</div>
 	{:else}
 		<div
@@ -128,11 +130,23 @@
 		/>
 	</label>
 
+	{#if previewUrl}
+		<button
+			type="button"
+			data-testid="remove-image"
+			disabled={uploading}
+			onclick={() => {
+				removed = true;
+				upload = null;
+				setPreview('');
+			}}>Remove image</button
+		>
+	{/if}
 	{#if uploadError}
 		<p class="text-sm text-destructive">{uploadError}</p>
 	{/if}
 
 	<input {...fields.picture.as('hidden', pictureUrl)} />
-	<input {...fields.pictureWidth.as('hidden', String(pictureWidth || ''))} />
-	<input {...fields.pictureHeight.as('hidden', String(pictureHeight || ''))} />
+	<input {...fields.pictureWidth.as('hidden', String(removed ? '' : pictureWidth || ''))} />
+	<input {...fields.pictureHeight.as('hidden', String(removed ? '' : pictureHeight || ''))} />
 </div>

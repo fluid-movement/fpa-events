@@ -1,5 +1,6 @@
 import { and, asc, eq, inArray } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
+import { releasePicture } from '#lib/server/eventForm';
 import { db } from '#lib/server/db';
 import { crewMembers, crews, user } from '#lib/server/db/schema';
 import {
@@ -7,6 +8,10 @@ import {
 	LAST_CREW_ADMIN_MESSAGE,
 	type CrewExit
 } from '#lib/crew-membership-policy';
+
+// Release only after the membership transaction commits, so the reference check
+// sees the deleted crew and cleanup failures cannot roll back a successful leave.
+const deletedPictures = new WeakMap<object, { id: string; picture: string | null }[]>();
 
 type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
@@ -17,7 +22,9 @@ export async function withCrewMembership<T>(
 	crewIds: string[],
 	work: (tx: Transaction, membership: typeof crewMembers.$inferSelect | undefined) => Promise<T>
 ) {
-	return db.transaction(async (tx) => {
+	const pictures: { id: string; picture: string | null }[] = [];
+	const result = await db.transaction(async (tx) => {
+		deletedPictures.set(tx, pictures);
 		await tx.select({ id: user.id }).from(user).where(eq(user.id, userId)).for('update');
 		const [membership] = await tx.select().from(crewMembers).where(eq(crewMembers.userId, userId));
 		const ids = [...new Set([...crewIds, ...(membership ? [membership.crewId] : [])])].sort();
@@ -33,6 +40,8 @@ export async function withCrewMembership<T>(
 		const [current] = await tx.select().from(crewMembers).where(eq(crewMembers.userId, userId));
 		return work(tx, current);
 	});
+	for (const crew of pictures) await releasePicture(crew.picture, crew.id, 'crew').catch(() => {});
+	return result;
 }
 
 export async function assertCrewExit(
@@ -64,7 +73,13 @@ export async function removeCrewSeat(tx: Transaction, membership: typeof crewMem
 		.from(crewMembers)
 		.where(eq(crewMembers.crewId, membership.crewId))
 		.limit(1);
-	if (!remaining) await tx.delete(crews).where(eq(crews.id, membership.crewId));
+	if (!remaining) {
+		const deleted = await tx
+			.delete(crews)
+			.where(eq(crews.id, membership.crewId))
+			.returning({ id: crews.id, picture: crews.picture });
+		deletedPictures.get(tx)?.push(...deleted);
+	}
 }
 
 /** Recheck authorization under the crew lock, including concurrent self-demotion. */

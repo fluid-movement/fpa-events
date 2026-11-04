@@ -522,10 +522,33 @@ async function main() {
 			{
 				id: id(),
 				name: 'Berlin Freestylers',
-				cityId: cityIdMap.get(cityKey('Berlin', 'Germany'))!
+				cityId: cityIdMap.get(cityKey('Berlin', 'Germany'))!,
+				picture: null,
+				pictureWidth: null,
+				pictureHeight: null,
+				body: '<p>Meet Berlin’s freestyle community.</p>',
+				bodyLang: 'en'
 			},
-			{ id: id(), name: 'Tokyo Freestylers', cityId: cityIdMap.get(cityKey('Tokyo', 'Japan'))! },
-			{ id: id(), name: 'Prague Freestylers', cityId: cityIdMap.get(cityKey('Prague', 'Czechia'))! }
+			{
+				id: id(),
+				name: 'Tokyo Freestylers',
+				picture: null,
+				pictureWidth: null,
+				pictureHeight: null,
+				body: '<p>東京のフリースタイルコミュニティ。</p>',
+				bodyLang: 'ja',
+				cityId: cityIdMap.get(cityKey('Tokyo', 'Japan'))!
+			},
+			{
+				id: id(),
+				name: 'Prague Freestylers',
+				picture: null,
+				pictureWidth: null,
+				pictureHeight: null,
+				body: null,
+				bodyLang: null,
+				cityId: cityIdMap.get(cityKey('Prague', 'Czechia'))!
+			}
 		])
 		.returning();
 	await db.insert(schema.crewMembers).values(

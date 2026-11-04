@@ -3,7 +3,7 @@ import * as v from 'valibot';
 import { error } from '@sveltejs/kit';
 import { and, eq, ne } from 'drizzle-orm';
 import { R2_PUBLIC_URL } from '$app/env/private';
-import { events } from '#lib/server/db/schema';
+import { events, crews } from '#lib/server/db/schema';
 import { findOrCreateCity } from '#lib/server/db/cities';
 import { deleteImage, uploadedImageExists } from '#lib/server/r2';
 import { withPictureLock, type PictureTransaction } from '#lib/server/picture-storage';
@@ -81,39 +81,58 @@ export function isUploadedPictureUrl(url: string, publicUrl = R2_PUBLIC_URL): bo
 	return url.startsWith(prefix) && !url.slice(prefix.length).includes('/');
 }
 
-/** Whether any event other than `eventId` uses `url` as its picture. */
-async function pictureUsedElsewhere(
+/** Count both kinds of owner, excluding only the specified owner and kind. */
+export async function pictureUsedElsewhere(
 	url: string,
 	eventId: string | null,
-	tx: PictureTransaction
+	tx: PictureTransaction,
+	kind: 'event' | 'crew' = 'event'
 ): Promise<boolean> {
 	const [row] = await tx
 		.select({ id: events.id })
 		.from(events)
-		.where(eventId ? and(eq(events.picture, url), ne(events.id, eventId)) : eq(events.picture, url))
+		.where(
+			eventId && kind === 'event'
+				? and(eq(events.picture, url), ne(events.id, eventId))
+				: eq(events.picture, url)
+		)
 		.limit(1);
-	return !!row;
+	if (row) return true;
+	const [crew] = await tx
+		.select({ id: crews.id })
+		.from(crews)
+		.where(
+			eventId && kind === 'crew'
+				? and(eq(crews.picture, url), ne(crews.id, eventId))
+				: eq(crews.picture, url)
+		)
+		.limit(1);
+	return !!crew;
 }
 
 /**
- * The three picture columns, keeping `current` wherever the form sent nothing.
+ * The three picture columns, keeping `current` when omitted and clearing it for an explicit empty URL.
  *
  * The picture URL comes from a hidden form field, so it is checked here: a new
- * value must be a fresh upload into our bucket that no other event uses.
+ * value must be a fresh upload into our bucket that no other event or crew uses.
  * Otherwise an organizer could adopt another event's image and then, by
  * replacing it, have the server delete it (see `releasePicture`). An event's
  * existing value — including legacy `/pictures/` URLs from the migration — is
  * always allowed to stay.
  */
 export async function parsePictureFields(
-	data: EventFormData,
+	data: Pick<EventFormData, 'picture' | 'pictureWidth' | 'pictureHeight'>,
 	current: PictureColumns,
 	eventId: string | null,
-	tx: PictureTransaction
+	tx: PictureTransaction,
+	kind: 'event' | 'crew' = 'event'
 ): Promise<PictureColumns> {
-	const picture = data.picture || current.picture;
+	const picture = data.picture === undefined ? current.picture : data.picture || null;
 	if (picture && picture !== current.picture) {
-		if (!isUploadedPictureUrl(picture) || (await pictureUsedElsewhere(picture, eventId, tx))) {
+		if (
+			!isUploadedPictureUrl(picture) ||
+			(await pictureUsedElsewhere(picture, eventId, tx, kind))
+		) {
 			error(400, 'Invalid picture');
 		}
 		// The caller holds the picture lock through the event write. If cleanup
@@ -121,6 +140,7 @@ export async function parsePictureFields(
 		if (!(await uploadedImageExists(picture))) error(400, 'Picture expired. Upload it again.');
 	}
 
+	if (!picture) return { picture: null, pictureWidth: null, pictureHeight: null };
 	return {
 		picture,
 		pictureWidth: data.pictureWidth ? Number(data.pictureWidth) : current.pictureWidth,
@@ -129,14 +149,18 @@ export async function parsePictureFields(
 }
 
 /**
- * Delete an event's old picture from the bucket, unless another event still
+ * Delete an old picture from the bucket, unless another event or crew still
  * points at it. Best-effort: an orphaned object is cheaper than a failed save
  * or delete.
  */
-export async function releasePicture(url: string | null, eventId: string): Promise<void> {
+export async function releasePicture(
+	url: string | null,
+	eventId: string,
+	kind: 'event' | 'crew' = 'event'
+): Promise<void> {
 	if (!url) return;
 	await withPictureLock(url, async (tx) => {
-		if (await pictureUsedElsewhere(url, eventId, tx)) return;
+		if (await pictureUsedElsewhere(url, eventId, tx, kind)) return;
 		await deleteImage(url).catch(() => {});
 	});
 }

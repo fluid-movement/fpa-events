@@ -27,7 +27,9 @@
 			</div>
 			<div class="info">
 				<h2>
-					<a class="event-link" href={resolve('/events/[id]', { id: event.id })}>{event.name}</a>
+					<a translate="no" class="event-link" href={resolve('/events/[id]', { id: event.id })}
+						>{event.name}</a
+					>
 				</h2>
 				<div class="location">
 					<MapPinIcon class="size-3.5 shrink-0" />

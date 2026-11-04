@@ -1,12 +1,12 @@
 <script lang="ts">
 	import CrewStats from '#lib/components/CrewStats.svelte';
+	import TranslatableText from '#lib/components/TranslatableText.svelte';
 	import { resolve } from '$app/paths';
 	import { Button } from '#lib/components/ui/button';
 	import ConfirmSubmit from '#lib/components/layout/ConfirmSubmit.svelte';
 	import { LAST_CREW_ADMIN_MESSAGE } from '#lib/crew-membership-policy';
 	import { leaveCrew } from './data.remote';
 	import PageShell from '#lib/components/layout/PageShell.svelte';
-	import PageHeader from '#lib/components/layout/PageHeader.svelte';
 	import EventCalendarCard from '#lib/components/EventCalendarCard.svelte';
 	import EmptyState from '#lib/components/layout/EmptyState.svelte';
 	import type { PageProps } from './$types';
@@ -14,23 +14,32 @@
 </script>
 
 <PageShell class="flex flex-col gap-8">
-	<!-- Crew banner / picture: reserved for the crew content issue. -->
-	<header class="surface rounded-2xl border-l-4 border-primary p-6 md:p-10">
-		<PageHeader
-			title={data.crew.name}
-			eyebrow="Local freestyle crew"
-			description={`${data.crew.city}, ${data.crew.country}`}
-			back={{ href: resolve('/crews'), label: 'All crews' }}
+	{#if data.crew.picture}
+		<img
+			data-testid="crew-banner"
+			src={data.crew.picture}
+			width={data.crew.pictureWidth ?? undefined}
+			height={data.crew.pictureHeight ?? undefined}
+			alt={data.crew.name}
+			class="h-auto w-full rounded-2xl"
 		/>
+	{/if}
+	<header class="surface rounded-2xl border-l-4 border-primary p-6 md:p-10">
+		<a href={resolve('/crews')}>All crews</a>
+		<p class="text-sm text-muted-foreground">Local freestyle crew</p>
+		<h1 translate="no">{data.crew.name}</h1>
+		<p translate="no">{data.crew.city}, {data.crew.country}</p>
 	</header>
-	<!-- Crew body text: reserved for the crew content issue. -->
+	{#if data.crew.body && data.crew.bodyLang}
+		<TranslatableText content={data.crew.body} bodyLang={data.crew.bodyLang} />
+	{/if}
 	<!-- Contact links: reserved for the crew contact issue. -->
 	<!-- Regular jams: reserved for the crew jams issue. -->
 	<CrewStats stats={data.stats} />
 	<section class="flex flex-col gap-4" aria-label="Crew members">
 		<h2>Members</h2>
 		<ul data-testid="crew-members">
-			{#each data.namedMembers as member (member.id)}<li>{member.name}</li>{/each}
+			{#each data.namedMembers as member (member.id)}<li translate="no">{member.name}</li>{/each}
 		</ul>
 		{#if data.hiddenCount > 0}<p data-testid="crew-hidden-count">
 				+ {data.hiddenCount} others
@@ -58,7 +67,7 @@
 		{/if}
 	</section>
 	<section class="flex flex-col gap-4" aria-label="City events">
-		<h2>Events in {data.crew.city}</h2>
+		<h2>Events in <span translate="no">{data.crew.city}</span></h2>
 		<p class="text-muted-foreground">All events in the city, hosted by the whole community.</p>
 		<section
 			class="flex flex-col gap-4"
