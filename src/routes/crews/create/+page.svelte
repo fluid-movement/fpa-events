@@ -18,24 +18,37 @@
 		<Field.Group>
 			<Field.Field>
 				<Field.Label for="crew-name">Crew name</Field.Label>
-				<Input id="crew-name" data-testid="crew-name" {...createCrew.fields.name.as('text')} required maxlength={100} />
+				<Input
+					id="crew-name"
+					data-testid="crew-name"
+					{...createCrew.fields.name.as('text')}
+					required
+					maxlength={100}
+				/>
 			</Field.Field>
 			<Field.Field>
 				<Field.Label>City</Field.Label>
 				<EventLocationInput fields={createCrew.fields} />
 				<Field.Description>Select a city from the suggestions.</Field.Description>
 			</Field.Field>
-			{#each createCrew.fields.allIssues() ?? [] as issue}
+			{#each createCrew.fields.allIssues() ?? [] as issue, i (i)}
 				<FormStatus error={issue.message} />
 			{/each}
 			<FormStatus error={createCrew.result?.error} />
 			{#if createCrew.result?.crewId}
-				<a data-testid="existing-crew" href={resolve('/crews/[id]', { id: createCrew.result.crewId })}>View this city's crew</a>
+				<a
+					data-testid="existing-crew"
+					href={resolve('/crews/[id]', { id: createCrew.result.crewId })}>View this city's crew</a
+				>
 			{/if}
 			<Turnstile bind:token />
 			<input {...createCrew.fields.turnstileToken.as('hidden', token)} />
 			<Field.Field orientation="horizontal">
-				<Button data-testid="crew-submit" type="submit" disabled={(captchaEnabled && !token) || createCrew.pending > 0}>
+				<Button
+					data-testid="crew-submit"
+					type="submit"
+					disabled={(captchaEnabled && !token) || createCrew.pending > 0}
+				>
 					{createCrew.pending > 0 ? 'Creating crew…' : 'Create crew'}
 				</Button>
 			</Field.Field>

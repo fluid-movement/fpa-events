@@ -134,9 +134,17 @@ export async function requireCrewAdmin(crewId: string) {
 	const [crew] = await db.select().from(crews).where(eq(crews.id, crewId)).limit(1);
 	if (!crew) error(404, 'Crew not found');
 	if (role !== 'admin') {
-		const [membership] = await db.select().from(crewMembers).where(and(
-			eq(crewMembers.crewId, crewId), eq(crewMembers.userId, user.id), eq(crewMembers.role, 'admin')
-		)).limit(1);
+		const [membership] = await db
+			.select()
+			.from(crewMembers)
+			.where(
+				and(
+					eq(crewMembers.crewId, crewId),
+					eq(crewMembers.userId, user.id),
+					eq(crewMembers.role, 'admin')
+				)
+			)
+			.limit(1);
 		if (!membership) error(403, 'Only crew admins can edit this crew');
 	}
 	return crew;

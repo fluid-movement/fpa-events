@@ -25,7 +25,7 @@ const CREATED = 'Input Hardening Created Event';
 const OWN = 'Input Hardening Own Event';
 
 /**
- * Event-form input that reaches shared state: the city-level `event_locations`
+ * Event-form input that reaches shared state: the city-level `cities`
  * rows every event points at, and the stored description. The geocoder fields
  * are hidden inputs, so a hand-made POST (postOverriding) decides them.
  */
@@ -96,7 +96,7 @@ test.describe('event form input hardening', () => {
 		expect(await countEventLocations(COUNTRY)).toBe(0);
 	});
 
-	test('a planted city cannot decide where another event is pinned', async ({ page }) => {
+	test('a later submission never moves a city that already has a marker', async ({ page }) => {
 		const planted = await insertEventLocation('Plantville', COUNTRY, 0, 0);
 		const id = await ownEvent();
 		await submitEdit(page, id, {
@@ -106,36 +106,28 @@ test.describe('event form input hardening', () => {
 			longitude: '2.35'
 		});
 
-		// The event gets the position it submitted, in its own row; the planted
-		// row is neither reused nor moved.
-		await expect.poll(async () => (await getEventLocation(id))?.id).not.toBeUndefined();
+		// First marker wins: the event reuses the existing row and its coordinates.
+		await expect.poll(async () => (await getEventLocation(id))?.id).toBe(planted);
 		const location = await getEventLocation(id);
-		expect(location!.id).not.toBe(planted);
-		expect(location!.latitude).toBeCloseTo(48.85, 2);
-		expect(await countEventLocations(COUNTRY)).toBe(2);
+		expect(location!.latitude).toBeCloseTo(0, 2);
+		expect(await countEventLocations(COUNTRY)).toBe(1);
 	});
 
-	test('the same city, country and longitude at another latitude gets its own row', async ({
-		page
-	}) => {
-		// Only latitude differs, so a match that ignored latitude would reuse the planted row.
+	test('the same city in another letter case shares one marker', async ({ page }) => {
 		const planted = await insertEventLocation('Latville', COUNTRY, 40, 2.35);
 		const id = await ownEvent();
 		await submitEdit(page, id, {
-			city: 'Latville',
-			country: COUNTRY,
+			city: 'LATVILLE',
+			country: COUNTRY.toLowerCase(),
 			latitude: '48.85',
 			longitude: '2.35'
 		});
 
-		await expect.poll(() => getEventLocation(id)).not.toBeNull();
-		const location = await getEventLocation(id);
-		expect(location!.id).not.toBe(planted);
-		expect(location!.latitude).toBeCloseTo(48.85, 2);
-		expect(await countEventLocations(COUNTRY)).toBe(2);
+		await expect.poll(async () => (await getEventLocation(id))?.id).toBe(planted);
+		expect(await countEventLocations(COUNTRY)).toBe(1);
 	});
 
-	test('the same city at the same coordinates shares one row', async ({ page }) => {
+	test('the same city submitted twice shares one row', async ({ page }) => {
 		const first = await ownEvent();
 		const second = await ownEvent();
 		const fields = { city: 'Shareville', country: COUNTRY, latitude: '48.85', longitude: '2.35' };

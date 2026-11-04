@@ -144,7 +144,7 @@ export async function getEventLocation(
 ): Promise<{ id: number; latitude: number; longitude: number } | null> {
 	const rows = await sql()<[{ id: number; latitude: number; longitude: number }]>`
 		SELECT l.id, l.latitude, l.longitude FROM events e
-		JOIN event_locations l ON l.id = e.event_location_id
+		JOIN cities l ON l.id = e.city_id
 		WHERE e.id = ${eventId} LIMIT 1
 	`;
 	return rows[0] ?? null;
@@ -152,7 +152,7 @@ export async function getEventLocation(
 
 export async function countEventLocations(country: string): Promise<number> {
 	const rows = await sql()<[{ n: number }]>`
-		SELECT count(*)::int AS n FROM event_locations WHERE country = ${country}
+		SELECT count(*)::int AS n FROM cities WHERE country = ${country}
 	`;
 	return rows[0].n;
 }
@@ -165,7 +165,7 @@ export async function insertEventLocation(
 	longitude: number | 'NaN'
 ): Promise<number> {
 	const rows = await sql()<[{ id: number }]>`
-		INSERT INTO event_locations (city, country, latitude, longitude)
+		INSERT INTO cities (city, country, latitude, longitude)
 		VALUES (${city}, ${country}, ${String(latitude)}::real, ${String(longitude)}::real)
 		RETURNING id
 	`;
@@ -173,12 +173,12 @@ export async function insertEventLocation(
 }
 
 export async function pointEventAtLocation(eventId: string, locationId: number): Promise<void> {
-	await sql()`UPDATE events SET event_location_id = ${locationId} WHERE id = ${eventId}`;
+	await sql()`UPDATE events SET city_id = ${locationId} WHERE id = ${eventId}`;
 }
 
 /** Removes a spec's location rows; the events' FK is ON DELETE SET NULL. */
 export async function deleteEventLocations(country: string): Promise<void> {
-	await sql()`DELETE FROM event_locations WHERE country = ${country}`;
+	await sql()`DELETE FROM cities WHERE country = ${country}`;
 }
 
 export async function setAttending(eventId: string, userId: string): Promise<void> {
@@ -361,4 +361,30 @@ export async function closeDb(): Promise<void> {
 		await _sql.end();
 		_sql = null;
 	}
+}
+
+export async function getCrewIdByName(name: string): Promise<string | null> {
+	const rows = await sql()<[{ id: string }]>`SELECT id FROM crews WHERE name = ${name} LIMIT 1`;
+	return rows[0]?.id ?? null;
+}
+
+export async function getCrewMemberRole(crewId: string, userId: string): Promise<string | null> {
+	const rows = await sql()<[{ role: string }]>`
+		SELECT role FROM crew_members WHERE crew_id = ${crewId} AND user_id = ${userId}
+	`;
+	return rows[0]?.role ?? null;
+}
+
+export async function addCrewMember(
+	crewId: string,
+	userId: string,
+	role: 'admin' | 'member'
+): Promise<void> {
+	await sql()`INSERT INTO crew_members (crew_id, user_id, role) VALUES (${crewId}, ${userId}, ${role})`;
+}
+
+/** Crews first: crews.city_id has no cascade, so the city rows cannot go while one points at them. */
+export async function deleteCrewsInCountry(country: string): Promise<void> {
+	await sql()`DELETE FROM crews WHERE city_id IN (SELECT id FROM cities WHERE country = ${country})`;
+	await sql()`DELETE FROM cities WHERE country = ${country}`;
 }
