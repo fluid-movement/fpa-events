@@ -1,0 +1,3 @@
+- [ ] crews and crew_members tables exist with UNIQUE crews.city_id and UNIQUE crew_members.user_id; creating a crew makes the creator an admin in the same transaction
+- [ ] A second crew in a city, or a crew for a user already in one, is refused with a clear message; admins can rename and change city, non-admins cannot (requireCrewAdmin registered in remote-guards.test.ts)
+- [ ] seed.ts has crews and members; npm run check, npm run test and a Playwright create-crew flow pass
