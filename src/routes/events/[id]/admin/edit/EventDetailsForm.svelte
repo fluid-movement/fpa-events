@@ -12,6 +12,8 @@
 	import { updateEvent } from '../event-details.remote';
 
 	interface EventDetails {
+		crewId: string | null;
+		showCrew: boolean;
 		name: string;
 		description: string;
 		startDate: string;
@@ -98,6 +100,16 @@
 			<input {...updateEvent.fields.startDate.as('hidden', dateRange.start?.toString() ?? '')} />
 			<input {...updateEvent.fields.endDate.as('hidden', dateRange.end?.toString() ?? '')} />
 		</Field.Field>
+		{#if event.crewId}
+			<Field.Field orientation="horizontal">
+				<input
+					id="show-crew"
+					data-testid="show-crew"
+					{...updateEvent.fields.showCrew.as('checkbox', event.showCrew)}
+				/>
+				<Field.Label for="show-crew">Show hosted by crew</Field.Label>
+			</Field.Field>
+		{/if}
 		<Field.Separator />
 		<Turnstile bind:token />
 		<input {...updateEvent.fields.turnstileToken.as('hidden', token)} />

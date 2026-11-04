@@ -12,7 +12,9 @@ export type Event = typeof events.$inferSelect;
 export type EventUserStatus = 'attending' | 'organizing';
 
 /** An event row carrying its attendee total, as the browse pages render it. */
-export type EventWithAttendeeCount = Event & { attendeeCount: number };
+export type EventWithHostCrew = Event & { hostCrewId: string | null; hostCrewName: string | null };
+
+export type EventWithAttendeeCount = EventWithHostCrew & { attendeeCount: number };
 
 /** The same, plus how the signed-in user relates to it. */
 export type EventListItem = EventWithAttendeeCount & { userStatus: EventUserStatus | null };

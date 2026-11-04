@@ -48,6 +48,8 @@ export const eventFormSchema = v.pipe(
 		country: v.optional(v.pipe(text, v.maxLength(100))),
 		latitude: coordinate(90),
 		longitude: coordinate(180),
+		// Unchecked checkboxes are omitted; the UI seeds this checked on create.
+		showCrew: v.optional(v.boolean(), false),
 		picture: v.optional(text),
 		pictureWidth: pictureDimension,
 		pictureHeight: pictureDimension,

@@ -3,7 +3,8 @@ import { form } from '$app/server';
 import { resolve } from '$app/paths';
 import { ulid } from 'ulid';
 import { withPictureLock } from '#lib/server/picture-storage';
-import { events, eventUser } from '#lib/server/db/schema';
+import { and, eq } from 'drizzle-orm';
+import { crewMembers, events, eventUser } from '#lib/server/db/schema';
 import { eventFormSchema, parsePictureFields, resolveCityId } from '#lib/server/eventForm';
 import { requireSignedInRequest } from '#lib/server/authz';
 import { sanitizeRichText } from '#lib/utils/html';
@@ -19,6 +20,10 @@ export const createEvent = form(eventFormSchema, async (data) => {
 
 	const cityId = await resolveCityId(data);
 	await withPictureLock(data.picture, async (tx) => {
+		const [crewAdmin] = await tx
+			.select({ crewId: crewMembers.crewId })
+			.from(crewMembers)
+			.where(and(eq(crewMembers.userId, signedIn.id), eq(crewMembers.role, 'admin')));
 		await tx.insert(events).values({
 			id: eventId,
 			userId: signedIn.id,
@@ -30,6 +35,8 @@ export const createEvent = form(eventFormSchema, async (data) => {
 			endDate: new Date(data.endDate),
 			location: data.location,
 			cityId,
+			crewId: crewAdmin?.crewId ?? null,
+			showCrew: crewAdmin ? data.showCrew : true,
 			...(await parsePictureFields(data, NO_PICTURE, null, tx))
 		});
 		await tx.insert(eventUser).values({ eventId, userId: signedIn.id, status: 'organizing' });

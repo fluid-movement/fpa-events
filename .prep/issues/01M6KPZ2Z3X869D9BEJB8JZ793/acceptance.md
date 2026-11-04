@@ -1,0 +1,3 @@
+- [ ] events.crew_id and events.show_crew exist; a crew admin's new event is attached to their crew, others' are not
+- [ ] The Show hosted by crew toggle (default on) appears only for crew admins on create and for crew-hosted events on edit; off hides the badge everywhere, crew_id is never reassigned by edits
+- [ ] Badge links to the crew on the event page and event cards via a single join; seed updated; Playwright spec and npm run check/test pass

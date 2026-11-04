@@ -1,6 +1,6 @@
 import type { Event, EventUserStatus } from '#lib/types/event';
 import { db } from '#lib/server/db';
-import { events, eventUser } from '#lib/server/db/schema';
+import { crews, events, eventUser } from '#lib/server/db/schema';
 import { groupBy } from '#lib/utils/collections';
 import {
 	and,
@@ -32,6 +32,8 @@ export function splitEventsByEndDate<T extends { startDate: Date; endDate: Date 
 			.sort((a, b) => b.startDate.getTime() - a.startDate.getTime())
 	};
 }
+/** Joined only when the event permits its host crew to be displayed. */
+export const hostCrewColumns = { hostCrewId: crews.id, hostCrewName: crews.name };
 
 /** Years that have at least one event already started, most recent first. */
 export async function getArchiveYears(): Promise<number[]> {
@@ -50,11 +52,12 @@ export async function getArchiveYears(): Promise<number[]> {
  */
 export function listEventsWithAttendeeCount(where: SQL | undefined) {
 	return db
-		.select({ ...getTableColumns(events), attendeeCount: count(eventUser.id) })
+		.select({ ...getTableColumns(events), ...hostCrewColumns, attendeeCount: count(eventUser.id) })
 		.from(events)
+		.leftJoin(crews, and(eq(events.crewId, crews.id), eq(events.showCrew, true)))
 		.leftJoin(eventUser, and(eq(eventUser.eventId, events.id), eq(eventUser.status, 'attending')))
 		.where(where)
-		.groupBy(events.id)
+		.groupBy(events.id, crews.id)
 		.orderBy(asc(events.startDate));
 }
 
@@ -112,12 +115,12 @@ export async function attendingEvents(userId: string) {
 
 	const forWindow = (window: SQL | undefined, order: SQL) =>
 		db
-			.select({ event: events })
+			.select({ ...getTableColumns(events), ...hostCrewColumns })
 			.from(eventUser)
 			.innerJoin(events, eq(eventUser.eventId, events.id))
+			.leftJoin(crews, and(eq(events.crewId, crews.id), eq(events.showCrew, true)))
 			.where(and(eq(eventUser.userId, userId), eq(eventUser.status, 'attending'), window))
-			.orderBy(order)
-			.then((rows) => rows.map((r) => r.event));
+			.orderBy(order);
 
 	const [upcoming, past] = await Promise.all([
 		forWindow(gt(events.startDate, now), asc(events.startDate)),

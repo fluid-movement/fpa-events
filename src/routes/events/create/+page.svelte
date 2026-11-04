@@ -14,6 +14,9 @@
 
 	import { createEvent } from './data.remote';
 
+	import type { PageProps } from './$types';
+	let { data }: PageProps = $props();
+
 	let dateRange = $state<{ start: DateValue | undefined; end: DateValue | undefined }>({
 		start: undefined,
 		end: undefined
@@ -73,6 +76,16 @@
 					<input {...createEvent.fields.endDate.as('hidden', dateRange.end?.toString() ?? '')} />
 				</Field.Field>
 			</Field.Group>
+			{#if data.isCrewAdmin}
+				<Field.Field orientation="horizontal">
+					<input
+						id="show-crew"
+						data-testid="show-crew"
+						{...createEvent.fields.showCrew.as('checkbox', true)}
+					/>
+					<Field.Label for="show-crew">Show hosted by crew</Field.Label>
+				</Field.Field>
+			{/if}
 			<Field.Separator />
 			<Turnstile bind:token />
 			<input {...createEvent.fields.turnstileToken.as('hidden', token)} />

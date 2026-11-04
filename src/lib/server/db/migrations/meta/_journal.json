@@ -50,6 +50,13 @@
       "when": 1793813685591,
       "tag": "0006_redundant_wolf_cub",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793817517644,
+      "tag": "0007_happy_lady_bullseye",
+      "breakpoints": true
     }
   ]
 }

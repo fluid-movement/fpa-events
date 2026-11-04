@@ -24,6 +24,8 @@ export const getEvent = query(text, async (id) => {
 		.select({
 			id: events.id,
 			name: events.name,
+			crewId: events.crewId,
+			showCrew: events.showCrew,
 			description: events.description,
 			startDate: events.startDate,
 			endDate: events.endDate,
@@ -72,6 +74,7 @@ export const updateEvent = form(eventFormSchema, async (data) => {
 				endDate: new Date(data.endDate),
 				location: data.location,
 				cityId,
+				showCrew: existing.crewId ? data.showCrew : existing.showCrew,
 				...picture,
 				updatedAt: new Date()
 			})

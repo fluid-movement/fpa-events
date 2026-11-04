@@ -1,11 +1,19 @@
 import { db } from '#lib/server/db';
-import { events, schedules, scheduleLocations, eventUser, user } from '#lib/server/db/schema';
-import { eq, count, and, asc } from 'drizzle-orm';
+import {
+	crews,
+	events,
+	schedules,
+	scheduleLocations,
+	eventUser,
+	user
+} from '#lib/server/db/schema';
+import { eq, count, and, asc, getTableColumns } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { sanitizeRichText } from '#lib/utils/html';
 import { eventMeta } from '#lib/utils/meta';
 import type { EventUserStatus } from '#lib/types/event';
+import { hostCrewColumns } from '#lib/server/utils/events';
 import { storedIdParam } from '#lib/server/validation';
 
 /** Names shown inline under the RSVP control before the "and N others" remainder. */
@@ -14,7 +22,11 @@ const ATTENDEE_PEEK_LIMIT = 4;
 export const load = (async ({ params, locals }) => {
 	// Before the query builder exists, so a malformed id never reaches it.
 	const id = storedIdParam(params.id);
-	const [event] = await db.select().from(events).where(eq(events.id, id));
+	const [event] = await db
+		.select({ ...getTableColumns(events), ...hostCrewColumns })
+		.from(events)
+		.leftJoin(crews, and(eq(events.crewId, crews.id), eq(events.showCrew, true)))
+		.where(eq(events.id, id));
 	if (!event) error(404, 'Not found');
 
 	const [eventSchedules, attendeeCounts, userRsvp, namedAttendees] = await Promise.all([

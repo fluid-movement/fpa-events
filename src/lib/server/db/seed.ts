@@ -535,13 +535,11 @@ async function main() {
 		])
 	);
 
-	await db
-		.insert(schema.crewMagicLinks)
-		.values({
-			id: id(),
-			crewId: seededCrews[0].id,
-			expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000)
-		});
+	await db.insert(schema.crewMagicLinks).values({
+		id: id(),
+		crewId: seededCrews[0].id,
+		expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000)
+	});
 
 	console.log('📅 Seeding events...');
 
@@ -552,6 +550,10 @@ async function main() {
 			...rest,
 			userId: i % 5 === 0 ? adminId : userIds[i % userIds.length],
 			cityId: cityIdMap.get(cityKey(locationCity, locationCountry)) ?? null,
+			crewId:
+				seededCrews.find((_, crewIndex) => i % 5 !== 0 && i % userIds.length === crewIndex * 2)
+					?.id ?? null,
+			showCrew: i !== 2,
 			createdAt: new Date(),
 			updatedAt: new Date()
 		};

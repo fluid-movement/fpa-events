@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import type { Event, EventUserStatus } from '#lib/types/event';
+	import type { EventWithHostCrew, EventUserStatus } from '#lib/types/event';
 	import { Badge } from '#lib/components/ui/badge';
 	import { dateChipParts, formatCompactDateRange } from '#lib/utils/dates';
 	import MapPinIcon from '@lucide/svelte/icons/map-pin';
@@ -10,13 +10,14 @@
 		event,
 		attendeeCount,
 		userStatus
-	}: { event: Event; attendeeCount?: number; userStatus?: EventUserStatus | null } = $props();
+	}: { event: EventWithHostCrew; attendeeCount?: number; userStatus?: EventUserStatus | null } =
+		$props();
 
 	const chip = $derived(dateChipParts(event.startDate));
 	const dateRange = $derived(formatCompactDateRange(event.startDate, event.endDate));
 </script>
 
-<a href={resolve('/events/[id]', { id: event.id })} class="card-link">
+<div class="card-link">
 	<div class="glow"></div>
 	<article class="event-card surface">
 		<div class="body">
@@ -25,11 +26,22 @@
 				<span class="month">{chip.month}</span>
 			</div>
 			<div class="info">
-				<h2>{event.name}</h2>
+				<h2>
+					<a class="event-link" href={resolve('/events/[id]', { id: event.id })}>{event.name}</a>
+				</h2>
 				<div class="location">
 					<MapPinIcon class="size-3.5 shrink-0" />
 					<span>{event.location}</span>
 				</div>
+				{#if event.hostCrewId && event.hostCrewName}
+					<Badge
+						variant="secondary"
+						href={resolve('/crews/[id]', { id: event.hostCrewId })}
+						data-testid="host-crew-badge"
+					>
+						Hosted by {event.hostCrewName}
+					</Badge>
+				{/if}
 				<div class="meta-row">
 					<span class="date-range">{dateRange}</span>
 					{#if attendeeCount != null && attendeeCount > 0}
@@ -51,9 +63,19 @@
 			</div>
 		{/if}
 	</article>
-</a>
+</div>
 
 <style>
+	.event-link::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+	}
+	.info :global([data-testid='host-crew-badge']) {
+		position: relative;
+		z-index: 2;
+	}
+
 	.card-link {
 		display: block;
 		position: relative;

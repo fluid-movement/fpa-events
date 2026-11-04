@@ -49,6 +49,8 @@ export const events = pgTable(
 		cityId: integer('city_id').references((): AnyPgColumn => cities.id, {
 			onDelete: 'set null'
 		}),
+		crewId: text('crew_id').references((): AnyPgColumn => crews.id, { onDelete: 'set null' }),
+		showCrew: boolean('show_crew').default(true).notNull(),
 		description: text('description').notNull(),
 		picture: text('picture'),
 		pictureWidth: integer('picture_width'),

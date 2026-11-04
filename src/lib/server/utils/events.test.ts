@@ -9,6 +9,8 @@ function makeEvent(overrides: Partial<Event> & { startDate: Date; endDate: Date 
 		name: 'Test Event',
 		location: 'Somewhere',
 		cityId: null,
+		crewId: null,
+		showCrew: true,
 		description: '',
 		picture: null,
 		pictureWidth: null,

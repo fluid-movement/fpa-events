@@ -111,6 +111,16 @@
 						class="pb-4"
 					>
 						{#snippet meta()}
+							{#if event.hostCrewId && event.hostCrewName}
+								<Badge
+									variant="secondary"
+									href={resolve('/crews/[id]', { id: event.hostCrewId })}
+									data-testid="host-crew-badge"
+								>
+									Hosted by {event.hostCrewName}
+								</Badge>
+							{/if}
+
 							<span class="flex items-center gap-2">
 								<CalendarIcon class="size-4 shrink-0" />
 								{dateRange}
