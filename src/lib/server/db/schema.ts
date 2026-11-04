@@ -348,3 +348,18 @@ export const accountRelations = relations(account, ({ one }) => ({
 		references: [user.id]
 	})
 }));
+
+export const crewMagicLinks = pgTable(
+	'crew_magic_links',
+	{
+		id: text('id').primaryKey(),
+		crewId: text('crew_id')
+			.notNull()
+			.references(() => crews.id, { onDelete: 'cascade' }),
+		expiresAt: timestamp('expires_at', { mode: 'date' }).notNull(),
+		createdAt: timestamp('created_at', { mode: 'date' })
+			.notNull()
+			.default(sql`now()`)
+	},
+	(table) => [index('crew_magic_links_crew_id_index').on(table.crewId)]
+);

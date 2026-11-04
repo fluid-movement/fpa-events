@@ -471,6 +471,7 @@ async function main() {
 	await db.delete(schema.eventMagicLinks);
 	await db.delete(schema.eventUser);
 	await db.delete(schema.events);
+	await db.delete(schema.crewMagicLinks);
 	await db.delete(schema.crewMembers);
 	await db.delete(schema.crews);
 	await db.delete(schema.cities);
@@ -515,15 +516,32 @@ async function main() {
 		insertedCities.map((l) => [cityKey(l.city, l.country), l.id])
 	);
 
-	const seededCrews = await db.insert(schema.crews).values([
-		{ id: id(), name: 'Berlin Freestylers', cityId: cityIdMap.get(cityKey('Berlin', 'Germany'))! },
-		{ id: id(), name: 'Tokyo Freestylers', cityId: cityIdMap.get(cityKey('Tokyo', 'Japan'))! },
-		{ id: id(), name: 'Prague Freestylers', cityId: cityIdMap.get(cityKey('Prague', 'Czechia'))! }
-	]).returning();
-	await db.insert(schema.crewMembers).values(seededCrews.flatMap((crew, i) => [
-		{ crewId: crew.id, userId: userIds[i * 2], role: 'admin' as const },
-		{ crewId: crew.id, userId: userIds[i * 2 + 1], role: 'member' as const }
-	]));
+	const seededCrews = await db
+		.insert(schema.crews)
+		.values([
+			{
+				id: id(),
+				name: 'Berlin Freestylers',
+				cityId: cityIdMap.get(cityKey('Berlin', 'Germany'))!
+			},
+			{ id: id(), name: 'Tokyo Freestylers', cityId: cityIdMap.get(cityKey('Tokyo', 'Japan'))! },
+			{ id: id(), name: 'Prague Freestylers', cityId: cityIdMap.get(cityKey('Prague', 'Czechia'))! }
+		])
+		.returning();
+	await db.insert(schema.crewMembers).values(
+		seededCrews.flatMap((crew, i) => [
+			{ crewId: crew.id, userId: userIds[i * 2], role: 'admin' as const },
+			{ crewId: crew.id, userId: userIds[i * 2 + 1], role: 'member' as const }
+		])
+	);
+
+	await db
+		.insert(schema.crewMagicLinks)
+		.values({
+			id: id(),
+			crewId: seededCrews[0].id,
+			expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000)
+		});
 
 	console.log('📅 Seeding events...');
 

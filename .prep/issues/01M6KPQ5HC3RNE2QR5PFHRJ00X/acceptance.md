@@ -1,0 +1,4 @@
+- [ ] crew_magic_links with expiry and revoke; joining via link adds a member, never an admin; opening the link does not change membership
+- [ ] A user in another crew is offered a switch that leaves and joins atomically; one crew per user always holds
+- [ ] The last admin cannot leave, be demoted, removed, switch or delete their account until another admin exists; a sole member leaving deletes the crew after confirmation
+- [ ] Public member list shows showName users and counts the rest; only admins reach management pages; Vitest and Playwright cover these rules and npm run check/test pass

@@ -23,7 +23,7 @@
 	}: {
 		open?: boolean;
 		/** The remote form this dialog submits. */
-		form: RemoteForm<Input, unknown>;
+		form: Omit<RemoteForm<Input, unknown>, 'for'>;
 		/** Hidden inputs to post with it. Reactive — read at submit time. */
 		fields?: Record<string, string | number | null | undefined>;
 		/**

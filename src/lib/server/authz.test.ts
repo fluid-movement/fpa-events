@@ -80,7 +80,7 @@ const { requestMock } = vi.hoisted(() => ({ requestMock: vi.fn() }));
 vi.mock('$app/server', () => ({ getRequestEvent: requestMock }));
 
 import { isHttpError } from '@sveltejs/kit';
-import { requireEventManager, requireEventOwner } from './authz';
+import { requireEventManager, requireEventOwner, requireCrewAdmin } from './authz';
 
 describe.each([requireEventManager, requireEventOwner])('%s request authorization', (guard) => {
 	const event = { id: '01m5a4te7kpbqedtvncyxkx1gn', userId: 'owner-1' };
@@ -142,5 +142,44 @@ describe.each([requireEventManager, requireEventOwner])('%s request authorizatio
 		} else {
 			await status(403);
 		}
+	});
+});
+
+describe('requireCrewAdmin', () => {
+	const crew = { id: '01m5a4te7kpbqedtvncyxkx1gn', name: 'Crew' };
+	function rows(...results: unknown[][]) {
+		for (const result of results)
+			selectMock.mockReturnValueOnce({
+				from: () => ({ where: () => ({ limit: async () => result }) })
+			});
+	}
+	beforeEach(() => {
+		selectMock.mockReset();
+		requestMock.mockReset();
+	});
+	it('rejects anonymous callers before querying', async () => {
+		requestMock.mockReturnValue({ locals: {} });
+		await expect(requireCrewAdmin(crew.id)).rejects.toSatisfy((err: unknown) =>
+			isHttpError(err, 401)
+		);
+		expect(selectMock).not.toHaveBeenCalled();
+	});
+	it('rejects ordinary members and outsiders', async () => {
+		requestMock.mockReturnValue({ locals: { user: { id: 'member' }, role: 'user' } });
+		rows([crew], []);
+		await expect(requireCrewAdmin(crew.id)).rejects.toSatisfy((err: unknown) =>
+			isHttpError(err, 403)
+		);
+	});
+	it('allows a crew admin', async () => {
+		requestMock.mockReturnValue({ locals: { user: { id: 'admin' }, role: 'user' } });
+		rows([crew], [{ role: 'admin' }]);
+		await expect(requireCrewAdmin(crew.id)).resolves.toEqual(crew);
+	});
+	it('allows a site admin without a crew membership', async () => {
+		requestMock.mockReturnValue({ locals: { user: { id: 'site-admin' }, role: 'admin' } });
+		rows([crew]);
+		await expect(requireCrewAdmin(crew.id)).resolves.toEqual(crew);
+		expect(selectMock).toHaveBeenCalledTimes(1);
 	});
 });

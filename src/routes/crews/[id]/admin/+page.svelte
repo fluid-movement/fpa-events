@@ -16,6 +16,10 @@
 
 <PageShell width="form">
 	<PageHeader title="Manage crew" />
+	<Button
+		href={resolve('/crews/[id]/admin/members', { id: data.crew.id })}
+		data-testid="manage-crew-members">Manage members and invitations</Button
+	>
 	<form {...updateCrew} data-testid="crew-form">
 		<Field.Group>
 			<Field.Field>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { LAST_CREW_ADMIN_MESSAGE } from '#lib/crew-membership-policy';
 	import { Button } from '#lib/components/ui/button';
 	import ConfirmSubmit from '#lib/components/layout/ConfirmSubmit.svelte';
 	import TrashIcon from '@lucide/svelte/icons/trash-2';
@@ -16,7 +17,7 @@
 			<h2 class="font-semibold text-destructive">Delete account</h2>
 			<p class="text-sm text-muted-foreground">
 				Permanently delete your account and all associated data, including events you created. This
-				cannot be undone.
+				cannot be undone. {LAST_CREW_ADMIN_MESSAGE}
 			</p>
 		</div>
 

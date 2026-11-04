@@ -388,3 +388,31 @@ export async function deleteCrewsInCountry(country: string): Promise<void> {
 	await sql()`DELETE FROM crews WHERE city_id IN (SELECT id FROM cities WHERE country = ${country})`;
 	await sql()`DELETE FROM cities WHERE country = ${country}`;
 }
+
+export async function createTestCrew(
+	adminId: string,
+	city: string,
+	country: string
+): Promise<string> {
+	const cityId = await insertEventLocation(city, country, 52.5, 13.4);
+	const id = ulid().toLowerCase();
+	await sql()`INSERT INTO crews (id, name, city_id) VALUES (${id}, ${city}, ${cityId})`;
+	await addCrewMember(id, adminId, 'admin');
+	return id;
+}
+
+export async function createCrewInvite(
+	crewId: string,
+	expiresAt = new Date(Date.now() + 86400000)
+): Promise<string> {
+	const token = ulid().toLowerCase();
+	await sql()`INSERT INTO crew_magic_links (id, crew_id, expires_at) VALUES (${token}, ${crewId}, ${expiresAt})`;
+	return token;
+}
+
+export async function getUserCrewIds(userId: string): Promise<string[]> {
+	const rows = await sql()<
+		{ crew_id: string }[]
+	>`SELECT crew_id FROM crew_members WHERE user_id = ${userId}`;
+	return rows.map((row) => row.crew_id);
+}
