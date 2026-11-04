@@ -8,7 +8,9 @@
 		// SvelteKit 3 will not accept a form field that wasn't built by
 		// `fields.<name>.as(...)`, so the owning form has to hand its fields down
 		// rather than this component naming the inputs itself.
-		fields: RemoteFormFields<Pick<EventFormData, 'location' | 'city' | 'country' | 'latitude' | 'longitude'>>;
+		fields: RemoteFormFields<
+			Pick<EventFormData, 'location' | 'city' | 'country' | 'latitude' | 'longitude'>
+		>;
 		value?: string;
 		locationValue?: string;
 		city?: string;

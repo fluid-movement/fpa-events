@@ -22,13 +22,11 @@ export const generateLink = form(crewSchema, async ({ crewId }) => {
 	const { locals } = getRequestEvent();
 	await withCrewMembership(locals.user!.id, [crewId], async (tx) => {
 		await assertCrewAdmin(tx, crewId, locals.user!.id, locals.role === 'admin');
-		await tx
-			.insert(crewMagicLinks)
-			.values({
-				id: ulid().toLowerCase(),
-				crewId,
-				expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000)
-			});
+		await tx.insert(crewMagicLinks).values({
+			id: ulid().toLowerCase(),
+			crewId,
+			expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000)
+		});
 	});
 });
 

@@ -1,3 +1,3 @@
-- [ ] crew_jams exists; admins add, edit and delete up to 10 jams with weekday, HH:MM time, venue (name/address/position) and optional note; non-admins cannot; invalid weekday/time rejected
-- [ ] Details page lists the jams sorted by weekday and time; listing cards show the next jam when present
-- [ ] Vitest for the helpers and a Playwright spec cover CRUD, display and authorization; seed.ts has jams; npm run check and npm run test pass
+- [x] crew_jams exists; admins add, edit and delete up to 10 jams with weekday, HH:MM time, venue (name/address/position) and optional note; non-admins cannot; invalid weekday/time rejected
+- [x] Details page lists the jams sorted by weekday and time; listing cards show the next jam when present
+- [x] Vitest for the helpers and a Playwright spec cover CRUD, display and authorization; seed.ts has jams; npm run check and npm run test pass

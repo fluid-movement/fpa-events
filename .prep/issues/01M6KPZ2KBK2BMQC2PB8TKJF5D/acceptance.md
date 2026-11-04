@@ -1,3 +1,3 @@
-- [ ] crew_links exists with one link per kind; admins edit all kinds in one remote form, empty clears, non-admins cannot; only https URLs are accepted and javascript:/other schemes are rejected
-- [ ] The details page shows icon links (brand SVGs, lucide house for website, link for other) with rel noopener noreferrer, hidden when none
-- [ ] Vitest for the validation module and a Playwright spec cover save, rejection, clearing and authorization; npm run check and npm run test pass
+- [x] crew_links exists with one link per kind; admins edit all kinds in one remote form, empty clears, non-admins cannot; only https URLs are accepted and javascript:/other schemes are rejected
+- [x] The details page shows icon links (brand SVGs, lucide house for website, link for other) with rel noopener noreferrer, hidden when none
+- [x] Vitest for the validation module and a Playwright spec cover save, rejection, clearing and authorization; npm run check and npm run test pass
