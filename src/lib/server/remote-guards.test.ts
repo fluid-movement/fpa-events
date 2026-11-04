@@ -52,7 +52,7 @@ const REGISTRY: Record<string, Guard> = {
 	'/src/routes/events/create/data.remote.ts#createEvent': 'signedIn',
 	'/src/routes/invite/[token]/data.remote.ts#acceptInvite': 'signedIn',
 	'/src/routes/settings/privacy/data.remote.ts#getPrivacySettings': 'signedIn',
-	'/src/routes/settings/privacy/data.remote.ts#setShowAttendance': 'signedIn',
+	'/src/routes/settings/privacy/data.remote.ts#setShowName': 'signedIn',
 	'/src/routes/settings/profile/data.remote.ts#updateProfile': 'signedIn',
 	'/src/routes/settings/account/data.remote.ts#deleteAccount': 'signedIn',
 	'/src/lib/api/calendar.remote.ts#regenerateToken': 'signedIn',

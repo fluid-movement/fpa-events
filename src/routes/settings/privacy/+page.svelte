@@ -3,7 +3,7 @@
 	import { Switch } from '#lib/components/ui/switch';
 	import { Label } from '#lib/components/ui/label';
 	import Section from '#lib/components/layout/Section.svelte';
-	import { getPrivacySettings, setShowAttendance } from './data.remote';
+	import { getPrivacySettings, setShowName } from './data.remote';
 
 	const settings = $derived(await getPrivacySettings());
 
@@ -11,20 +11,20 @@
 
 	// Writable derived: the switch responds instantly to a local assignment, and
 	// the query takes back over once the save round-trips.
-	let showAttendance = $derived(settings.showAttendance);
+	let showName = $derived(settings.showName);
 </script>
 
 <Section title="Privacy" description="Control what others can see about you.">
-	<form {...setShowAttendance} bind:this={formEl}>
+	<form {...setShowName} bind:this={formEl}>
 		<input
-			{...setShowAttendance.fields.showAttendance.as(
+			{...setShowName.fields.showName.as(
 				'hidden',
-				String(showAttendance) as 'true' | 'false'
+				String(showName) as 'true' | 'false'
 			)}
 		/>
 		<div class="surface flex items-start justify-between gap-4 rounded-xl p-4 md:gap-6">
 			<div class="space-y-1">
-				<Label for="show-attendance" class="text-sm font-medium">Show my name on event pages</Label>
+				<Label for="show-name" class="text-sm font-medium">Show my name in event attendee lists and crew member lists</Label>
 				<p class="text-sm text-muted-foreground">
 					When this is off you're still counted as attending — you just appear in the “and N others”
 					total instead of by name. Event organizers can always see your name. Only the event owner
@@ -36,14 +36,14 @@
 			     flush: `onCheckedChange` fires before a `bind:checked` write reaches the
 			     hidden input, so submitting immediately would post the previous value. -->
 			<Switch
-				id="show-attendance"
-				checked={showAttendance}
+				id="show-name"
+				checked={showName}
 				onCheckedChange={async (checked) => {
-					showAttendance = checked;
+					showName = checked;
 					await tick();
 					formEl.requestSubmit();
 				}}
-				data-testid="show-attendance-switch"
+				data-testid="show-name-switch"
 			/>
 		</div>
 	</form>

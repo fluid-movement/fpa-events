@@ -29,6 +29,13 @@
       "when": 1793811037567,
       "tag": "0003_canonical_cities",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793811609623,
+      "tag": "0004_rename_show_name",
+      "breakpoints": true
     }
   ]
 }

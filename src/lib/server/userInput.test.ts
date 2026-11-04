@@ -40,8 +40,8 @@ describe('guardUserWrite', () => {
 
 	it('requires a name on create but not on an update that leaves it alone', () => {
 		expect(() => guardUserWrite({ email: 'a@b.c' }, { requireName: true })).toThrow();
-		expect(guardUserWrite({ showAttendance: false }, { requireName: false })).toEqual({
-			data: { showAttendance: false }
+		expect(guardUserWrite({ showName: false }, { requireName: false })).toEqual({
+			data: { showName: false }
 		});
 	});
 

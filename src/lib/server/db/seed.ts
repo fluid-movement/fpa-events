@@ -22,7 +22,7 @@ function date(str: string) {
 
 const ADMIN_EMAIL = 'zaharias.andre@googlemail.com';
 
-// `showAttendance: false` opts a user out of being named publicly — they still
+// `showName: false` opts a user out of being named publicly — they still
 // count towards an event's attendee total. A few are seeded opted-out so the
 // "and N others" path is exercised locally.
 const users = [
@@ -38,7 +38,7 @@ const users = [
 		name: 'Marcus Hellström',
 		email: 'marcus.h@example.com',
 		role: 'user' as const,
-		showAttendance: false
+		showName: false
 	},
 	{ id: id(), name: 'Priya Nair', email: 'priya.nair@example.com', role: 'user' as const },
 	{ id: id(), name: 'Tom Leitner', email: 'tom.leitner@example.com', role: 'user' as const },
@@ -47,7 +47,7 @@ const users = [
 		name: 'Sofía Reyes',
 		email: 'sofia.reyes@example.com',
 		role: 'user' as const,
-		showAttendance: false
+		showName: false
 	},
 	{ id: id(), name: 'Kenji Tanaka', email: 'kenji.tanaka@example.com', role: 'user' as const },
 	{ id: id(), name: 'Elise Bonnet', email: 'elise.bonnet@example.com', role: 'user' as const },
@@ -62,7 +62,7 @@ const users = [
 		name: 'Fatima Ouedraogo',
 		email: 'fatima.o@example.com',
 		role: 'user' as const,
-		showAttendance: false
+		showName: false
 	}
 ];
 
@@ -485,7 +485,7 @@ async function main() {
 				email: u.email,
 				emailVerified: true,
 				role: u.role,
-				showAttendance: u.showAttendance ?? true,
+				showName: u.showName ?? true,
 				createdAt: new Date(),
 				updatedAt: new Date()
 			}))
@@ -495,7 +495,7 @@ async function main() {
 			set: {
 				name: sql`excluded.name`,
 				role: sql`excluded.role`,
-				showAttendance: sql`excluded.show_attendance`
+				showName: sql`excluded.show_name`
 			}
 		})
 		.returning();

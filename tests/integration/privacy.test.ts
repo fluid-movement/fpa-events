@@ -8,8 +8,8 @@ import {
 	deleteTestEvent,
 	setAttending,
 	setOrganizing,
-	setShowAttendance,
-	getShowAttendance,
+	setShowName,
+	getShowName,
 	setUserRole,
 	closeDb
 } from './helpers/db';
@@ -49,8 +49,8 @@ test.describe('attendee name privacy', () => {
 	});
 
 	test.beforeEach(async () => {
-		await setShowAttendance(otherUserId, true);
-		await setShowAttendance(userId, true);
+		await setShowName(otherUserId, true);
+		await setShowName(userId, true);
 	});
 
 	test('an opted-in attendee is named on the public event page', async ({ page, context }) => {
@@ -62,7 +62,7 @@ test.describe('attendee name privacy', () => {
 	});
 
 	test('an opted-out attendee is not named but still counted', async ({ page, context }) => {
-		await setShowAttendance(otherUserId, false);
+		await setShowName(otherUserId, false);
 		await signIn(page, context);
 		await page.goto(`/events/${eventId}`);
 		await page.waitForLoadState('networkidle');
@@ -74,7 +74,7 @@ test.describe('attendee name privacy', () => {
 	});
 
 	test('an opted-out attendee is not listed in the attendees modal', async ({ page, context }) => {
-		await setShowAttendance(otherUserId, false);
+		await setShowName(otherUserId, false);
 		await signIn(page, context);
 		await page.goto(`/events/${eventId}`);
 		await page.waitForLoadState('networkidle');
@@ -89,7 +89,7 @@ test.describe('attendee name privacy', () => {
 		page,
 		context
 	}) => {
-		await setShowAttendance(otherUserId, false);
+		await setShowName(otherUserId, false);
 		await signIn(page, context);
 		await page.goto(`/events/${eventId}/admin/attendees`);
 		await page.waitForLoadState('networkidle');
@@ -104,27 +104,27 @@ test.describe('attendee name privacy', () => {
 		await page.goto('/settings/privacy');
 		await page.waitForLoadState('networkidle');
 
-		const toggle = page.getByTestId('show-attendance-switch');
+		const toggle = page.getByTestId('show-name-switch');
 		await expect(toggle).toHaveAttribute('data-state', 'checked');
 
 		// The save fetch starts a microtask after the click, so `networkidle` can
 		// resolve before it even begins — poll the stored value instead.
 		await toggle.click();
 		await page.waitForLoadState('networkidle');
-		await expect.poll(() => getShowAttendance(userId)).toBe(false);
+		await expect.poll(() => getShowName(userId)).toBe(false);
 
 		// Survives a reload
 		await page.reload();
 		await page.waitForLoadState('networkidle');
-		await expect(page.getByTestId('show-attendance-switch')).toHaveAttribute(
+		await expect(page.getByTestId('show-name-switch')).toHaveAttribute(
 			'data-state',
 			'unchecked'
 		);
 
 		// And back on
-		await page.getByTestId('show-attendance-switch').click();
+		await page.getByTestId('show-name-switch').click();
 		await page.waitForLoadState('networkidle');
-		await expect.poll(() => getShowAttendance(userId)).toBe(true);
+		await expect.poll(() => getShowName(userId)).toBe(true);
 	});
 
 	test('the Privacy tab is reachable from settings', async ({ page, context }) => {
@@ -134,7 +134,7 @@ test.describe('attendee name privacy', () => {
 		// Scoped by testid: the sidebar footer also has a "Privacy" link (privacy-policy).
 		await page.getByTestId('settings-tab-privacy').click();
 		await expect(page).toHaveURL('/settings/privacy');
-		await expect(page.getByTestId('show-attendance-switch')).toBeVisible();
+		await expect(page.getByTestId('show-name-switch')).toBeVisible();
 	});
 });
 
@@ -142,8 +142,8 @@ test.describe('attendee name privacy', () => {
 // never make this regression pass while addresses still reach the browser.
 test.describe('manage-area attendee email privacy', () => {
 	for (const viewer of ['owner', 'admin', 'co-organizer'] as const) {
-		for (const showAttendance of [true, false]) {
-			test(`${viewer} email access with public attendance ${showAttendance ? 'on' : 'off'}`, async ({
+		for (const showName of [true, false]) {
+			test(`${viewer} email access with public name visibility ${showName ? 'on' : 'off'}`, async ({
 				page,
 				context
 			}) => {
@@ -172,8 +172,8 @@ test.describe('manage-area attendee email privacy', () => {
 					managedEventId = await createTestEvent(ownerId);
 					await setAttending(managedEventId, attendeeId);
 					await setOrganizing(managedEventId, organizerId);
-					await setShowAttendance(attendeeId, showAttendance);
-					await setShowAttendance(organizerId, showAttendance);
+					await setShowName(attendeeId, showName);
+					await setShowName(organizerId, showName);
 					if (viewer === 'admin') await setUserRole(viewerId, 'admin');
 					if (viewer === 'co-organizer') await setOrganizing(managedEventId, viewerId);
 
@@ -238,8 +238,8 @@ test.describe('public event page serialized data', () => {
 		publicEventId = await createTestEvent(ownerId, { name: 'Public Data Event' });
 		await setAttending(publicEventId, shownId);
 		await setAttending(publicEventId, hiddenId);
-		await setShowAttendance(shownId, true);
-		await setShowAttendance(hiddenId, false);
+		await setShowName(shownId, true);
+		await setShowName(hiddenId, false);
 	});
 
 	test.afterAll(async () => {

@@ -309,15 +309,15 @@ export async function setUserRole(userId: string, role: 'user' | 'admin'): Promi
 	await sql()`UPDATE "user" SET role = ${role} WHERE id = ${userId}`;
 }
 
-export async function setShowAttendance(userId: string, show: boolean): Promise<void> {
-	await sql()`UPDATE "user" SET show_attendance = ${show} WHERE id = ${userId}`;
+export async function setShowName(userId: string, show: boolean): Promise<void> {
+	await sql()`UPDATE "user" SET show_name = ${show} WHERE id = ${userId}`;
 }
 
-export async function getShowAttendance(userId: string): Promise<boolean> {
-	const rows = await sql()<[{ show_attendance: boolean }]>`
-		SELECT show_attendance FROM "user" WHERE id = ${userId} LIMIT 1
+export async function getShowName(userId: string): Promise<boolean> {
+	const rows = await sql()<[{ show_name: boolean }]>`
+		SELECT show_name FROM "user" WHERE id = ${userId} LIMIT 1
 	`;
-	return rows[0]?.show_attendance ?? true;
+	return rows[0]?.show_name ?? true;
 }
 
 export async function getLocationCoords(

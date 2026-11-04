@@ -1,3 +1,3 @@
-- [ ] user.show_attendance is renamed to show_name by a data-preserving migration; no showAttendance/show_attendance reference remains outside old migrations
-- [ ] Settings label states the choice applies to event attendee lists and crew member lists
-- [ ] Opted-out users still count toward event attendee totals; npm run check and npm run test pass; privacy integration test updated
+- [x] user.show_attendance is renamed to show_name by a data-preserving migration; no showAttendance/show_attendance reference remains outside old migrations
+- [x] Settings label states the choice applies to event attendee lists and crew member lists
+- [x] Opted-out users still count toward event attendee totals; npm run check and npm run test pass; privacy integration test updated

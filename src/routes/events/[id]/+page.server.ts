@@ -55,7 +55,7 @@ export const load = (async ({ params, locals }) => {
 				and(
 					eq(eventUser.eventId, params.id),
 					eq(eventUser.status, 'attending'),
-					eq(user.showAttendance, true)
+					eq(user.showName, true)
 				)
 			)
 			.orderBy(asc(eventUser.createdAt))

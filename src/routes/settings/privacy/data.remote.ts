@@ -7,7 +7,7 @@ import { requireSignedInRequest } from '#lib/server/authz';
 
 /**
  * Read straight from the database rather than `locals.user`: Better Auth builds
- * that object from its own schema and `showAttendance` is not among its
+ * that object from its own schema and `showName` is not among its
  * `additionalFields`, so it would be absent (the same reason `role` is looked up
  * separately in `hooks.server.ts`).
  */
@@ -15,24 +15,24 @@ export const getPrivacySettings = query(async () => {
 	const signedIn = requireSignedInRequest();
 
 	const [row] = await db
-		.select({ showAttendance: user.showAttendance })
+		.select({ showName: user.showName })
 		.from(user)
 		.where(eq(user.id, signedIn.id))
 		.limit(1);
 
-	return { showAttendance: row?.showAttendance ?? true };
+	return { showName: row?.showName ?? true };
 });
 
-export const setShowAttendance = form(
+export const setShowName = form(
 	// Sent as an explicit 'true'/'false' string. A bare checkbox would submit
 	// nothing when off, making "switched off" indistinguishable from "absent".
-	v.object({ showAttendance: v.picklist(['true', 'false']) }),
+	v.object({ showName: v.picklist(['true', 'false']) }),
 	async (data) => {
 		const signedIn = requireSignedInRequest();
 
 		await db
 			.update(user)
-			.set({ showAttendance: data.showAttendance === 'true' })
+			.set({ showName: data.showName === 'true' })
 			.where(eq(user.id, signedIn.id));
 
 		await getPrivacySettings().refresh();
