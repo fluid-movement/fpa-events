@@ -1,0 +1,3 @@
+- [ ] Event managers see the card only when the event's city has no crew and they are in no crew; a link opens crew creation with that city prefilled
+- [ ] The card can be dismissed and stays dismissed after reload (try/catch around storage); no extra per-tab queries
+- [ ] Playwright spec covers shown, prefilled, hidden-when-crew-exists and dismissal; npm run check and npm run test pass

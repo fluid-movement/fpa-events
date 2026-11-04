@@ -9,6 +9,8 @@
 	import PageHeader from '#lib/components/layout/PageHeader.svelte';
 	import FormStatus from '#lib/components/layout/FormStatus.svelte';
 	import { createCrew } from './data.remote';
+	import type { PageProps } from './$types';
+	let { data }: PageProps = $props();
 	let token = $state('');
 </script>
 
@@ -28,7 +30,14 @@
 			</Field.Field>
 			<Field.Field>
 				<Field.Label>City</Field.Label>
-				<EventLocationInput fields={createCrew.fields} />
+				<EventLocationInput
+					fields={createCrew.fields}
+					value={data.city ? `${data.city.city}, ${data.city.country}` : ''}
+					city={data.city?.city}
+					country={data.city?.country}
+					latitude={data.city?.latitude}
+					longitude={data.city?.longitude}
+				/>
 				<Field.Description>Select a city from the suggestions.</Field.Description>
 			</Field.Field>
 			{#each createCrew.fields.allIssues() ?? [] as issue, i (i)}

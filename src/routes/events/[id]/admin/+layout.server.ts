@@ -1,6 +1,15 @@
 import { db } from '#lib/server/db';
-import { events, schedules, eventUser, user, eventMagicLinks } from '#lib/server/db/schema';
-import { count, eq, sql } from 'drizzle-orm';
+import {
+	events,
+	schedules,
+	eventUser,
+	user,
+	eventMagicLinks,
+	cities,
+	crews,
+	crewMembers
+} from '#lib/server/db/schema';
+import { and, count, eq, notExists, sql } from 'drizzle-orm';
 import { error, redirect } from '@sveltejs/kit';
 import { resolve } from '$app/paths';
 import { canManageEvent, isEventManager, requireSignedIn } from '#lib/server/authz';
@@ -30,7 +39,7 @@ export const load = (async ({ params, locals }) => {
 	// Co-organizers manage everything except destroying the event.
 	const isOwner = isEventManager(event, signedIn.id, locals.role);
 
-	const [attendees, magicLinks, scheduleCounts] = await Promise.all([
+	const [attendees, magicLinks, scheduleCounts, crewCardCities] = await Promise.all([
 		// Shared: the Attendees tab lists these, Invites derives co-organizers from
 		// them, and the tab label counts them.
 		db
@@ -47,7 +56,25 @@ export const load = (async ({ params, locals }) => {
 			.where(eq(eventUser.eventId, params.id)),
 		db.select().from(eventMagicLinks).where(eq(eventMagicLinks.eventId, params.id)),
 		// The chrome only needs the number; the rows load on the Schedule tab.
-		db.select({ value: count() }).from(schedules).where(eq(schedules.eventId, params.id))
+		db.select({ value: count() }).from(schedules).where(eq(schedules.eventId, params.id)),
+		// Shared by every tab; no city means there is nothing to suggest.
+		event.cityId === null
+			? Promise.resolve([])
+			: db
+					.select({ id: cities.id })
+					.from(cities)
+					.where(
+						and(
+							eq(cities.id, event.cityId),
+							notExists(db.select({ id: crews.id }).from(crews).where(eq(crews.cityId, cities.id))),
+							notExists(
+								db
+									.select({ userId: crewMembers.userId })
+									.from(crewMembers)
+									.where(eq(crewMembers.userId, signedIn.id))
+							)
+						)
+					)
 	]);
 
 	return {
@@ -55,6 +82,7 @@ export const load = (async ({ params, locals }) => {
 		title: event.name,
 		event,
 		isOwner,
+		crewCard: crewCardCities[0] ?? null,
 		attendees,
 		magicLink: magicLinks[0] ?? null,
 		scheduleCount: scheduleCounts[0]?.value ?? 0

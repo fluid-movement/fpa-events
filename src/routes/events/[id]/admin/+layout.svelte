@@ -9,6 +9,7 @@
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
 	import MapPinIcon from '@lucide/svelte/icons/map-pin';
 	import SetupChecklist from './SetupChecklist.svelte';
+	import StartCrewCard from './StartCrewCard.svelte';
 	import type { ChecklistItem } from './SetupChecklist.svelte';
 	import { Skeleton } from '#lib/components/ui/skeleton';
 	import { getEvent } from './event-details.remote';
@@ -154,6 +155,11 @@
 			publicUrl={`${page.url.origin}/events/${event.id}`}
 			isPast={eventStatus === 'Past'}
 		/>
+		{#if data.crewCard}
+			{#key `${event.id}:${data.crewCard.id}`}
+				<StartCrewCard eventId={event.id} cityId={data.crewCard.id} />
+			{/key}
+		{/if}
 	</svelte:boundary>
 
 	<SegmentedTabs {tabs} current={page.url.pathname} label="Manage event" class="mb-6" />
