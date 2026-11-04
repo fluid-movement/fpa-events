@@ -1,5 +1,5 @@
 import { db } from '#lib/server/db';
-import { events, eventLocations } from '#lib/server/db/schema';
+import { events, cities } from '#lib/server/db/schema';
 import { listEventsWithAttendeeCount } from '#lib/server/utils/events';
 import { asc, gte, count, eq, sql } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
@@ -27,12 +27,12 @@ export const load = (async () => {
 				startDate: events.startDate,
 				endDate: events.endDate,
 				location: events.location,
-				eventLocationId: events.eventLocationId,
-				latitude: eventLocations.latitude,
-				longitude: eventLocations.longitude
+				cityId: events.cityId,
+				latitude: cities.latitude,
+				longitude: cities.longitude
 			})
 			.from(events)
-			.leftJoin(eventLocations, eq(events.eventLocationId, eventLocations.id))
+			.leftJoin(cities, eq(events.cityId, cities.id))
 			.where(gte(events.startDate, now))
 			.orderBy(asc(events.startDate))
 	]);

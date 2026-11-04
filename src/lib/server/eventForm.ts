@@ -4,7 +4,7 @@ import { error } from '@sveltejs/kit';
 import { and, eq, ne } from 'drizzle-orm';
 import { R2_PUBLIC_URL } from '$app/env/private';
 import { events } from '#lib/server/db/schema';
-import { findOrCreateEventLocation } from '#lib/server/db/eventLocations';
+import { findOrCreateCity } from '#lib/server/db/cities';
 import { deleteImage, uploadedImageExists } from '#lib/server/r2';
 import { withPictureLock, type PictureTransaction } from '#lib/server/picture-storage';
 
@@ -158,13 +158,13 @@ export async function releaseEventPictures(
  * Returns `fallback` unless all four geocoding fields came back together — a
  * half-filled set would otherwise pin the event somewhere it is not.
  */
-export async function resolveEventLocationId(
+export async function resolveCityId(
 	data: EventFormData,
 	fallback: number | null = null
 ): Promise<number | null> {
 	if (!data.city || !data.country || !data.latitude || !data.longitude) return fallback;
 
-	return findOrCreateEventLocation(
+	return findOrCreateCity(
 		data.city,
 		data.country,
 		parseFloat(data.latitude),

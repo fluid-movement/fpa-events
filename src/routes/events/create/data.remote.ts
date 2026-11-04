@@ -4,7 +4,7 @@ import { resolve } from '$app/paths';
 import { ulid } from 'ulid';
 import { withPictureLock } from '#lib/server/picture-storage';
 import { events, eventUser } from '#lib/server/db/schema';
-import { eventFormSchema, parsePictureFields, resolveEventLocationId } from '#lib/server/eventForm';
+import { eventFormSchema, parsePictureFields, resolveCityId } from '#lib/server/eventForm';
 import { requireSignedInRequest } from '#lib/server/authz';
 import { sanitizeRichText } from '#lib/utils/html';
 import { requireTurnstile } from '#lib/server/turnstile';
@@ -17,7 +17,7 @@ export const createEvent = form(eventFormSchema, async (data) => {
 
 	const eventId = ulid().toLowerCase();
 
-	const eventLocationId = await resolveEventLocationId(data);
+	const cityId = await resolveCityId(data);
 	await withPictureLock(data.picture, async (tx) => {
 		await tx.insert(events).values({
 			id: eventId,
@@ -29,7 +29,7 @@ export const createEvent = form(eventFormSchema, async (data) => {
 			startDate: new Date(data.startDate),
 			endDate: new Date(data.endDate),
 			location: data.location,
-			eventLocationId,
+			cityId,
 			...(await parsePictureFields(data, NO_PICTURE, null, tx))
 		});
 		await tx.insert(eventUser).values({ eventId, userId: signedIn.id, status: 'organizing' });

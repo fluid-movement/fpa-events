@@ -4,12 +4,12 @@ import { query, form, getRequestEvent } from '$app/server';
 import { resolve } from '$app/paths';
 import { eq } from 'drizzle-orm';
 import { db } from '#lib/server/db';
-import { events, eventLocations } from '#lib/server/db/schema';
+import { events, cities } from '#lib/server/db/schema';
 import {
 	eventFormSchema,
 	parsePictureFields,
 	releasePicture,
-	resolveEventLocationId
+	resolveCityId
 } from '#lib/server/eventForm';
 import { requireEventManager } from '#lib/server/authz';
 import { requireTurnstile } from '#lib/server/turnstile';
@@ -28,14 +28,14 @@ export const getEvent = query(text, async (id) => {
 			startDate: events.startDate,
 			endDate: events.endDate,
 			location: events.location,
-			city: eventLocations.city,
-			country: eventLocations.country,
+			city: cities.city,
+			country: cities.country,
 			picture: events.picture,
 			pictureWidth: events.pictureWidth,
 			pictureHeight: events.pictureHeight
 		})
 		.from(events)
-		.leftJoin(eventLocations, eq(events.eventLocationId, eventLocations.id))
+		.leftJoin(cities, eq(events.cityId, cities.id))
 		.where(eq(events.id, id))
 		.limit(1);
 
@@ -59,7 +59,7 @@ export const updateEvent = form(eventFormSchema, async (data) => {
 	const existing = await requireEventManager(eventId);
 	await requireTurnstile(data.turnstileToken);
 
-	const eventLocationId = await resolveEventLocationId(data, existing.eventLocationId);
+	const cityId = await resolveCityId(data, existing.cityId);
 	const picture = await withPictureLock(data.picture || existing.picture, async (tx) => {
 		const picture = await parsePictureFields(data, existing, eventId, tx);
 		await tx
@@ -71,7 +71,7 @@ export const updateEvent = form(eventFormSchema, async (data) => {
 				startDate: new Date(data.startDate),
 				endDate: new Date(data.endDate),
 				location: data.location,
-				eventLocationId,
+				cityId,
 				...picture,
 				updatedAt: new Date()
 			})

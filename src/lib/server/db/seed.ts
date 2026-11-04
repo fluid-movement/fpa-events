@@ -67,12 +67,12 @@ const users = [
 ];
 
 // ---------------------------------------------------------------------------
-// Event locations (city-level, deduplicated across events)
+// Cities (shared canonical markers)
 // ---------------------------------------------------------------------------
 
-type LocationSeed = { city: string; country: string; latitude: number; longitude: number };
+type CitySeed = { city: string; country: string; latitude: number; longitude: number };
 
-const EVENT_LOCATIONS: LocationSeed[] = [
+const CITIES: CitySeed[] = [
 	{ city: 'Portland', country: 'USA', latitude: 45.5231, longitude: -122.6765 },
 	{ city: 'Amsterdam', country: 'Netherlands', latitude: 52.3676, longitude: 4.9041 },
 	{ city: 'Berlin', country: 'Germany', latitude: 52.52, longitude: 13.405 },
@@ -93,8 +93,8 @@ const EVENT_LOCATIONS: LocationSeed[] = [
 	{ city: 'Melbourne', country: 'Australia', latitude: -37.8136, longitude: 144.9631 }
 ];
 
-function locationKey(city: string, country: string) {
-	return `${city}|${country}`;
+function cityKey(city: string, country: string) {
+	return JSON.stringify([country.toLowerCase(), city.toLowerCase()]);
 }
 
 // ---------------------------------------------------------------------------
@@ -103,7 +103,7 @@ function locationKey(city: string, country: string) {
 
 type EventSeed = Omit<
 	typeof schema.events.$inferInsert,
-	'userId' | 'eventLocationId' | 'createdAt' | 'updatedAt'
+	'userId' | 'cityId' | 'createdAt' | 'updatedAt'
 > & {
 	locationCity: string;
 	locationCountry: string;
@@ -470,7 +470,7 @@ async function main() {
 	await db.delete(schema.eventMagicLinks);
 	await db.delete(schema.eventUser);
 	await db.delete(schema.events);
-	await db.delete(schema.eventLocations);
+	await db.delete(schema.cities);
 	// Preserve any real user accounts by only deleting example.com seed users and the admin
 	await db.delete(schema.user).where(sql`email LIKE '%@example.com' OR email = ${ADMIN_EMAIL}`);
 
@@ -503,16 +503,13 @@ async function main() {
 	const userIds = insertedUsers.map((u) => u.id);
 	const adminId = insertedUsers.find((u) => u.email === ADMIN_EMAIL)!.id;
 
-	console.log('📍 Seeding event locations...');
+	console.log('📍 Seeding cities...');
 
-	const insertedLocations = await db
-		.insert(schema.eventLocations)
-		.values(EVENT_LOCATIONS)
-		.returning();
+	const insertedCities = await db.insert(schema.cities).values(CITIES).returning();
 
 	// Build lookup map: "City|Country" → id
-	const locationIdMap = new Map<string, number>(
-		insertedLocations.map((l) => [locationKey(l.city, l.country), l.id])
+	const cityIdMap = new Map<string, number>(
+		insertedCities.map((l) => [cityKey(l.city, l.country), l.id])
 	);
 
 	console.log('📅 Seeding events...');
@@ -523,7 +520,7 @@ async function main() {
 		return {
 			...rest,
 			userId: i % 5 === 0 ? adminId : userIds[i % userIds.length],
-			eventLocationId: locationIdMap.get(locationKey(locationCity, locationCountry)) ?? null,
+			cityId: cityIdMap.get(cityKey(locationCity, locationCountry)) ?? null,
 			createdAt: new Date(),
 			updatedAt: new Date()
 		};
@@ -542,7 +539,7 @@ async function main() {
 
 	type ScheduleLocationInsert = typeof schema.scheduleLocations.$inferInsert;
 
-	const scheduleLocationSeeds: ScheduleLocationInsert[] = [
+	const scheduleCitySeeds: ScheduleLocationInsert[] = [
 		// World Championship 2026 venues (Geneva)
 		...(worldChamp2026
 			? [
@@ -597,8 +594,8 @@ async function main() {
 	];
 
 	const insertedScheduleLocations =
-		scheduleLocationSeeds.length > 0
-			? await db.insert(schema.scheduleLocations).values(scheduleLocationSeeds).returning()
+		scheduleCitySeeds.length > 0
+			? await db.insert(schema.scheduleLocations).values(scheduleCitySeeds).returning()
 			: [];
 
 	// Build lookup: eventId + name → scheduleLocation id
@@ -758,7 +755,7 @@ async function main() {
 	const attendingCount = rsvps.filter((r) => r.status === 'attending').length;
 
 	console.log(
-		`✅ Done! Seeded ${insertedUsers.length} users, ${insertedLocations.length} locations, ` +
+		`✅ Done! Seeded ${insertedUsers.length} users, ${insertedCities.length} locations, ` +
 			`${insertedEvents.length} events, ${insertedScheduleLocations.length} schedule locations, ` +
 			`${schedules.length} schedule items, ${organizingCount} organizers, ${attendingCount} attendees.`
 	);

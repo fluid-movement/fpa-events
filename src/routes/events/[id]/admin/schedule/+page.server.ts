@@ -1,5 +1,5 @@
 import { db } from '#lib/server/db';
-import { events, schedules, eventLocations } from '#lib/server/db/schema';
+import { events, schedules, cities } from '#lib/server/db/schema';
 import { autocomplete } from '#lib/geocoding';
 import { sanitizeRichText } from '#lib/utils/html';
 import { requireEventManager, requireSignedIn } from '#lib/server/authz';
@@ -27,9 +27,9 @@ export const load = (async ({ params, locals }) => {
 	await requireEventManager(id);
 
 	const [row] = await db
-		.select({ event: events, location: eventLocations })
+		.select({ event: events, location: cities })
 		.from(events)
-		.leftJoin(eventLocations, eq(events.eventLocationId, eventLocations.id))
+		.leftJoin(cities, eq(events.cityId, cities.id))
 		.where(eq(events.id, id));
 	if (!row) error(404, 'Not found');
 

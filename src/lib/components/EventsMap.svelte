@@ -12,7 +12,7 @@
 		startDate: Date;
 		endDate: Date;
 		location: string | null;
-		eventLocationId: number | null;
+		cityId: number | null;
 		latitude: number | null;
 		longitude: number | null;
 	};
@@ -49,9 +49,7 @@
 			// Events sharing a city get one marker with a combined popup. Events with
 			// no shared location fall back to their exact coordinates as the key.
 			const groups = groupBy(locatedEvents, (ev) =>
-				ev.eventLocationId != null
-					? `loc:${ev.eventLocationId}`
-					: `coord:${ev.latitude},${ev.longitude}`
+				ev.cityId != null ? `loc:${ev.cityId}` : `coord:${ev.latitude},${ev.longitude}`
 			);
 
 			const markers: Marker[] = [];

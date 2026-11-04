@@ -44,7 +44,7 @@ export const events = pgTable(
 		startDate: timestamp('start_date', { mode: 'date' }).notNull(),
 		endDate: timestamp('end_date', { mode: 'date' }).notNull(),
 		location: text('location').notNull(),
-		eventLocationId: integer('event_location_id').references((): AnyPgColumn => eventLocations.id, {
+		cityId: integer('city_id').references((): AnyPgColumn => cities.id, {
 			onDelete: 'set null'
 		}),
 		description: text('description').notNull(),
@@ -110,8 +110,8 @@ export const eventMagicLinks = pgTable(
 );
 
 // Global city-level locations — deduplicated, shared across all events
-export const eventLocations = pgTable(
-	'event_locations',
+export const cities = pgTable(
+	'cities',
 	{
 		id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
 		city: text('city').notNull(),
@@ -119,7 +119,12 @@ export const eventLocations = pgTable(
 		latitude: real('latitude').notNull(),
 		longitude: real('longitude').notNull()
 	},
-	(table) => [index('event_locations_city_country_idx').on(table.city, table.country)]
+	(table) => [
+		uniqueIndex('cities_country_city_unique').on(
+			sql`lower(${table.country})`,
+			sql`lower(${table.city})`
+		)
+	]
 );
 
 // Per-event venue locations — scoped to one event, reusable across its schedule items
@@ -165,9 +170,9 @@ export const eventsRelations = relations(events, ({ one, many }) => ({
 		fields: [events.userId],
 		references: [user.id]
 	}),
-	eventLocation: one(eventLocations, {
-		fields: [events.eventLocationId],
-		references: [eventLocations.id]
+	city: one(cities, {
+		fields: [events.cityId],
+		references: [cities.id]
 	}),
 	eventUsers: many(eventUser),
 	eventMagicLinks: many(eventMagicLinks),
@@ -175,7 +180,7 @@ export const eventsRelations = relations(events, ({ one, many }) => ({
 	scheduleLocations: many(scheduleLocations)
 }));
 
-export const eventLocationsRelations = relations(eventLocations, ({ many }) => ({
+export const citiesRelations = relations(cities, ({ many }) => ({
 	events: many(events)
 }));
 
