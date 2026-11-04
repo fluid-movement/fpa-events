@@ -1,0 +1,4 @@
+- [ ] Table is named cities; events.city_id replaces event_location_id (nullable, on delete set null); no reference to event_locations remains in src
+- [ ] Unique index on (lower(country), lower(city)); findOrCreateCity is race-safe (ON CONFLICT DO NOTHING then select) and never moves an existing row's coordinates
+- [ ] Migration merges pre-existing duplicate cities, repointing events, and applies cleanly to a database that has duplicates
+- [ ] seed.ts, form/remote callers and EventsMap use the new names; npm run check and npm run test pass; unit test covers findOrCreateCity reuse and the dedupe key

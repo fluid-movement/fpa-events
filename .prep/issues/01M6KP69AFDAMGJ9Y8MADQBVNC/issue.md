@@ -1,0 +1,16 @@
+---
+title: Canonical cities table
+kind: code
+parent: 01M5EVT0B4G7G7V5AA15ZC5BWP
+---
+
+Rename event_locations to cities and make it one row per city, so events and crews share one marker per city.
+
+- Rename table event_locations -> cities; events.event_location_id -> city_id (nullable, on delete set null).
+- Unique index on (lower(country), lower(city)). findOrCreateCity inserts with ON CONFLICT DO NOTHING then selects (race-safe); replaces findOrCreateEventLocation's 11 m coordinate match.
+- First write wins: an existing row's coordinates are never moved.
+- Migration merges existing duplicates per (country, city): repoint events to the lowest id, delete the rest, keep the survivor's coordinates.
+- Update seed.ts, eventForm.ts, EventsMap, home page and schedule loads, tests for the rename.
+- Geocoder is Photon and exposes no stable place id; identity is text-based on purpose.
+
+## Open questions

@@ -1,0 +1,17 @@
+---
+title: Crew model and creation
+kind: code
+parent: 01M5EVT0B4G7G7V5AA15ZC5BWP
+depends_on:
+  - 01M6KP69AFDAMGJ9Y8MADQBVNC
+---
+
+Crews table and create/edit flows. Only crew admins can edit anything on a crew; members only appear in the list.
+
+- crews.city_id NOT NULL UNIQUE references cities. One crew per city; no contention flow. Creating in a city that has a crew shows 'this city already has a crew' and links to it.
+- Admins can change the crew's city (repoints city_id, same uniqueness rule).
+- Creating a crew makes the creator its first admin (crew_members row, see the membership issue).
+- Remote functions in data.remote.ts, shared authz helpers (requireCrewAdmin), seed.ts updated with crews.
+- Tests: only admins edit, one crew per city.
+
+## Open questions

@@ -47,5 +47,6 @@
 * [Plain vite and vitest for local tooling; vite-plus removed](/decisions/01M6E593PS1MKH2JJ9JFJVEFW6.md) - Owner decision 2026-11-02: no vp; dev is vite dev, tests are vitest run
 * [Keep Coolify traffic analytics with anonymized IPs and describe it in the privacy policy](/decisions/01M6E5B6FK1PPAA6HD58PZ7KPJ.md) - Owner decision 2026-11-02 on the traffic analytics setting
 * [Review the dependency tree monthly and before dependency-changing releases](/decisions/01M6E5B6KJNSPM3HATZGHD8G26.md) - Same rule, updated now that tools/migrate is deleted and vite-plus is removed
+* [Cities are canonical shared markers](/decisions/01M6KP6KJEB8CJY0EQ6VG5NM4P.md) - event_locations becomes cities: one row per (country, city), found by identity and reused, first marker wins and is never moved. Events and crews both reference it. Crews are unique per city, may change city, and there is no contention flow. Reason: crew pages list every event in the city, which needs a single row per city.
 * [One dark theme, no light mode](/decisions/dark-only-theme.md) - The app ships a single dark theme; no dark: variants, toggle or prefers-color-scheme handling.
 * [Product scope relative to the Laravel app](/decisions/product-scope.md) - What was dropped (judging, divisions, membership), what was kept and rebuilt differently, and why there is no /admin area.
