@@ -2,7 +2,7 @@ import { getRequestEvent } from '$app/server';
 import { error, redirect } from '@sveltejs/kit';
 import { resolve } from '$app/paths';
 import { db } from '#lib/server/db';
-import { events, eventUser } from '#lib/server/db/schema';
+import { events, eventUser, crews, crewMembers } from '#lib/server/db/schema';
 import { isStoredId } from '#lib/server/validation';
 import { and, eq } from 'drizzle-orm';
 
@@ -125,4 +125,19 @@ export function requireEventManager(eventId: string) {
  */
 export function requireEventOwner(eventId: string) {
 	return requireEventAccess(eventId, isEventManager);
+}
+
+/** Require a crew admin or site admin; ordinary members have no editing rights. */
+export async function requireCrewAdmin(crewId: string) {
+	const { user, role } = requireUser();
+	if (!isStoredId(crewId)) error(400, 'Invalid crew ID');
+	const [crew] = await db.select().from(crews).where(eq(crews.id, crewId)).limit(1);
+	if (!crew) error(404, 'Crew not found');
+	if (role !== 'admin') {
+		const [membership] = await db.select().from(crewMembers).where(and(
+			eq(crewMembers.crewId, crewId), eq(crewMembers.userId, user.id), eq(crewMembers.role, 'admin')
+		)).limit(1);
+		if (!membership) error(403, 'Only crew admins can edit this crew');
+	}
+	return crew;
 }

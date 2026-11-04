@@ -25,9 +25,10 @@ const sources: Record<string, string> = Object.fromEntries(
 		])
 );
 
-type Guard = 'manager' | 'owner' | 'signedIn' | 'dev' | 'public';
+type Guard = 'crewAdmin' | 'manager' | 'owner' | 'signedIn' | 'dev' | 'public';
 
 const GUARD_CALL: Record<Exclude<Guard, 'public'>, string> = {
+	crewAdmin: 'requireCrewAdmin(',
 	manager: 'requireEventManager(',
 	owner: 'requireEventOwner(',
 	signedIn: 'requireSignedInRequest(',
@@ -35,6 +36,8 @@ const GUARD_CALL: Record<Exclude<Guard, 'public'>, string> = {
 };
 
 const REGISTRY: Record<string, Guard> = {
+	'/src/routes/crews/create/data.remote.ts#createCrew': 'signedIn',
+	'/src/routes/crews/[id]/admin/data.remote.ts#updateCrew': 'crewAdmin',
 	// events/[id]/admin
 	'/src/routes/events/[id]/admin/delete-event.remote.ts#deleteEvent': 'owner',
 	'/src/routes/events/[id]/admin/event-details.remote.ts#getEvent': 'manager',

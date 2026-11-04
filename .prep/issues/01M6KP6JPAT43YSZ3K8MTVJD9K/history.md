@@ -1,1 +1,3 @@
 - 2026-11-04T16:36:47Z edited by claude-code: title, requirement
+
+- 2026-11-04T17:06:43Z codex: Blocked: just test-db cannot access the OrbStack Docker socket (permission denied); its _db guard reports port 5432 held by OrbStack. npx svelte-kit sync succeeds, but npm run check reports 67 errors primarily from unresolved generated ./$types modules with shared symlinked node_modules. Reviewed partial implementation and confirmed migration 0005 matches schema; no implementation edits made. Authorization unit tests and Playwright create-crew coverage remain missing; npm run test and Playwright were not run. Stopped as requested without committing, completing, or checking criteria.

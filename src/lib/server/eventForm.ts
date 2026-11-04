@@ -159,7 +159,7 @@ export async function releaseEventPictures(
  * half-filled set would otherwise pin the event somewhere it is not.
  */
 export async function resolveCityId(
-	data: EventFormData,
+	data: Pick<EventFormData, 'city' | 'country' | 'latitude' | 'longitude'>,
 	fallback: number | null = null
 ): Promise<number | null> {
 	if (!data.city || !data.country || !data.latitude || !data.longitude) return fallback;

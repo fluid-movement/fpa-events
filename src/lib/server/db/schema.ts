@@ -1,6 +1,8 @@
 import { relations, sql } from 'drizzle-orm';
 import {
 	pgTable,
+	primaryKey,
+	check,
 	text,
 	integer,
 	index,
@@ -126,6 +128,26 @@ export const cities = pgTable(
 		)
 	]
 );
+
+export const crews = pgTable('crews', {
+	id: text('id').primaryKey(),
+	name: text('name').notNull(),
+	cityId: integer('city_id').notNull().unique().references(() => cities.id),
+	createdAt: timestamp('created_at', { mode: 'date' }).default(sql`now()`).notNull(),
+	updatedAt: timestamp('updated_at', { mode: 'date' }).default(sql`now()`).$onUpdate(() => new Date()).notNull()
+});
+
+export const crewMembers = pgTable('crew_members', {
+	crewId: text('crew_id').notNull().references(() => crews.id, { onDelete: 'cascade' }),
+	userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+	role: text('role', { enum: ['admin', 'member'] }).notNull(),
+	createdAt: timestamp('created_at', { mode: 'date' }).default(sql`now()`).notNull()
+}, (table) => [
+	primaryKey({ columns: [table.crewId, table.userId] }),
+	uniqueIndex('crew_members_user_id_unique').on(table.userId),
+	index('crew_members_crew_id_index').on(table.crewId),
+	check('crew_members_role_check', sql`${table.role} in ('admin', 'member')`)
+]);
 
 // Per-event venue locations — scoped to one event, reusable across its schedule items
 export const scheduleLocations = pgTable('schedule_locations', {
