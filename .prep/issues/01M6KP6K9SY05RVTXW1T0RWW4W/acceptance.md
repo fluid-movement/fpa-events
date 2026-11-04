@@ -1,4 +1,4 @@
-- [ ] crews.body and body_lang exist; admins save a sanitized body with a validated language; non-admins cannot
-- [ ] The details page renders the body inside an element with the declared lang attribute and keeps the rest of the page in the app language
-- [ ] A Translate / Show original control appears only when the declared language differs from the browser language and Translator is available; failure falls back to the original; translated text is never injected as HTML
-- [ ] Vitest for translate helpers and language validation, Playwright for save/render/translate stub; npm run check and npm run test pass
+- [x] crews.body and body_lang exist; admins save a sanitized body with a validated language; non-admins cannot
+- [x] The details page renders the body inside an element with the declared lang attribute and keeps the rest of the page in the app language
+- [x] A Translate / Show original control appears only when the declared language differs from the browser language and Translator is available; failure falls back to the original; translated text is never injected as HTML
+- [x] Vitest for translate helpers and language validation, Playwright for save/render/translate stub; npm run check and npm run test pass

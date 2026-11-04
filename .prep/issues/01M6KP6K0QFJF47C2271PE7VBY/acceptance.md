@@ -1,4 +1,4 @@
-- [ ] crews.picture, picture_width and picture_height exist; admins upload, replace and remove a banner on the crew edit page; non-admins cannot
-- [ ] The banner shows at the top of the details page without cropping and reserves layout space; a crew hero without a picture still looks right
-- [ ] Picture reference counting and the orphan sweep consider crew pictures, replacing/removing/deleting a crew releases the old object, and a crew cannot adopt another crew's or event's image
-- [ ] Vitest and a Playwright spec cover these; npm run check and npm run test pass
+- [x] crews.picture, picture_width and picture_height exist; admins upload, replace and remove a banner on the crew edit page; non-admins cannot
+- [x] The banner shows at the top of the details page without cropping and reserves layout space; a crew hero without a picture still looks right
+- [x] Picture reference counting and the orphan sweep consider crew pictures, replacing/removing/deleting a crew releases the old object, and a crew cannot adopt another crew's or event's image
+- [x] Vitest and a Playwright spec cover these; npm run check and npm run test pass
