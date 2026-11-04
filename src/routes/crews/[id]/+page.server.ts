@@ -1,4 +1,5 @@
 import { error } from '@sveltejs/kit';
+import { getCrewStats } from '#lib/server/crewStats';
 import { crewExitBlocked } from '#lib/crew-membership-policy';
 import { eq, and, asc, count } from 'drizzle-orm';
 import { db } from '#lib/server/db';
@@ -43,6 +44,7 @@ export const load = (async ({ params, locals, url }) => {
 		: 1;
 	const membership = ownMembership[0];
 	return {
+		stats: await getCrewStats(id, crew.cityId, now),
 		title: crew.name,
 		upcoming,
 		past: past.slice((pastPage - 1) * pageSize, pastPage * pageSize),

@@ -1,0 +1,3 @@
+- [ ] getCrewStats computes members, past/upcoming event counts, total RSVPs, years of jams, busiest month and biggest jam for the crew's city with a fixed number of grouped queries and no other city's events
+- [ ] The details page shows the stats as playful tiles, with friendly zero states for a crew whose city has no events
+- [ ] Vitest for the pure helpers and a Playwright spec cover the numbers and the empty state; npm run check and npm run test pass

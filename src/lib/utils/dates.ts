@@ -14,6 +14,11 @@ type DateLike = Date | string;
 
 const toDate = (value: DateLike): Date => (value instanceof Date ? value : new Date(value));
 
+/** Full calendar month name, for city jam statistics. */
+export function formatMonth(date: DateLike): string {
+	return toDate(date).toLocaleDateString(DEFAULT_LOCALE, { month: 'long' });
+}
+
 export function toISODate(d: Date): string {
 	const pad = (n: number) => n.toString().padStart(2, '0');
 	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;

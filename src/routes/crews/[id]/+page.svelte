@@ -1,4 +1,5 @@
 <script lang="ts">
+	import CrewStats from '#lib/components/CrewStats.svelte';
 	import { resolve } from '$app/paths';
 	import { Button } from '#lib/components/ui/button';
 	import ConfirmSubmit from '#lib/components/layout/ConfirmSubmit.svelte';
@@ -25,7 +26,7 @@
 	<!-- Crew body text: reserved for the crew content issue. -->
 	<!-- Contact links: reserved for the crew contact issue. -->
 	<!-- Regular jams: reserved for the crew jams issue. -->
-	<!-- Crew stats: reserved for the crew stats issue. -->
+	<CrewStats stats={data.stats} />
 	<section class="flex flex-col gap-4" aria-label="Crew members">
 		<h2>Members</h2>
 		<ul data-testid="crew-members">
