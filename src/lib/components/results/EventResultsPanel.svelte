@@ -24,11 +24,13 @@
 
 	// Resolve against what the event actually has, so a stale link from another
 	// event's division lands on real results rather than an empty page.
-	const active = $derived.by(() => {
-		if (!event.ok) return undefined;
-		const names = event.data.results.map((r) => r.division);
-		return division && names.includes(division) ? division : names[0];
-	});
+	// The API can return the same division more than once; tabs are keyed by
+	// their href, so a repeat would throw each_key_duplicate.
+	const divisions = $derived(
+		event.ok ? [...new Set(event.data.results.map((r) => r.division))] : []
+	);
+
+	const active = $derived(division && divisions.includes(division) ? division : divisions[0]);
 
 	const current = $derived(
 		event.ok ? event.data.results.find((r) => r.division === active) : undefined
@@ -56,13 +58,13 @@
 	{#if event.data.results.length === 0}
 		<EmptyState title="No results recorded for this event" size="compact" />
 	{:else}
-		{#if event.data.results.length > 1}
+		{#if divisions.length > 1}
 			<SegmentedTabs
-				tabs={event.data.results.map((r) => ({
-					label: r.division,
-					href: divisionHref(r.division),
-					match: [r.division],
-					testid: `event-division-${r.division.replace(/\s+/g, '-').toLowerCase()}`
+				tabs={divisions.map((name) => ({
+					label: name,
+					href: divisionHref(name),
+					match: [name],
+					testid: `event-division-${name.replace(/\s+/g, '-').toLowerCase()}`
 				}))}
 				current={active ?? ''}
 				label="Division"
