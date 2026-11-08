@@ -306,19 +306,6 @@
 	body {
 		@apply bg-background text-foreground;
 		font-family: 'Nunito Variable', sans-serif;
-		background-image:
-			linear-gradient(oklch(0 0 0 / 0.3), oklch(0 0 0 / 0.3)), url('/background.jpg');
-		background-size: auto;
-		background-position: bottom right;
-		background-repeat: no-repeat;
-	}
-
-	/* Parallax attachment is janky (and sometimes broken) on iOS, and the photo
-	   is a bottom-right decoration that only has room to read on a large screen. */
-	@media (min-width: 768px) {
-		body {
-			background-attachment: fixed;
-		}
 	}
 
 	/* The type scale. Bare headings are correct by default so pages rarely need
