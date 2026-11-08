@@ -56,7 +56,7 @@
 <!-- Primary navigation on a phone. The sidebar sheet still holds everything;
      this is the thumb-reachable shortcut to the places people live in. -->
 <nav
-	class="surface-sunken fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 rounded-none border-x-0 border-b-0 pb-[env(safe-area-inset-bottom)] transition-transform duration-300 ease-out md:hidden
+	class="surface-sunken fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 rounded-none border-b-0 pt-2 pb-[env(safe-area-inset-bottom)] transition-transform duration-300 ease-out md:hidden
 		{hidden ? 'translate-y-full' : 'translate-y-0'}"
 	aria-label="Primary"
 	data-testid="mobile-tab-bar"
@@ -69,7 +69,7 @@
 			href={item.url}
 			aria-current={active ? 'page' : undefined}
 			data-testid="mobile-tab-{item.label.toLowerCase().replace(' ', '-')}"
-			class="flex min-h-14 flex-col items-center justify-center gap-1 pb-1.5 text-[0.6875rem] font-medium transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50
+			class="flex min-h-14 flex-col items-center justify-center gap-1 pb-1 text-[0.6875rem] font-medium transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50
 				{active ? 'text-primary' : 'text-muted-foreground'}"
 		>
 			<item.icon class="size-5" />
