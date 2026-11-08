@@ -41,6 +41,10 @@
 		meta: 'col-start-3 row-start-1 row-span-2 self-center pl-3 text-right font-semibold md:font-normal',
 		detail: 'hidden md:table-cell'
 	};
+
+	// With no subtitle column the name is the whole middle of the row, so it
+	// spans both grid rows and centres like the lead and meta cells beside it.
+	const SOLO_PRIMARY_CLASS = 'row-span-2 self-center';
 </script>
 
 <script lang="ts" generics="T">
@@ -75,6 +79,7 @@
 		isExpanded?: (row: T) => boolean;
 	} = $props();
 
+	const hasSubtitle = $derived(columns.some((c) => c.slot === 'subtitle'));
 	const colCount = $derived(columns.length + (trailing ? 1 : 0));
 
 	function text(col: DataColumn<T>, row: T) {
@@ -133,6 +138,7 @@
 								class={cn(
 									'md:table-cell md:px-4 md:py-2.5',
 									SLOT_CLASS[col.slot ?? 'detail'],
+									col.slot === 'primary' && !hasSubtitle && SOLO_PRIMARY_CLASS,
 									col.numeric && 'tabular-nums md:text-right',
 									col.muted && 'text-muted-foreground',
 									col.cellClass?.(row)

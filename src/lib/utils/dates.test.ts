@@ -230,8 +230,17 @@ describe('formatApiDateRange', () => {
 	});
 
 	it('abbreviates months in the short style', () => {
-		expect(formatApiDateRange('2026-07-29', '2026-08-02', 'short')).toBe(
-			'Jul 29, 2026 – Aug 2, 2026'
+		expect(formatApiDateRange('2026-07-29', '2026-08-02', 'short')).toBe('Jul 29 – Aug 2, 2026');
+	});
+
+	it('collapses a same-month range in the short style', () => {
+		expect(formatApiDateRange('2026-09-04', '2026-09-05', 'short')).toBe('Sep 4–5, 2026');
+		expect(formatApiDateRange('2026-09-04', '2026-09-04', 'short')).toBe('Sep 4, 2026');
+	});
+
+	it('keeps both years when a short range crosses the new year', () => {
+		expect(formatApiDateRange('2026-12-30', '2027-01-02', 'short')).toBe(
+			'Dec 30, 2026 – Jan 2, 2027'
 		);
 	});
 

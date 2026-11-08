@@ -114,6 +114,24 @@ export function formatCompactDateRange(
 	return `${startStr} – ${e.toLocaleDateString(locale, opts)}`;
 }
 
+/**
+ * Year-bearing and compact, for a card's date slot — "Sep 4, 2026",
+ * "Sep 4–5, 2026", "Jul 29 – Aug 2, 2026". Only a range crossing a year
+ * boundary repeats the year.
+ */
+export function formatCardDateRange(start: DateLike, end: DateLike, locale = DEFAULT_LOCALE) {
+	const s = toDate(start);
+	const e = toDate(end);
+	const md: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+	const full = (d: Date) => d.toLocaleDateString(locale, { ...md, year: 'numeric' });
+
+	if (sameDay(s, e)) return full(s);
+	if (s.getFullYear() !== e.getFullYear()) return `${full(s)} – ${full(e)}`;
+	const startStr = s.toLocaleDateString(locale, md);
+	if (sameMonth(s, e)) return `${startStr}–${e.getDate()}, ${e.getFullYear()}`;
+	return `${startStr} – ${full(e)}`;
+}
+
 /** Every calendar day the event spans, as ISO dates — the schedule day picker. */
 export function daysBetween(start: DateLike, end: DateLike): string[] {
 	// Cloned: the loop advances the cursor, and `toDate` hands back the caller's
@@ -172,7 +190,7 @@ export function formatApiDateRange(
 	style: 'long' | 'short' = 'long',
 	locale = DEFAULT_LOCALE
 ): string {
-	const format = style === 'short' ? formatShortDateRange : formatFullDateRange;
+	const format = style === 'short' ? formatCardDateRange : formatFullDateRange;
 	const s = parseApiDate(start);
 	const e = parseApiDate(end);
 

@@ -23,10 +23,10 @@
 			<li>
 				<a
 					href={resolve('/results/[eventId]', { eventId: entry.eventId })}
-					class="surface-row flex items-center gap-3 rounded-xl px-4 py-3"
+					class="surface-row flex items-center gap-3 rounded-xl py-3"
 				>
 					<span
-						class="w-6 shrink-0 text-right font-semibold tabular-nums {entry.roundName ===
+						class="w-6 shrink-0 px-4 text-center text-lg font-semibold tabular-nums {entry.roundName ===
 							'Finals' && entry.place !== null
 							? rankTint(entry.place)
 							: 'text-muted-foreground'}"
@@ -44,7 +44,7 @@
 						</span>
 					</span>
 
-					<span class="shrink-0 text-sm text-muted-foreground tabular-nums">
+					<span class="shrink-0 px-4 text-sm text-muted-foreground tabular-nums">
 						{year(entry.eventDate)}
 					</span>
 				</a>

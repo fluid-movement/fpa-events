@@ -27,21 +27,25 @@
 			<li>
 				<a
 					href={resolve('/results/[eventId]', { eventId: row.id })}
-					class="surface-row flex items-center gap-3 rounded-xl px-4 py-3"
+					class="surface-row block rounded-xl px-4 py-3"
 					data-testid="results-row-{row.id}"
 				>
-					<div class="min-w-0 flex-1">
-						<p class="truncate font-semibold">{row.name}</p>
-						<div class="mt-1 flex flex-wrap items-center gap-1.5">
+					<p class="mb-4 truncate font-semibold">{row.name}</p>
+					<!-- Divisions and date share the line half and half; the date sits on the
+					     last badge row, not centred against a wrapped set of them. -->
+					<div class="mt-1 grid grid-cols-2 items-end gap-3">
+						<div class="flex flex-wrap items-center gap-1.5">
 							{#each row.divisions as division (division)}
 								<Badge variant="outline" class="text-xs font-normal">{division}</Badge>
 							{/each}
 						</div>
+						<div class="flex items-center justify-end gap-2 text-sm text-muted-foreground">
+							<span class="text-right">
+								{formatApiDateRange(row.startDate, row.endDate, 'short')}
+							</span>
+							<ChevronRightIcon class="size-4 shrink-0" />
+						</div>
 					</div>
-					<span class="shrink-0 text-right text-sm text-muted-foreground">
-						{formatApiDateRange(row.startDate, row.endDate, 'short')}
-					</span>
-					<ChevronRightIcon class="size-4 shrink-0 text-muted-foreground" />
 				</a>
 			</li>
 		{/each}

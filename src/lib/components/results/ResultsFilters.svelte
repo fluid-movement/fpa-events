@@ -70,7 +70,7 @@
 	const yearValue = $derived(year === undefined ? ALL : String(year));
 </script>
 
-<div class="mb-6 flex flex-col gap-3 md:flex-row md:items-center">
+<div class="mb-6 flex flex-col gap-4 md:flex-row md:items-center">
 	<div class="relative flex-1">
 		<SearchIcon
 			class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
@@ -103,43 +103,45 @@
 	</div>
 
 	<!-- Keyed so the trigger label follows the URL on back/forward. -->
-	{#key divisionValue}
-		<Select.Root
-			type="single"
-			value={divisionValue}
-			onValueChange={(v) => onDivision(!v || v === ALL ? undefined : v)}
-		>
-			<Select.Trigger class="md:w-48" data-testid="results-division">
-				{division ?? 'All divisions'}
-			</Select.Trigger>
-			<Select.Content>
-				<Select.Group>
-					<Select.Item value={ALL}>All divisions</Select.Item>
-					{#each divisions as d (d)}
-						<Select.Item value={d}>{d}</Select.Item>
-					{/each}
-				</Select.Group>
-			</Select.Content>
-		</Select.Root>
-	{/key}
+	<div class="flex gap-2">
+		{#key divisionValue}
+			<Select.Root
+				type="single"
+				value={divisionValue}
+				onValueChange={(v) => onDivision(!v || v === ALL ? undefined : v)}
+			>
+				<Select.Trigger class="md:w-48" data-testid="results-division">
+					{division ?? 'All divisions'}
+				</Select.Trigger>
+				<Select.Content>
+					<Select.Group>
+						<Select.Item value={ALL}>All divisions</Select.Item>
+						{#each divisions as d (d)}
+							<Select.Item value={d}>{d}</Select.Item>
+						{/each}
+					</Select.Group>
+				</Select.Content>
+			</Select.Root>
+		{/key}
 
-	{#key yearValue}
-		<Select.Root
-			type="single"
-			value={yearValue}
-			onValueChange={(v) => onYear(!v || v === ALL ? undefined : Number(v))}
-		>
-			<Select.Trigger class="md:w-32" data-testid="results-year">
-				{year ?? 'All years'}
-			</Select.Trigger>
-			<Select.Content>
-				<Select.Group>
-					<Select.Item value={ALL}>All years</Select.Item>
-					{#each years as y (y)}
-						<Select.Item value={String(y)}>{y}</Select.Item>
-					{/each}
-				</Select.Group>
-			</Select.Content>
-		</Select.Root>
-	{/key}
+		{#key yearValue}
+			<Select.Root
+				type="single"
+				value={yearValue}
+				onValueChange={(v) => onYear(!v || v === ALL ? undefined : Number(v))}
+			>
+				<Select.Trigger class="md:w-32" data-testid="results-year">
+					{year ?? 'All years'}
+				</Select.Trigger>
+				<Select.Content>
+					<Select.Group>
+						<Select.Item value={ALL}>All years</Select.Item>
+						{#each years as y (y)}
+							<Select.Item value={String(y)}>{y}</Select.Item>
+						{/each}
+					</Select.Group>
+				</Select.Content>
+			</Select.Root>
+		{/key}
+	</div>
 </div>
